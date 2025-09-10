@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\User;
 use App\Models\Task;
 use App\Models\DailyTask;
+use App\Policies\TaskPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Carbon\Carbon;
@@ -18,7 +19,9 @@ class AppServiceProvider extends ServiceProvider
     {
         //
     }
-
+    protected $policies = [
+        Task::class => TaskPolicy::class,
+    ];
     /**
      * Bootstrap any application services.
      */
@@ -73,6 +76,10 @@ class AppServiceProvider extends ServiceProvider
             }
 
             return false;
+        });
+
+        Gate::define('update-task-division', function (User $user) {
+            return $user->role === 'manager';
         });
 
         Gate::define('manage-admin-tasks', function (User $user){

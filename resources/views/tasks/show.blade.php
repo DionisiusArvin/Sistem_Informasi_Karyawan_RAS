@@ -47,11 +47,11 @@
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
-                                    <th scope="col" class="w-2/5 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Tugas & Catatan</th>
-                                    <th scope="col" class="w-1/5 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Pekerja</th>
-                                    <th scope="col" class="w-1/5 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Progress</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">File/Link</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                                    <th scope="col" class="w-2/5 px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Tugas & Catatan</th>
+                                    <th scope="col" class="w-1/5 px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Pekerja</th>
+                                    <th scope="col" class="w-1/5 px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Progress</th>
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">File/Link</th>
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
                                     <th scope="col" class="relative px-6 py-3">
                                         <span class="sr-only">Aksi</span>
                                     </th>
@@ -94,13 +94,19 @@
                                                 <div class="flex items-center space-x-4">
                                                     @if($lastUpload->file_path)
                                                         <a href="{{ asset('storage/' . $lastUpload->file_path) }}" target="_blank" class="font-medium text-green-600 hover:text-green-800">Lihat File</a>
+                                                        @if($lastUpload && $lastUpload->file_path)
+                                                            <a href="{{ route('daily-task.download', $dailyTask->id) }}"
+                                                            class="font-medium text-indigo-600 hover:text-indigo-800">
+                                                            Download File
+                                                            </a>
+                                                        @endif
                                                     @endif
                                                     @if($lastUpload->link_url)
                                                         <a href="{{ $lastUpload->link_url }}" target="_blank" class="font-medium text-blue-600 hover:text-blue-800">Lihat Link</a>
                                                     @endif
                                                 </div>
                                             @else
-                                                <span class="text-gray-400">-</span>
+                                                <span class="text-gray-400">-</span> 
                                             @endif
                                         </td>
 
@@ -239,9 +245,6 @@
                             </tbody>
                         </table>
                     </div>
-                    {{-- =================================================================== --}}
-                    {{-- AKHIR BAGIAN TABEL YANG DIRAPIKAN --}}
-                    {{-- =================================================================== --}}
                 </div>
             </div>
         </div>

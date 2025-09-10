@@ -10,6 +10,8 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
+
 
 
 class DailyTaskController extends Controller
@@ -191,5 +193,18 @@ class DailyTaskController extends Controller
 
         return back()->with('success', 'Tugas harian berhasil dihapus.');
     }
+
+    public function download($id)
+{
+    $dailyTask = DailyTask::findOrFail($id);
+    $lastUpload = $dailyTask->activities()->where('activity_type', 'upload_pekerjaan')->latest()->first();
+
+    if (!$lastUpload || !$lastUpload->file_path) {
+        return redirect()->back()->with('error', 'File tidak ditemukan.');
+    }
+
+    return response()->download(storage_path('app/public/' . $lastUpload->file_path));
+}
+
 
 }

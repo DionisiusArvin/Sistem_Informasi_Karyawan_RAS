@@ -46,20 +46,20 @@
                         <table class="min-w-full bg-white dark:bg-gray-800">
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
-                                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm text-gray-600 dark:text-gray-300">Tugas Harian</th>
-                                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm text-gray-600 dark:text-gray-300">Proyek</th>
-                                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm text-gray-600 dark:text-gray-300">Pekerja</th>
-                                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm text-gray-600 dark:text-gray-300">Status</th>
-                                    <th class="text-left py-3 px-4 uppercase font-semibold text-sm text-gray-600 dark:text-gray-300">Waktu Update</th>
+                                    <th class="text-center py-3 px-4 uppercase font-semibold text-sm text-gray-600 dark:text-gray-300">Tugas Harian</th>
+                                    <th class="text-center py-3 px-4 uppercase font-semibold text-sm text-gray-600 dark:text-gray-300">Proyek</th>
+                                    <th class="text-center py-3 px-4 uppercase font-semibold text-sm text-gray-600 dark:text-gray-300">Pekerja</th>
+                                    <th class="text-center py-3 px-4 uppercase font-semibold text-sm text-gray-600 dark:text-gray-300">Status</th>
+                                    <th class="text-center py-3 px-4 uppercase font-semibold text-sm text-gray-600 dark:text-gray-300">Waktu Update</th>
                                 </tr>
                             </thead>
                             <tbody class="text-gray-700 dark:text-gray-400 divide-y divide-gray-200 dark:divide-gray-700">
                                 @forelse ($reportData as $task)
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                                         <td class="py-4 px-4 font-medium text-gray-900 dark:text-white">{{ $task->name }}</td>
-                                        <td class="py-4 px-4 text-sm">{{ $task->task->project->name }}</td>
-                                        <td class="py-4 px-4 text-sm">{{ $task->assignedToStaff->name ?? 'N/A' }}</td>
-                                        <td class="py-4 px-4">
+                                        <td class="py-4 px-4 text-center text-sm">{{ $task->task->project->name }}</td>
+                                        <td class="py-4 px-4 text-center text-sm">{{ $task->assignedToStaff->name ?? 'N/A' }}</td>
+                                        <td class="py-4 px-4 text-center">
                                             @php
                                                 $statusColor = match ($task->status) {
                                                     'Selesai' => 'bg-green-100 text-green-800',
@@ -73,7 +73,7 @@
                                                 {{ $task->status }}
                                             </span>
                                         </td>
-                                        <td class="py-4 px-4 text-sm font-semibold">{{ $task->updated_at->format('H:i') }} WIB</td>
+                                        <td class="py-4 px-4 text-center text-sm font-semibold">{{ $task->updated_at->format('H:i') }} WIB</td>
                                     </tr>
                                 @empty
                                     <tr>

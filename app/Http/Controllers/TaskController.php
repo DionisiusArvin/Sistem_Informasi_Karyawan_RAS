@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Project;
 use App\Models\Task; // Impor model Task
 use App\Models\User; // Impor model User
+use App\Models\Division;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth; // Impor Auth
 use Illuminate\Support\Facades\Gate; // Impor Gate
@@ -83,5 +84,29 @@ class TaskController extends Controller
             'staff' => $staffInDivision
         ]);
     }
+
+    public function download($id)
+{
+    $upload = Upload::findOrFail($id);
+    return response()->download(storage_path('app/public/' . $upload->file_path));
+}
+
+public function updateDivision(Request $request, Task $task)
+{
+    if (! Gate::allows('update-task-division')) {
+        abort(403);
+    }
+
+    $validated = $request->validate([
+        'divisions'   => 'required|array',
+        'divisions.*' => 'exists:divisions,id',
+    ]);
+
+    // sinkronkan divisi (hapus yang lama, ganti dengan yang baru)
+    $task->divisions()->sync($validated['divisions']);
+
+    return redirect()->route('projects.show', $task->project_id)
+                     ->with('success', 'Divisi tugas berhasil diperbarui.');
+}
 
 }

@@ -38,6 +38,9 @@ Route::middleware('auth')->group(function () {
     Route::patch('/dailytasks/{dailyTask}', [DailyTaskController::class, 'update'])->name('dailytasks.update');
     Route::delete('/dailytasks/{dailyTask}', [DailyTaskController::class, 'destroy'])->name('dailytasks.destroy');
 
+    Route::get('/tasks/{task}', [TaskController::class, 'show'])->name('tasks.show');
+    Route::patch('/tasks/{task}/update-division', [TaskController::class, 'updateDivision'])->name('tasks.updateDivision');
+
     Route::get('/division-tasks', [DivisionTaskController::class, 'index'])->name('division-tasks.index');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -54,18 +57,23 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('ad-hoc-tasks', AdHocTaskController::class);
     Route::get('/ad-hoc-tasks/{adHocTask}/upload', [AdHocTaskController::class, 'showUploadForm'])->name('ad-hoc-tasks.upload.form');
+    Route::get('/ad-hoc-tasks/{id}/download', [AdHocTaskController::class, 'downloadFile'])->name('ad-hoc-tasks.downloadFile');
     Route::post('/ad-hoc-tasks/{adHocTask}/upload', [AdHocTaskController::class, 'handleUpload'])->name('ad-hoc-tasks.upload.handle');
-
+    Route::post('/ad-hoc-tasks/{id}/upload', [AdHocTaskController::class, 'upload'])->name('ad-hoc-tasks.upload');
+    Route::get('/ad-hoc-tasks/{adHocTask}/upload', [AdHocTaskController::class, 'showUploadForm'])->name('ad-hoc-tasks.upload.form');
+    Route::post('/ad-hoc-tasks/{adHocTask}/upload', [AdHocTaskController::class, 'handleUpload'])->name('ad-hoc-tasks.upload.handle');
+    
     Route::get('/reports/daily-tasks/export', [ReportController::class, 'exportDailyTasks'])->name('reports.daily-tasks.export');
 
     Route::resource('leaves', LeaveController::class);
     Route::get('/leaves', [LeaveController::class, 'index'])->name('leaves.index');
-    Route::get('/leaves/create', [LeaveController::class, 'create'])->name('leaves.create');
+    Route::get('/leaves/create', [LeaveController::class, 'create'])->name('leaves.create');    
     Route::post('/leaves', [LeaveController::class, 'store'])->name('leaves.store');
 
     Route::patch('/leaves/{leave}/approve', [LeaveController::class, 'approve'])->name('leaves.approve');
     Route::patch('/leaves/{leave}/reject', [LeaveController::class, 'reject'])->name('leaves.reject');
 
+    Route::get('/daily-tasks/{id}/download', [DailyTaskController::class, 'download'])->name('daily-task.download');
 });
 
 require __DIR__.'/auth.php';

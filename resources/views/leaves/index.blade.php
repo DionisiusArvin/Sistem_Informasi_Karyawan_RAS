@@ -1,10 +1,5 @@
 <x-app-layout>
     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-
-        {{-- =================================================================== --}}
-        {{-- AWAL BAGIAN YANG DIPERBAIKI --}}
-        {{-- Semua kontrol (Judul, Tombol Aksi, dan Filter) dijadikan satu --}}
-        {{-- =================================================================== --}}
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-6" x-data="{ showFilters: false }">
             {{-- Bagian Header: Judul dan Tombol Aksi Utama --}}
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
@@ -81,53 +76,50 @@
                 </form>
             </div>
         </div>
-        {{-- =================================================================== --}}
-        {{-- AKHIR BAGIAN YANG DIPERBAIKI --}}
-        {{-- =================================================================== --}}
-
-        {{-- Tabel Data (Tidak ada perubahan di sini) --}}
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead class="bg-gray-50 dark:bg-gray-700">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Nama</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Divisi</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Tanggal</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Jenis</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Alasan</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Aksi</th>
+                        <th class="px-3 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Nama</th>
+                        <th class="px-3 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Divisi</th>
+                        <th class="px-3 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Tanggal</th>
+                        <th class="px-3 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Jenis</th>
+                        <th class="px-3 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Alasan</th>
+                        <th class="px-3 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                        <th class="px-3 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-[140px]">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                     @forelse ($leaves as $leave)
                         <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 dark:text-gray-100">{{ $leave->user->name }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 dark:text-gray-100">{{ $leave->division->name ?? '-' }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 dark:text-gray-100">{{ \Carbon\Carbon::parse($leave->start_date)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($leave->end_date)->format('d/m/Y') }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 dark:text-gray-100">{{ ucfirst($leave->type) }}</td>
-                            <td class="px-6 py-4 text-sm text-gray-800 dark:text-gray-100 max-w-xs truncate" title="{{ $leave->reason }}">{{ $leave->reason }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-800 dark:text-gray-100">{{ $leave->user->name }}</td>
+                            <td class="px-3 py-2 text-center whitespace-nowrap text-sm text-gray-800 dark:text-gray-100">{{ $leave->division->name ?? '-' }}</td>
+                            <td class="px-3 py-2 text-center whitespace-nowrap text-sm text-gray-800 dark:text-gray-100">{{ \Carbon\Carbon::parse($leave->start_date)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($leave->end_date)->format('d/m/Y') }}</td>
+                            <td class="px-3 py-2 text-center whitespace-nowrap text-sm text-gray-800 dark:text-gray-100">{{ ucfirst($leave->type) }}</td>
+                            <td class="px-3 py-2 text-sm text-gray-800 dark:text-gray-100 max-w-[250px] break-words whitespace-normal"title="{{ $leave->reason }}">{{ $leave->reason }}</td>
+                            <td class="px-3 py-2 text-center whitespace-nowrap">
                                 @if($leave->status == 'pending')
-                                    <span class="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">Pending</span>
+                                    <span class="px-1 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">Pending</span>
                                 @elseif($leave->status == 'approved')
-                                    <span class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">Disetujui</span>
+                                    <span class="px-1 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">Disetujui</span>
                                 @else
-                                    <span class="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">Ditolak</span>
+                                    <span class="px-1 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">Ditolak</span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm flex gap-2">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm flex gap-2 w-[140px]">
                                 @if(auth()->user()->role == 'manager' && $leave->status == 'pending')
                                     <form action="{{ route('leaves.approve', $leave->id) }}" method="POST">
-                                        @csrf @method('PATCH')
+                                        @csrf
+                                        @method('PATCH') 
                                         <button type="submit" class="text-green-600 hover:text-green-900">Setujui</button>
                                     </form>
                                     <form action="{{ route('leaves.reject', $leave->id) }}" method="POST">
-                                        @csrf @method('PATCH')
+                                        @csrf
+                                        @method('PATCH') 
                                         <button type="submit" class="text-red-600 hover:text-red-900">Tolak</button>
                                     </form>
                                 @else
-                                    <span class="text-gray-500">-</span>
+                                    <span class="px-11 py-3 text-center whitespace-nowrap text-sm text-gray-800 dark:text-gray-100">-</span>
                                 @endif
                             </td>
                         </tr>

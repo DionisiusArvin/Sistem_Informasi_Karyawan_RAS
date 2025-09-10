@@ -19,25 +19,36 @@ class DailyTasksReportExport implements FromCollection, WithHeadings, WithMappin
     }
 
     public function collection()
-    {
-        $user = Auth::user();
+{
+    $user = Auth::user();
 
-        return DailyTask::whereHas('task.divisions', function ($query) use ($user) {
-                $query->where('divisions.id', $user->division_id);
-            })
-            ->whereDate('updated_at', $this->date)
-            ->with(['assignedToStaff', 'task.project'])
-            ->get();
+    $query = DailyTask::whereDate('updated_at', $this->date)
+        ->with(['assignedToStaff', 'task.project']);
+
+    if ($user->role === 'manager') {
+        // Manager bisa lihat semua staff & kepala divisi
+        // (tidak ada filter tambahan)
+    } elseif ($user->role === 'kepala_divisi') {
+        // Kepala divisi hanya bisa lihat staff di divisinya
+        $query->whereHas('task.divisions', function ($q) use ($user) {
+            $q->where('divisions.id', $user->division_id);
+        });
+    } elseif ($user->role === 'staff') {
+        // Staff hanya lihat miliknya sendiri
+        $query->where('assigned_to_staff_id', $user->id);
     }
+
+    return $query->get();
+}
+
 
 
     public function headings(): array
     {
         return [
-            'Nama Staff',
+            'Nama Tugas',
             'Proyek',
-            'Kode Proyek',
-            'Tugas Harian',
+            'Nama Staff',
             'Status',
             'Penyelesaian',
             'Tanggal Update',
@@ -47,10 +58,9 @@ class DailyTasksReportExport implements FromCollection, WithHeadings, WithMappin
     public function map($dailyTask): array
     {
         return [
-            $dailyTask->assignedToStaff->name ?? 'N/A',
-            $dailyTask->task->project->name,
-            $dailyTask->task->project->kode_proyek,
             $dailyTask->name,
+            $dailyTask->task->project->name,
+            $dailyTask->assignedToStaff->name ?? 'N/A',             
             $dailyTask->status,
             ucfirst(str_replace('_', ' ', $dailyTask->completion_status)),
             $dailyTask->updated_at->format('Y-m-d H:i:s'),

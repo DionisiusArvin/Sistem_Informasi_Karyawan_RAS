@@ -79,10 +79,10 @@
                     <table class="min-w-full bg-white dark:bg-gray-800">
                         <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr>
-                                <th class="w-2/5 text-left py-3 px-4 uppercase font-semibold text-sm text-gray-600 dark:text-gray-300">Tugas & Deskripsi</th>
-                                <th class="w-1/5 text-left py-3 px-4 uppercase font-semibold text-sm text-gray-600 dark:text-gray-300">Divisi</th>
-                                <th class="w-1/5 text-left py-3 px-4 uppercase font-semibold text-sm text-gray-600 dark:text-gray-300">Progress</th>
-                                <th class="text-left py-3 px-4 uppercase font-semibold text-sm text-gray-600 dark:text-gray-300">Aksi</th>
+                                <th class="w-2/6 text-center py-4 px-2 uppercase font-semibold text-sm text-gray-600 dark:text-gray-300">Tugas & Deskripsi</th>
+                                <th class="w-1/5 text-center py-4 px-2 uppercase font-semibold text-sm text-gray-600 dark:text-gray-300">Divisi</th>
+                                <th class="w-1/5 text-center py-4 px-2 uppercase font-semibold text-sm text-gray-600 dark:text-gray-300">Progress</th>
+                                <th class="w-1/6 text-center py-4 px-2 uppercase font-semibold text-sm text-gray-600 dark:text-gray-300">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="text-gray-700 dark:text-gray-400 divide-y divide-gray-200 dark:divide-gray-700">
@@ -97,7 +97,7 @@
                                     <td class="py-4 px-4">
                                         <div class="flex flex-wrap gap-1">
                                             @foreach($task->divisions as $division)
-                                                <span class="px-2 py-1 text-xs font-semibold leading-tight rounded-full bg-gray-100 text-gray-700">
+                                                <span class="px-2 py-1 text-center text-xs font-semibold leading-tight rounded-full bg-gray-100 text-gray-700">
                                                     {{ $division->name }}
                                                 </span>
                                             @endforeach
@@ -113,7 +113,26 @@
                                     </td>
                                     <td class="py-4 px-4">
                                         <a href="{{ route('tasks.show', $task->id) }}" class="text-blue-600 hover:underline font-medium">Detail</a>
-                                    </td>
+                                        {{-- Form ubah divisi (khusus manager) --}}
+                                        @can('update-task-division')
+                                            <form action="{{ route('tasks.updateDivision', $task->id) }}" method="POST" class="mt-2">
+                                                @csrf
+                                                @method('PATCH')
+                                                <label class="text-sm font-medium">Divisi</label>
+                                                <select name="divisions[]" multiple class="form-select w-full">
+                                                    @foreach($divisions as $division)
+                                                        <option value="{{ $division->id }}" 
+                                                            {{ $task->divisions->contains('id', $division->id) ? 'selected' : '' }}>
+                                                            {{ $division->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                <button type="submit" class="mt-2 bg-indigo-600 text-white px-3 py-1 rounded">
+                                                    Ubah Divisi
+                                                </button>
+                                            </form>
+                                        @endcan
+                                    </td>       
                                 </tr>
                             @empty
                                 <tr>

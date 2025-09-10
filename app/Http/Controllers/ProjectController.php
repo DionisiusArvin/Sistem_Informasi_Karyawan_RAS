@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use App\Models\Division;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate; // Pastikan Gate diimpor
 use Illuminate\Support\Facades\Auth;
@@ -128,11 +129,17 @@ class ProjectController extends Controller
         if (! Gate::allows('view-project')) {
             abort(403);
         }
-        
-        // PERBAIKI DI SINI: Muat relasi 'divisions' yang baru
+
+        // Muat relasi task + divisions + relasi adminTask
         $project->load('tasks.divisions', 'adminTasks.assignedToAdmin'); 
 
-        return view('projects.show', ['project' => $project]);
+        // Ambil semua divisi (untuk pilihan manager ubah akses)
+        $divisions = Division::all();
+
+        return view('projects.show', [
+            'project'   => $project,
+            'divisions' => $divisions, // ✅ dikirim ke blade
+        ]);
     }
     // ... method lainnya akan kita isi nanti
 }

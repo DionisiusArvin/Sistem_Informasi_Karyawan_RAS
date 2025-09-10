@@ -17,6 +17,7 @@ class AdHocTask extends Model
         'status',
         'file_path', // <-- Tambah
         'notes',     // <-- Tambah
+        'link',
     ];
 
     // RELASI: Satu tugas mendadak diberikan kepada satu user
