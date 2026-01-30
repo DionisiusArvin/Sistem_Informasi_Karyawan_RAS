@@ -34,6 +34,11 @@ class Project extends Model
         return $this->hasMany(AdminTask::class);
     }
 
+    public function checklists()
+    {
+        return $this->hasMany(ProjectChecklist::class);
+    }
+
     public function getProgressPercentage()
     {
         // Eager load relasi untuk efisiensi
@@ -94,7 +99,10 @@ class Project extends Model
             return 'bahaya';
         }
     }
-
-
+    
+    public function pic()
+    {
+        return $this->belongsTo(User::class, 'pic_id');
+    }
 
 }

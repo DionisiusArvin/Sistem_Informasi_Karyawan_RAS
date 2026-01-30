@@ -20,11 +20,11 @@
             @if(auth()->user()->role != 'admin')
                 <input type="hidden" name="division_id" value="{{ auth()->user()->division_id }}">
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700">Divisi</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Divisi</label>
                     <input type="text" 
                         value="{{ auth()->user()->division->name }}" 
                         disabled
-                        class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm">
+                        class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm dark:bg-gray-900 dark:text-gray-200">
                 </div>
             @endif
 
