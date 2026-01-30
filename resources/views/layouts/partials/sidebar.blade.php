@@ -46,20 +46,68 @@
                     <span class="ml-4 font-medium transition-all duration-200 whitespace-nowrap" :class="sidebarCollapsed ? 'opacity-0 hidden' : ''">Tugas Mendadak</span>
                 </a>
             @endif
-            {{-- MENU BARU: CUTI --}}
-            @if(in_array(auth()->user()->role, ['staff','admin','kepala_divisi','manager']))
-                <a href="{{ route('leaves.index') }}" 
+            {{-- MENU BARU: VALIDASI (hanya untuk kepala divisi) --}}
+            @if(auth()->user()->role === 'kepala_divisi')
+                <a 
+                    href="{{ route('validation.index') }}" 
                     class="relative flex items-center mt-2 px-4 py-2.5 rounded-lg transition-colors duration-200 
-                            {{ request()->routeIs('leaves.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700/50' }}">
-                    @if(request()->routeIs('leaves.*'))
+                        {{ request()->routeIs('validation.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700/50' }}">
+                    @if(request()->routeIs('validation.*'))
                         <span class="absolute left-0 top-0 h-full w-1 bg-blue-400 rounded-r-full"></span>
                     @endif
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                            d="M8 7V3m8 4V3m-9 8h10m-12 5h14M5 21h14a2 2 0 002-2V7a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            d="M5 13l4 4L19 7" />
                     </svg>
                     <span class="ml-4 font-medium transition-all duration-200 whitespace-nowrap" 
-                        :class="sidebarCollapsed ? 'opacity-0 hidden' : ''">Cuti</span>
+                        :class="sidebarCollapsed ? 'opacity-0 hidden' : ''">
+                        Validasi
+                    </span>
+                </a>
+            @endif
+            @if(auth()->user()->role === 'kepala_divisi')
+                <a 
+                    href="{{ route('schedules.index') }}" 
+                    class="relative flex items-center mt-2 px-4 py-2.5 rounded-lg transition-colors duration-200 
+                        {{ request()->routeIs('schedules.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700/50' }}">
+                    
+                    @if(request()->routeIs('schedules.*'))
+                        <span class="absolute left-0 top-0 h-full w-1 bg-blue-400 rounded-r-full"></span>
+                    @endif
+
+                    <!-- Icon Jadwal Baru -->
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+
+                    <span class="ml-4 font-medium"
+                        :class="sidebarCollapsed ? 'opacity-0 hidden' : ''">
+                        Jadwal
+                    </span>
+                </a>
+            @endif
+            {{-- MENU BARU: CUTI --}}
+            @if(in_array(auth()->user()->role, ['staff','admin','kepala_divisi','manager']))
+                <a 
+                    href="{{ route('leaves.index') }}" 
+                    class="relative flex items-center mt-2 px-4 py-2.5 rounded-lg transition-colors duration-200
+                        {{ request()->routeIs('leaves.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700/50' }}">
+
+                    @if(request()->routeIs('leaves.*'))
+                        <span class="absolute left-0 top-0 h-full w-1 bg-blue-400 rounded-r-full"></span>
+                    @endif
+
+                    <!-- Icon Cuti Baru -->
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M5.121 17.804A7 7 0 1118 10m0 0v4m0-4h-4" />
+                    </svg>
+
+                    <span class="ml-4 font-medium"
+                        :class="sidebarCollapsed ? 'opacity-0 hidden' : ''">
+                        Cuti
+                    </span>
                 </a>
             @endif
             {{-- MENU BARU: LAPORAN --}}
@@ -75,6 +123,31 @@
                     <span class="ml-4 font-medium transition-all duration-200 whitespace-nowrap" :class="sidebarCollapsed ? 'opacity-0 hidden' : ''">Laporan</span>
                 </a>
             @endif
+            
+{{-- MENU BARU: PERFORMA KARYAWAN (Manager) --}}
+@if(auth()->user()->role === 'manager')
+<a 
+    href="{{ route('performance.index') }}" 
+    class="relative flex items-center mt-2 px-4 py-2.5 rounded-lg transition-colors duration-200 
+    {{ request()->routeIs('performance.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700/50' }}">
+
+    @if(request()->routeIs('performance.*'))
+        <span class="absolute left-0 top-0 h-full w-1 bg-blue-400 rounded-r-full"></span>
+    @endif
+
+    <!-- ICON KPI / CHART -->
+    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 3v18h18M7 13l3-3 4 4 5-5" />
+    </svg>
+
+    <span class="ml-4 font-medium transition-all duration-200 whitespace-nowrap"
+        :class="sidebarCollapsed ? 'opacity-0 hidden' : ''">
+        Performa Karyawan
+    </span>
+</a>
+@endif
+
              {{-- MENU BARU: TUGAS ADMIN --}}
             @if(auth()->user()->role === 'manager' || auth()->user()->role === 'admin')
                 <a href="{{ route('admin-tasks.index') }}" class="relative flex items-center mt-2 px-4 py-2.5 rounded-lg transition-colors duration-200 hover:bg-gray-700/50">

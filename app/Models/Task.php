@@ -8,35 +8,83 @@ use Illuminate\Database\Eloquent\Model;
 class Task extends Model
 {
     use HasFactory;
+
+    /*
+    |--------------------------------------------------------------------------
+    | MASS ASSIGNMENT
+    |--------------------------------------------------------------------------
+    */
+
+    // dari code versi 2 (biar aman semua field lama)
     protected $guarded = [];
 
-    // RELASI: Satu tugas utama adalah bagian dari satu project
+    // dari code versi 1 (dipakai controller lama)
+    protected $fillable = [
+        'project_id',
+        'name',
+        'description',
+        'user_id',   // penting untuk penanggung jawab task
+        'order',
+    ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | RELATIONS
+    |--------------------------------------------------------------------------
+    */
+
+    // Task milik satu project
     public function project()
     {
-        return $this->belongsTo(Project::class);
+        return $this->belongsTo(Project::class, 'project_id');
     }
 
-    //RELASI: Satu tugas utama dapat memiliki banyak divisi yang berkolaborasi
+    // Task bisa dikerjakan banyak divisi
     public function divisions()
     {
-        return $this->belongsToMany(Division::class, 'division_task_pivot', 'task_id', 'division_id');
+        return $this->belongsToMany(
+            Division::class,
+            'division_task_pivot',
+            'task_id',
+            'division_id'
+        );
     }
 
-
-    // RELASI: Satu tugas utama memiliki banyak tugas harian
+    // Task punya banyak daily task
     public function dailyTasks()
     {
         return $this->hasMany(DailyTask::class);
     }
 
-    // Method baru untuk menghitung progress
+    /*
+    |--------------------------------------------------------------------------
+    | PROGRESS CALCULATION
+    |--------------------------------------------------------------------------
+    */
     public function getProgressPercentage()
     {
-        $totalDailyTasks = $this->dailyTasks()->count();
-        if ($totalDailyTasks == 0) {
-            return 0; // Jika tidak ada tugas harian, progress 0%
+        $total = $this->dailyTasks()->count();
+
+        if ($total === 0) {
+            return 0;
         }
-        $completedDailyTasks = $this->dailyTasks()->where('status', 'Selesai')->count();
-        return round(($completedDailyTasks / $totalDailyTasks) * 100);
+
+        $completed = $this->dailyTasks()
+            ->where('status', 'Selesai')
+            ->count();
+
+        return round(($completed / $total) * 100);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | GLOBAL ORDERING (drag & drop)
+    |--------------------------------------------------------------------------
+    */
+    protected static function booted()
+    {
+        static::addGlobalScope('ordered', function ($query) {
+            $query->orderBy('order', 'asc');
+        });
     }
 }

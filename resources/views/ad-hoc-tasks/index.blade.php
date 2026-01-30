@@ -1,15 +1,15 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight mb-4 md:mb-0">
             Daftar Tugas Mendadak
         </h2>
     </x-slot>
 
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+            <div class="bg-gray-200 dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
                 <div class="p-6 flex justify-between items-center">
-                    <h3 class="text-lg font-semibold text-gray-700">Tugas Mendadak</h3>
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Tugas Mendadak</h3>
                     @if(auth()->user()->role === 'manager' || auth()->user()->role === 'kepala_divisi')
                         <a href="{{ route('ad-hoc-tasks.create') }}"
                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
@@ -19,8 +19,8 @@
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="min-w-full border border-gray-200">
-                        <thead class="bg-gray-100 text-gray-700 text-sm uppercase">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm uppercase">
                             <tr>
                                 <th class="px-6 py-3 text-center">Nama Tugas</th>
                                 <th class="px-6 py-3 text-center">Deskripsi</th>
@@ -30,21 +30,13 @@
                                 <th class="px-6 py-3 text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="text-sm text-gray-600 divide-y divide-gray-200">
+                        <tbody class="text-sm text-gray-800 dark:text-gray-200 divide-y divide-gray-200">
                             @forelse($tasks as $task)
                                 <tr>
-                                    <td class="px-6 py-4 font-medium text-gray-800">
-                                        {{ $task->name }}
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        {{ $task->description }}
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        {{ \Carbon\Carbon::parse($task->deadline)->format('d M Y') }}
-                                    </td>
-                                    <td class="px-6 py-4 text-center">
-                                        {{ $task->assignedTo->name ?? '-' }}
-                                    </td>
+                                    <td class="px-6 py-4">{{ $task->name }}</td>
+                                    <td class="px-6 py-4">{{ $task->description }}</td>
+                                    <td class="px-6 py-4">{{ \Carbon\Carbon::parse($task->due_date)->format('d M Y') }}</td>
+                                    <td class="px-6 py-4 text-center">{{ $task->assignedTo->name ?? '-' }}</td>
                                     <td class="px-6 py-4">
                                         <span class="px-2 py-1 rounded-full text-xs font-semibold
                                             {{ $task->status === 'Selesai' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700' }}">
@@ -63,7 +55,7 @@
                                                     (auth()->user()->role === 'staff' || auth()->user()->role === 'kepala_divisi') && 
                                                     $task->status !== 'Selesai'
                                                 )
-                                                    <a href="{{ route('ad-hoc-tasks.upload', $task->id) }}"
+                                                    <a href="{{ route('ad-hoc-tasks.upload.form', $task->id) }}"
                                                     class="inline-block px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700">
                                                         Upload
                                                     </a>
@@ -75,20 +67,28 @@
                                             @case('kepala_divisi')
                                                 <div class="flex flex-wrap items-center gap-2">
                                                     @if(($task->assigned_to_id === auth()->id()) && 
-                                                    (auth()->user()->role === 'kepala_divisi') && $task->status !== 'Selesai')
-                                                    <a href="{{ route('ad-hoc-tasks.upload', $task->id) }}"
-                                                    class="inline-block px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700">
-                                                        Upload
-                                                    </a>
+                                                        (auth()->user()->role === 'kepala_divisi') && 
+                                                        $task->status !== 'Selesai')
+                                                        <a href="{{ route('ad-hoc-tasks.upload.form', $task->id) }}"
+                                                           class="inline-block px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700">
+                                                            Upload
+                                                        </a>
                                                     @endif
+
                                                     {{-- File --}}
                                                     @if($task->file_path)
+                                                        {{-- Tombol Download --}}
                                                         <a href="{{ route('ad-hoc-tasks.downloadFile', $task->id) }}"
                                                            class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm">
                                                             Download
                                                         </a>
+                                                    
+                                                        {{-- Tombol Lihat File --}}
+                                                       <a href="{{ url('storage/' . $task->file_path) }}" target="_blank"
+                                                           class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm">
+                                                            Lihat File
+                                                        </a>
                                                     @endif
-
                                                     {{-- Link --}}
                                                     @if($task->link)
                                                         <a href="{{ $task->link }}" target="_blank"

@@ -1,221 +1,94 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth"/>
   <head>
-    <!-- Tambahkan di head -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
+    <!-- Font & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>PT Reno Abirama Sakti</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net" />
-    <link
-      href="https://fonts.bunny.net/css?family=figtree:400,600&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.bunny.net/css?family=figtree:400,600&display=swap" rel="stylesheet"/>
 
     <!-- AOS Animation -->
-    <link
-      href="https://unpkg.com/aos@2.3.1/dist/aos.css"
-      rel="stylesheet"
-    />
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet"/>
+    
+    <link rel="icon" type="image/png" href="image/RAS.png">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
   </head>
-  <body class="font-sans antialiased bg-gray-50">
-    <nav
-  id="navbar"
-  class="animate-navbar bg-gradient-to-r from-blue-600 via-blue-500 to-blue-700 shadow-lg fixed w-full z-50 top-0 transition-all duration-300"
->
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex justify-between h-20 items-center transition-all duration-300">
-      <!-- Logo -->
-      <div class="flex-shrink-0 flex items-center">
-        <h1
-          class="logo text-2xl font-bold text-white transition-transform duration-300 cursor-pointer"
-        >
-          PT <span class="text-yellow-300">Reno Abirama Sakti</span>
-        </h1>
-      </div>
+  <body class="font-sans antialiased bg-gray-50 pt-20">
+    
+    <!-- Navbar -->
+    <nav id="navbar" class="animate-navbar bg-gradient-to-r from-blue-600 via-blue-500 to-blue-700 shadow-lg fixed w-full z-50 top-0 transition-all duration-300">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-20 items-center transition-all duration-300">
+          <!-- Logo -->
+          <div class="flex-shrink-0 flex items-center">
+            <h1 class="logo text-xl sm:text-2xl font-bold text-white cursor-pointer transition-transform duration-300">
+              PT <span class="text-yellow-300">Reno Abirama Sakti</span>
+            </h1>
+          </div>
 
-      <!-- Menu -->
-      <div class="flex items-center">
-        @if (Route::has('login'))
-        <div class="space-x-6 flex items-center">
-          @auth
-          <a
-            href="{{ url('/dashboard') }}"
-            class="nav-link text-white font-medium"
-            >Dashboard</a
-          >
-          @else
-          <a
-            href="{{ route('login') }}"
-            class="px-4 py-2 rounded-full bg-white text-blue-600 font-semibold hover:bg-yellow-300 hover:text-blue-900 shadow-md transition"
-          >
-            Log in
-          </a>
-          @if (Route::has('register'))
-          <a
-            href="{{ route('register') }}"
-            class="px-4 py-2 rounded-full border border-white text-white font-semibold hover:bg-white hover:text-blue-700 shadow-md transition"
-          >
-            Register
-          </a>
-          @endif @endauth
+          <!-- Menu -->
+          <div class="flex items-center">
+            @if (Route::has('login'))
+            <div class="flex flex-col sm:flex-row sm:space-x-6 space-y-3 sm:space-y-0 items-center">
+              @auth
+              <a href="{{ url('/dashboard') }}" class="nav-link text-white font-medium">Dashboard</a>
+              @else
+              <a href="{{ route('login') }}" class="w-full sm:w-auto text-center px-4 py-2 rounded-full bg-white text-blue-600 font-semibold hover:bg-yellow-300 hover:text-blue-900 shadow-md transition">
+                Log in
+              </a>
+              @if (Route::has('register'))
+              <a href="{{ route('register') }}" class="w-full sm:w-auto text-center px-4 py-2 rounded-full border border-white text-white font-semibold hover:bg-white hover:text-blue-700 shadow-md transition">
+                Register
+              </a>
+              @endif
+              @endauth
+            </div>
+            @endif
+          </div>
         </div>
-        @endif
       </div>
-    </div>
-  </div>
-</nav>
-
-<script>
-  window.addEventListener("scroll", function () {
-    const navbar = document.getElementById("navbar");
-    if (window.scrollY > 50) {
-      navbar.classList.add("bg-opacity-80", "backdrop-blur-md");
-      navbar.classList.replace("h-20", "h-16");
-    } else {
-      navbar.classList.remove("bg-opacity-80", "backdrop-blur-md");
-      navbar.classList.replace("h-16", "h-20");
-    }
-  });
-</script>
-
-<style>
-  /* Animasi navbar masuk */
-  @keyframes slideFadeDown {
-    0% {
-      opacity: 0;
-      transform: translateY(-50px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  .animate-navbar {
-    animation: slideFadeDown 0.8s ease-out forwards;
-  }
-
-  /* Efek underline animasi glowing gradien */
-  .nav-link {
-    position: relative;
-    padding-bottom: 4px;
-    transition: color 0.3s ease;
-  }
-  .nav-link::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 0%;
-    height: 3px;
-    background: linear-gradient(90deg, #2563eb, #facc15, #2563eb);
-    border-radius: 2px;
-    transition: width 0.4s ease;
-    box-shadow: 0 0 6px rgba(37, 99, 235, 0.6),
-      0 0 12px rgba(250, 204, 21, 0.6);
-  }
-  .nav-link:hover::after {
-    width: 100%;
-    animation: glowing 1.5s infinite linear;
-  }
-
-  /* Efek glowing untuk logo */
-  .logo:hover {
-    text-shadow: 0 0 10px rgba(37, 99, 235, 0.8),
-      0 0 20px rgba(250, 204, 21, 0.8),
-      0 0 30px rgba(37, 99, 235, 0.6);
-    animation: glowing 2s infinite linear;
-    transform: scale(1.08);
-  }
-
-  @keyframes glowing {
-    0% {
-      filter: hue-rotate(0deg);
-    }
-    100% {
-      filter: hue-rotate(360deg);
-    }
-  }
-</style>
-
+    </nav>
 
     <!-- Hero Section -->
-    <header
-      class="relative bg-cover bg-center h-[600px] flex items-center justify-center"
-      style="background-image: url('https://images.unsplash.com/photo-1541888946425-d81bb19240f5?q=80&w=2070&auto=format&fit=crop');"
-    >
+    <header class="relative bg-cover bg-center h-[500px] sm:h-[600px] flex items-center justify-center" style="background-image: url('{{ asset('image/wided.jpg') }}');">
       <div class="absolute inset-0 bg-black/60"></div>
-      <div
-        class="relative z-10 flex flex-col items-center justify-center h-full text-center text-white px-4"
-        data-aos="fade-up"
-      >
-        <h2 class="text-5xl md:text-6xl font-extrabold drop-shadow-lg">
+      <div class="relative z-10 flex flex-col items-center justify-center h-full text-center text-white px-4" data-aos="fade-up">
+        <h2 class="text-3xl sm:text-5xl md:text-6xl font-extrabold drop-shadow-lg">
           PT. RENO ABIRAMA SAKTI
         </h2>
-        <p
-          class="mt-6 max-w-3xl text-lg md:text-xl text-gray-200 leading-relaxed"
-        >
-          kami bergerak dalam bidang jasa konsultasi, dengan spesifikasi pada
-          bidang layanan jasa teknik. Perusahaan ini sejak berdiri sampai saat
-          ini selalu aktif dalam penanganan pekerjaan swasta serta pada
-          lingkungan Pemkab / Pemkot, menjadi mitra professional bagi pemerintah
-          maupun pihak swasta yang menginginkan hasil kerja yang optimal,
-          terkendali dan bertanggung jawab.
+        <p class="mt-6 max-w-3xl text-sm sm:text-lg md:text-xl text-gray-200 leading-relaxed px-2">
+          kami bergerak dalam bidang jasa konsultasi, dengan spesifikasi pada bidang layanan jasa teknik. 
+          Perusahaan ini sejak berdiri sampai saat ini selalu aktif dalam penanganan pekerjaan swasta 
+          serta pada lingkungan Pemkab / Pemkot.
         </p>
-        <a
-          href="#services"
-          class="mt-10 px-8 py-3 bg-blue-600 hover:bg-blue-700 rounded-full font-semibold shadow-lg transition transform hover:scale-105"
-          >Lihat Layanan Kami</a
-        >
+        <a href="#services" class="mt-10 px-6 sm:px-8 py-3 bg-blue-600 hover:bg-blue-700 rounded-full font-semibold shadow-lg transition transform hover:scale-105">
+          Lihat Layanan Kami
+        </a>
       </div>
     </header>
 
     <!-- Layanan -->
-    <section id="services" class="py-24 bg-gray-50">
+    <section id="services" class="py-20 sm:py-24 bg-gray-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
         <div class="text-center" data-aos="fade-down">
-          <h3 class="text-3xl font-bold text-gray-800">Layanan Kami</h3>
-          <p class="mt-2 text-gray-600">
-            Kami menyediakan solusi konstruksi yang komprehensif.
-          </p>
+          <h3 class="text-2xl sm:text-3xl font-bold text-gray-800">Layanan Kami</h3>
+          <p class="mt-2 text-gray-600 text-sm sm:text-base">Kami menyediakan solusi konstruksi yang komprehensif.</p>
         </div>
-        <div
-          class="mt-14 grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
-        >
-          <!-- Card -->
-          <div
-            class="bg-white p-8 rounded-xl shadow-md text-center hover:shadow-2xl transition transform hover:-translate-y-2"
-            data-aos="zoom-in"
-          >
-            <div
-              class="flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 mx-auto"
-            >
-              <svg
-                class="h-8 w-8 text-blue-600"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M9 12h6m-6 4h6M9 8h6m2-6H7a2 2 0 00-2 2v16a2 2 0 002 2h10a2 2 0 002-2V4a2 2 0 00-2-2z"
-                />
+        <div class="mt-12 grid gap-6 sm:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <!-- Card contoh -->
+          <div class="bg-white p-6 sm:p-8 rounded-xl shadow-md text-center hover:shadow-2xl transition transform hover:-translate-y-2" data-aos="zoom-in">
+            <div class="flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 mx-auto">
+              <svg class="h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M9 8h6m2-6H7a2 2 0 00-2 2v16a2 2 0 002 2h10a2 2 0 002-2V4a2 2 0 00-2-2z"/>
               </svg>
             </div>
-            <h4 class="mt-5 text-xl font-semibold text-gray-800">
-              Perencanaan Umum
-            </h4>
+            <h4 class="mt-5 text-lg sm:text-xl font-semibold text-gray-800">Perencanaan Umum</h4>
+            <img src="image/1.jpg">
           </div>
-
           <div
             class="bg-white p-8 rounded-xl shadow-md text-center hover:shadow-2xl transition transform hover:-translate-y-2"
             data-aos="zoom-in"
@@ -229,6 +102,7 @@
             <h4 class="mt-5 text-xl font-semibold text-gray-800">
               Jasa Survey
             </h4>
+            <img src="image/8.jpg">
           </div>
 
           <div
@@ -244,6 +118,7 @@
             <h4 class="mt-5 text-xl font-semibold text-gray-800">
               Perencanaan Teknik
             </h4>
+            <img src="image/2.jpg">
           </div>
 
           <div
@@ -259,6 +134,7 @@
             <h4 class="mt-5 text-xl font-semibold text-gray-800">
               Pengawasan
             </h4>
+            <img src="image/7.jpeg">
           </div>
         </div>
       </div>
@@ -302,6 +178,9 @@
             <i class="fa-solid fa-water text-green-600 mt-1 mr-2"></i>
             Jasa Rekayasa Pekerjaan Teknik Sipil Sumber Daya Air
           </li>
+          <img src="image/4.jpeg">
+          <img src="image/5.jpeg">
+          <img src="image/6.jpeg">
         </ul>
       </div>
 
@@ -435,21 +314,16 @@
             <i class="fa-solid fa-tractor text-green-600 mt-1 mr-2"></i>
             Sub-bidang Pengembangan Pertanian dan Pedesaan Lainnya
           </li>
+          <img src="image/9.jpg">
         </ul>
       </div>
-    </div>
-  </div>
-</section>
-
-
+        </div>
+      </div>
+    </section>
 
     <!-- Tombol WA -->
-    <div class="text-center my-10" data-aos="zoom-in">
-      <a
-        href="https://wa.me/628123456789"
-        target="_blank"
-        class="inline-flex items-center px-6 py-3 bg-green-500 text-white font-medium rounded-full shadow-lg hover:bg-green-600 transition transform hover:scale-105"
-      >
+    <div class="text-center my-10 px-4" data-aos="zoom-in">
+      <a href="https://wa.me/628123456789" target="_blank" class="inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 bg-green-500 text-white font-medium rounded-full shadow-lg hover:bg-green-600 transition transform hover:scale-105">
         <i class="fa-brands fa-whatsapp text-2xl mr-2"></i>
         Chat via WhatsApp
       </a>
@@ -458,17 +332,53 @@
     <!-- Footer -->
     <footer class="bg-gray-800 text-white py-6">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <p>&copy; {{ date('Y') }} PT. Konstruksi Jaya. All Rights Reserved.</p>
+        <p>&copy; {{ date('Y') }} PT. Reno Abirama Sakti. All Rights Reserved.</p>
       </div>
     </footer>
 
     <!-- Script AOS -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
-      AOS.init({
-        duration: 800,
-        once: true,
+      AOS.init({ duration: 800, once: true });
+    </script>
+
+    <!-- Navbar Scroll -->
+    <script>
+      window.addEventListener("scroll", function () {
+        const navbar = document.getElementById("navbar");
+        if (window.scrollY > 50) {
+          navbar.classList.add("bg-opacity-80", "backdrop-blur-md");
+          navbar.classList.replace("h-20", "h-16");
+        } else {
+          navbar.classList.remove("bg-opacity-80", "backdrop-blur-md");
+          navbar.classList.replace("h-16", "h-20");
+        }
       });
     </script>
+
+    <style>
+      /* Animasi navbar */
+      @keyframes slideFadeDown {
+        0% { opacity: 0; transform: translateY(-50px); }
+        100% { opacity: 1; transform: translateY(0); }
+      }
+      .animate-navbar { animation: slideFadeDown 0.8s ease-out forwards; }
+      /* Animasi underline menu */
+      .nav-link { position: relative; padding-bottom: 4px; transition: color 0.3s ease; }
+      .nav-link::after {
+        content: "";
+        position: absolute; left: 0; bottom: 0; width: 0%; height: 3px;
+        background: linear-gradient(90deg, #2563eb, #facc15, #2563eb);
+        border-radius: 2px; transition: width 0.4s ease;
+        box-shadow: 0 0 6px rgba(37,99,235,0.6), 0 0 12px rgba(250,204,21,0.6);
+      }
+      .nav-link:hover::after { width: 100%; animation: glowing 1.5s infinite linear; }
+      /* Efek glowing logo */
+      .logo:hover {
+        text-shadow: 0 0 10px rgba(37,99,235,0.8), 0 0 20px rgba(250,204,21,0.8), 0 0 30px rgba(37,99,235,0.6);
+        animation: glowing 2s infinite linear; transform: scale(1.08);
+      }
+      @keyframes glowing { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
+    </style>
   </body>
 </html>

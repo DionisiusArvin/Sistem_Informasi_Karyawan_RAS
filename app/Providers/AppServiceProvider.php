@@ -9,6 +9,7 @@ use App\Policies\TaskPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Carbon\Carbon;
+use Diglactic\Breadcrumbs\Breadcrumbs; // DARI CODE 1 (TIDAK DIHAPUS)
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,9 +20,11 @@ class AppServiceProvider extends ServiceProvider
     {
         //
     }
+
     protected $policies = [
         Task::class => TaskPolicy::class,
     ];
+
     /**
      * Bootstrap any application services.
      */
@@ -32,58 +35,53 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Gate::define('view-project', function (User $user) {
-            return $user->role === 'manager' || $user->role === 'kepala_divisi' || $user->role === 'admin' || $user->role === 'staff';
+            return in_array($user->role, ['manager', 'kepala_divisi', 'admin', 'staff']);
         });
 
         Gate::define('create-task', function (User $user) {
             return $user->role === 'kepala_divisi';
         });
 
-        // Modifikasi Gate ini
         Gate::define('view-task', function (User $user, Task $task) {
-            // Izinkan jika user adalah Manager
             if ($user->role === 'manager') {
                 return true;
             }
-            // Izinkan jika user adalah Kepala Divisi DAN divisinya 
-            // ada di dalam daftar kolaborator tugas tersebut.
-            if ($user->role === 'kepala_divisi') {
+
+            if (in_array($user->role, ['kepala_divisi', 'staff'])) {
                 return $task->divisions->contains($user->division_id);
             }
+
             return false;
         });
 
         Gate::define('claim-task', function (User $user, DailyTask $dailyTask) {
-            // ambil semua division_id yg terkait task
             $taskDivisionIds = $dailyTask->task->divisions->pluck('id')->toArray();
-
-            // cek apakah divisi user ada di dalamnya
             $isCorrectDivision = in_array($user->division_id, $taskDivisionIds);
 
-            return ($user->role === 'staff' || $user->role === 'kepala_divisi') && $isCorrectDivision;
+            return in_array($user->role, ['staff', 'kepala_divisi']) && $isCorrectDivision;
         });
 
-
         Gate::define('validate-task', function (User $user, DailyTask $dailyTask) {
-            // Manager bisa validasi semua
             if ($user->role === 'manager') {
                 return true;
             }
 
-            // Kepala Divisi hanya bisa validasi kalau divisinya ada di task terkait
             if ($user->role === 'kepala_divisi') {
-                return $dailyTask->task->divisions()->where('divisions.id', $user->division_id)->exists();
+                return $dailyTask->task
+                    ->divisions()
+                    ->where('divisions.id', $user->division_id)
+                    ->exists();
             }
 
             return false;
         });
 
         Gate::define('update-task-division', function (User $user) {
-            return $user->role === 'manager';
+            return in_array($user->role, ['manager', 'kepala_divisi']);
         });
 
-        Gate::define('manage-admin-tasks', function (User $user){
-            return $user->role === 'manager' || $user->role === 'admin';
+        Gate::define('manage-admin-tasks', function (User $user) {
+            return in_array($user->role, ['manager', 'admin']);
         });
 
         Gate::define('view-reports', function (User $user) {
@@ -94,20 +92,15 @@ class AppServiceProvider extends ServiceProvider
             return in_array($user->role, ['manager', 'kepala_divisi']);
         });
 
-        Gate::define('approve-leave', function ($user) {
-            return $user->role === 'manager';
-        });
-
-        Gate::define('reject-leave', function ($user) {
-            return $user->role === 'manager';
-        });
+        Gate::define('approve-leave', fn ($user) => $user->role === 'manager');
+        Gate::define('reject-leave', fn ($user) => $user->role === 'manager');
 
         Gate::define('view-leave', function ($user) {
-            return $user->role === 'manager' || $user->role === 'kepala_divisi' || $user->role === 'admin' || $user->role === 'staff';
+            return in_array($user->role, ['manager', 'kepala_divisi', 'admin', 'staff']);
         });
 
         Gate::define('create-leave', function (User $user) {
-            return $user->role === 'kepala_divisi' || $user->role === 'admin' || $user->role === 'staff';
+            return in_array($user->role, ['kepala_divisi', 'admin', 'staff']);
         });
 
         Carbon::setLocale('id');

@@ -1,11 +1,22 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Detail Tugas: {{ $task->name }}
-        </h2>
+        <div class="flex flex-col space-y-1">
+            <div class="flex items-start">
+                <span class="w-33 font-semibold text-xl text-gray-800 dark:text-gray-200">Nama Proyek :&nbsp;</span>
+                <span class="text-xl text-gray-800 dark:text-gray-200 flex-1">
+                    {{ $task->project->name }}
+                </span>
+            </div>
+            <div class="flex items-start">
+                <span class="w-33 font-semibold text-xl text-gray-800 dark:text-gray-200">Tugas Utama :&nbsp;</span>
+                <span class="text-xl text-gray-800 dark:text-gray-200 flex-1">
+                    {{ $task->name }}
+                </span>
+            </div>
+        </div>
     </x-slot>
 
-    <div class="py-12" x-data="{ showForm: false }">
+    <div class="py-5" x-data="{ showForm: false }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-lg sm:rounded-lg">
                 <div class="p-6">
@@ -26,12 +37,43 @@
                             @csrf
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div class="md:col-span-2">
-                                    <x-input-label for="name" value="Nama Tugas Harian" />
-                                    <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required />
+                                    <x-input-label for="project_item_id" value="Item Pekerjaan" />
+                                    <select name="project_item_id" id="project_item_id" required
+                                        class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
+
+                                        <option value="">Pilih Item Pekerjaan</option>
+
+                                        @foreach($task->project->checklists as $checklist)
+                                            <optgroup label="{{ $checklist->name }}">
+                                                @foreach($checklist->items as $item)
+                                                    <option value="{{ $item->id }}">
+                                                        {{ $item->name }}
+                                                    </option>
+                                                @endforeach
+                                            </optgroup>
+                                        @endforeach
+                                    </select>
                                 </div>
                                 <div>
                                     <x-input-label for="due_date" value="Batas Waktu" />
                                     <x-text-input id="due_date" class="block mt-1 w-full" type="date" name="due_date" :value="old('due_date')" required />
+                                </div>
+                                <div class="mt-4">
+                                <x-input-label for="description" value="Deskripsi" />
+                                <textarea id="description" name="description" rows="3" 
+                                    class="block mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 
+                                        dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 
+                                        focus:ring-indigo-500 sm:text-sm">{{ old('description') }}</textarea>
+                                </div>
+                                <div class="mt-4">
+                                    <x-input-label for="assigned_to_staff_id" value="Tugaskan ke (Opsional)" />
+                                    <select name="assigned_to_staff_id" id="assigned_to_staff_id"
+                                        class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
+                                        <option value="">-- Semua Staff Bisa Ambil --</option>
+                                        @foreach ($users as $user)
+                                            <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->role }})</option>
+                                        @endforeach
+                                    </select>
                                 </div>
                             </div>
                             <div class="flex items-center justify-end mt-4">
@@ -47,7 +89,7 @@
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
-                                    <th scope="col" class="w-2/5 px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Tugas & Catatan</th>
+                                    <th scope="col" class="w-2/5 px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Tugas</th>
                                     <th scope="col" class="w-1/5 px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Pekerja</th>
                                     <th scope="col" class="w-1/5 px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Progress</th>
                                     <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">File/Link</th>
@@ -58,7 +100,7 @@
                                 </tr>
                             </thead>
                             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                @forelse ($task->dailyTasks as $dailyTask)
+                                @forelse ($task->dailyTasks->sortByDesc('created_at') as $dailyTask)
                                     <tr x-data="{ 
                                         showRevisionModal: false, 
                                         showUploadModal: false,
@@ -71,23 +113,30 @@
                                             @php
                                                 $lastUpload = $dailyTask->activities->where('activity_type', 'upload_pekerjaan')->last();
                                             @endphp
-                                            @if($lastUpload && $lastUpload->notes)
-                                                <div class="mt-1 text-xs text-gray-500 italic">Catatan: "{{ $lastUpload->notes }}"</div>
-                                            @endif
+                                            <div class="text-sm text-gray-500 mt-1">{{ $dailyTask->description }}</div>
+                                            @php
+                                                $lastUpload = $dailyTask->activities->where('activity_type', 'upload_pekerjaan')->last();
+                                            @endphp
                                         </td>
 
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                             {{ $dailyTask->assignedToStaff->name ?? 'Belum Diambil' }}
                                         </td>
 
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="flex items-center">
-                                                <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-600">
-                                                    <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ $dailyTask->status_based_progress }}%"></div>
+                                        <td class="py-4 px-4 text-center">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-sm font-semibold">
+                                                    {{ $dailyTask->status_based_progress }}%
+                                                </span>
+
+                                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                                    <div class="bg-blue-600 h-2.5 rounded-full"
+                                                        style="width: {{ $dailyTask->status_based_progress }}%">
+                                                    </div>
                                                 </div>
-                                                <span class="ml-3 text-sm font-medium text-gray-500 dark:text-gray-300">{{ $dailyTask->status_based_progress }}%</span>
                                             </div>
                                         </td>
+
                                         
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                                             @if($lastUpload)
@@ -95,7 +144,8 @@
                                                     @if($lastUpload->file_path)
                                                         <a href="{{ asset('storage/' . $lastUpload->file_path) }}" target="_blank" class="font-medium text-green-600 hover:text-green-800">Lihat File</a>
                                                         @if($lastUpload && $lastUpload->file_path)
-                                                            <a href="{{ route('daily-task.download', $dailyTask->id) }}"
+                                                            <a href="{{ route('dailytasks.download', $dailyTask->id) }}"
+
                                                             class="font-medium text-indigo-600 hover:text-indigo-800">
                                                             Download File
                                                             </a>
@@ -103,6 +153,9 @@
                                                     @endif
                                                     @if($lastUpload->link_url)
                                                         <a href="{{ $lastUpload->link_url }}" target="_blank" class="font-medium text-blue-600 hover:text-blue-800">Lihat Link</a>
+                                                    @endif
+                                                    @if($lastUpload && $lastUpload->notes)
+                                                        <div class="mt-1 text-xs text-gray-500 italic">Catatan: "{{ $lastUpload->notes }}"</div>
                                                     @endif
                                                 </div>
                                             @else
@@ -115,6 +168,7 @@
                                                 @if($dailyTask->status === 'Selesai') bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300
                                                 @elseif($dailyTask->status === 'Menunggu Validasi') bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300
                                                 @elseif($dailyTask->status === 'Revisi') bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300
+                                                @elseif($dailyTask->status === 'Lanjutkan') bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300
                                                 @else bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300 @endif">
                                                 {{ $dailyTask->status }}
                                                 @if ($dailyTask->status === 'Selesai')
@@ -161,7 +215,41 @@
                                                                 <button type="submit" onclick="return confirm('Yakin hapus tugas ini?')" class="w-full text-left text-red-600 dark:text-red-400 block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600">Hapus</button>
                                                             </form>
                                                         @endif
+                                                        
+                                                        @if(auth()->user()->role === 'staff')
 
+                                                            {{-- Jika tugas belum diklaim --}}
+                                                            @if(is_null($dailyTask->assigned_to_staff_id))
+                                                                <form action="{{ route('dailytasks.take', $dailyTask->id) }}" method="POST">
+                                                                    @csrf
+                                                                    @method('PATCH')
+                                                                    <button type="submit" class="text-sm px-4 text-green-600 hover:underline font-semibold">
+                                                                        Ambil Tugas
+                                                                    </button>
+                                                                </form>
+
+                                                            {{-- Jika status revisi --}}
+                                                            @elseif($dailyTask->status === 'Revisi')
+                                                                <a href="{{ route('dailytasks.upload.form', $dailyTask->id) }}"
+                                                                    class="text-blue-600 dark:text-blue-400 block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600">
+                                                                    Upload Pekerjaan
+                                                                </a>
+
+                                                            @elseif($dailyTask->status === 'Lanjutkan')
+                                                                <a href="{{ route('dailytasks.upload.form', $dailyTask->id) }}"
+                                                                    class="text-blue-600 dark:text-blue-400 block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600">
+                                                                    Upload Pekerjaan
+                                                                </a>
+
+                                                            {{-- Jika sudah diklaim oleh staff yang bersangkutan --}}
+                                                            @elseif($dailyTask->assigned_to_staff_id === auth()->id())
+                                                                <a href="{{ route('dailytasks.upload.form', $dailyTask->id) }}"
+                                                                    class="text-blue-600 dark:text-blue-400 block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600">
+                                                                    Upload Pekerjaan
+                                                                </a>
+                                                            @endif
+
+                                                        @endif
                                                     </div>
                                                 </div>
                                             </div>
@@ -171,7 +259,7 @@
                                             <div x-show="showRevisionModal" @keydown.escape.window="showRevisionModal = false" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" style="display: none;">
                                                 <div @click.away="showRevisionModal = false" class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
                                                     <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Catatan Revisi untuk: {{ $dailyTask->name }}</h3>
-                                                    <form action="{{ route('dailytasks.reject', $dailyTask->id) }}" method="POST">
+                                                        <form action="{{ route('validation.reject', $dailyTask->id) }}" method="POST">
                                                         @csrf @method('PATCH')
                                                         <textarea name="revision_notes" rows="4" class="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md shadow-sm" placeholder="Jelaskan bagian yang perlu direvisi..." required></textarea>
                                                         <div class="mt-4 flex justify-end space-x-2">
@@ -183,56 +271,172 @@
                                             </div>
 
                                             {{-- Upload Modal --}}
-                                            <div x-show="showUploadModal" @keydown.escape.window="showUploadModal = false" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" style="display: none;">
-                                                <div @click.away="showUploadModal = false" class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
-                                                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Kerjakan & Upload: {{ $dailyTask->name }}</h3>
-                                                    <form action="{{ route('dailytasks.claim_and_upload', $dailyTask->id) }}" method="POST" enctype="multipart/form-data">
+                                            <div x-show="showUploadModal"
+                                                @keydown.escape.window="showUploadModal = false"
+                                                class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+                                                style="display: none;">
+
+                                                <div @click.away="showUploadModal = false"
+                                                    class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
+
+                                                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                                                        Kerjakan & Upload: {{ $dailyTask->name }}
+                                                    </h3>
+
+                                                    {{-- PENTING: route claim_and_upload + csrf --}}
+                                                        <form action="{{ route('dailytasks.upload.handle', $dailyTask->id) }}"
+                                                        method="POST"
+                                                        enctype="multipart/form-data">
                                                         @csrf
+
                                                         <div class="space-y-4">
+
                                                             <div>
                                                                 <x-input-label for="link_url_{{ $dailyTask->id }}" value="Cantumkan Link (Wajib)" />
-                                                                <x-text-input id="link_url_{{ $dailyTask->id }}" class="block mt-1 w-full" type="url" name="link_url" placeholder="https://..." required />
+                                                                <x-text-input
+                                                                    id="link_url_{{ $dailyTask->id }}"
+                                                                    class="block mt-1 w-full"
+                                                                    type="url"
+                                                                    name="link_url"
+                                                                    placeholder="https://..."
+                                                                    required
+                                                                />
                                                             </div>
+
                                                             <div>
                                                                 <x-input-label for="file_{{ $dailyTask->id }}" value="Upload File (Opsional)" />
-                                                                <input id="file_{{ $dailyTask->id }}" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" type="file" name="file">
+                                                                <input
+                                                                    id="file_{{ $dailyTask->id }}"
+                                                                    class="block w-full text-sm text-gray-500
+                                                                        file:mr-4 file:py-2 file:px-4
+                                                                        file:rounded-full file:border-0
+                                                                        file:font-semibold file:bg-blue-50
+                                                                        file:text-blue-700 hover:file:bg-blue-100"
+                                                                    type="file"
+                                                                    name="file">
                                                             </div>
+
                                                             <div>
                                                                 <x-input-label for="notes_{{ $dailyTask->id }}" value="Catatan (Opsional)" />
-                                                                <textarea name="notes" id="notes_{{ $dailyTask->id }}" rows="3" class="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md shadow-sm" placeholder="Catatan..."></textarea>
+                                                                <textarea
+                                                                    name="notes"
+                                                                    id="notes_{{ $dailyTask->id }}"
+                                                                    rows="3"
+                                                                    class="w-full border-gray-300 dark:border-gray-700
+                                                                        dark:bg-gray-900 dark:text-gray-300
+                                                                        rounded-md shadow-sm"
+                                                                    placeholder="Catatan..."></textarea>
                                                             </div>
+
                                                         </div>
+
                                                         <div class="mt-6 flex justify-end space-x-2">
-                                                            <button type="button" @click="showUploadModal = false" class="px-4 py-2 bg-gray-200 dark:bg-gray-600 rounded-md">Batal</button>
-                                                            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md">Kirim Pekerjaan</button>
+                                                            <button type="button"
+                                                                    @click="showUploadModal = false"
+                                                                    class="px-4 py-2 bg-gray-200 dark:bg-gray-600 rounded-md">
+                                                                Batal
+                                                            </button>
+
+                                                            <button type="submit"
+                                                                    class="px-4 py-2 bg-blue-600 text-white rounded-md">
+                                                                Kirim Pekerjaan
+                                                            </button>
                                                         </div>
+
+                                                    </form>
+                                                </div>
+                                            </div>
+                                            {{-- Edit Modal --}}
+                                            <div x-show="showEditModal"
+                                                @keydown.escape.window="showEditModal = false"
+                                                class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+                                                style="display: none;">
+
+                                                <div @click.away="showEditModal = false"
+                                                    class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
+
+                                                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                                                        Edit Tugas Harian
+                                                    </h3>
+
+                                                    <form action="{{ route('dailytasks.update', $dailyTask->id) }}" method="POST">
+                                                        @csrf
+                                                        @method('PATCH')
+
+                                                        <div class="space-y-4">
+
+                                                            {{-- ITEM PEKERJAAN (INI YANG PENTING) --}}
+                                                            <div>
+                                                                <x-input-label value="Item Pekerjaan" />
+                                                                <select name="project_item_id" required
+                                                                    class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
+
+                                                                    @foreach($task->project->checklists as $checklist)
+                                                                        <optgroup label="{{ $checklist->name }}">
+                                                                            @foreach($checklist->items as $item)
+                                                                                <option value="{{ $item->id }}"
+                                                                                    {{ $dailyTask->project_item_id == $item->id ? 'selected' : '' }}>
+                                                                                    {{ $item->name }}
+                                                                                </option>
+                                                                            @endforeach
+                                                                        </optgroup>
+                                                                    @endforeach
+
+                                                                </select>
+                                                            </div>
+
+                                                            {{-- DUE DATE --}}
+                                                            <div>
+                                                                <x-input-label value="Batas Waktu" />
+                                                                <input type="date"
+                                                                    name="due_date"
+                                                                    value="{{ \Carbon\Carbon::parse($dailyTask->due_date)->format('Y-m-d') }}"
+                                                                    class="block mt-1 w-full border-gray-300 rounded-md shadow-sm"
+                                                                    required>
+                                                            </div>
+
+                                                            {{-- DESKRIPSI --}}
+                                                            <div>
+                                                                <x-input-label value="Deskripsi" />
+                                                                <textarea name="description"
+                                                                    class="block mt-1 w-full border-gray-300 rounded-md shadow-sm"
+                                                                    rows="3">{{ $dailyTask->description }}</textarea>
+                                                            </div>
+
+                                                            {{-- ASSIGN --}}
+                                                            <div>
+                                                                <x-input-label value="Tugaskan ke (Opsional)" />
+                                                                <select name="assigned_to_staff_id"
+                                                                    class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
+                                                                    <option value="">-- Semua Staff Bisa Ambil --</option>
+                                                                    @foreach ($users as $user)
+                                                                        <option value="{{ $user->id }}"
+                                                                            {{ $dailyTask->assigned_to_staff_id == $user->id ? 'selected' : '' }}>
+                                                                            {{ $user->name }} ({{ $user->role }})
+                                                                        </option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </div>
+
+                                                        </div>
+
+                                                        <div class="mt-6 flex justify-end space-x-2">
+                                                            <button type="button"
+                                                                    @click="showEditModal = false"
+                                                                    class="px-4 py-2 bg-gray-200 rounded-md">
+                                                                Batal
+                                                            </button>
+
+                                                            <button type="submit"
+                                                                    class="px-4 py-2 bg-blue-600 text-white rounded-md">
+                                                                Simpan
+                                                            </button>
+                                                        </div>
+
                                                     </form>
                                                 </div>
                                             </div>
 
-                                            {{-- Edit Modal --}}
-                                            <div x-show="showEditModal" @keydown.escape.window="showEditModal = false" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" style="display: none;">
-                                                <div @click.away="showEditModal = false" class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
-                                                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Edit Tugas Harian</h3>
-                                                    <form action="{{ route('dailytasks.update', $dailyTask->id) }}" method="POST">
-                                                        @csrf @method('PATCH')
-                                                        <div class="space-y-4">
-                                                            <div>
-                                                                <x-input-label for="edit_name_{{ $dailyTask->id }}" value="Nama Tugas Harian" />
-                                                                <x-text-input id="edit_name_{{ $dailyTask->id }}" class="block mt-1 w-full" type="text" name="name" value="{{ $dailyTask->name }}" required />
-                                                            </div>
-                                                            <div>
-                                                                <x-input-label for="edit_due_date_{{ $dailyTask->id }}" value="Batas Waktu" />
-                                                                <x-text-input id="edit_due_date_{{ $dailyTask->id }}" class="block mt-1 w-full" type="date" name="due_date" value="{{ \Carbon\Carbon::parse($dailyTask->due_date)->format('Y-m-d') }}"  required />
-                                                            </div>
-                                                        </div>
-                                                        <div class="mt-6 flex justify-end space-x-2">
-                                                            <button type="button" @click="showEditModal = false" class="px-4 py-2 bg-gray-200 dark:bg-gray-600 rounded-md">Batal</button>
-                                                            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md">Simpan</button>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
                                         </td>
                                     </tr>
                                 @empty
