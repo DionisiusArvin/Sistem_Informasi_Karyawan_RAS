@@ -46,7 +46,11 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // VALIDATION
+    /*
+    |--------------------------------------------------------------------------
+    | VALIDATION (KADIV)
+    |--------------------------------------------------------------------------
+    */
     Route::prefix('validation')->group(function () {
         Route::get('/', [ValidationController::class, 'index'])->name('validation.index');
         Route::post('{id}/approve', [ValidationController::class, 'approve'])->name('validation.approve');
@@ -54,7 +58,11 @@ Route::middleware('auth')->group(function () {
         Route::post('{id}/reject', [ValidationController::class, 'reject'])->name('validation.reject');
     });
 
-    // PROJECTS & TASKS
+    /*
+    |--------------------------------------------------------------------------
+    | PROJECTS & TASKS
+    |--------------------------------------------------------------------------
+    */
     Route::resource('projects', ProjectController::class);
     Route::resource('projects.tasks', TaskController::class)->shallow();
 
@@ -63,34 +71,55 @@ Route::middleware('auth')->group(function () {
     Route::patch('/tasks/{task}/update-division', [TaskController::class, 'updateDivision'])->name('tasks.updateDivision');
     Route::patch('/tasks/{task}/update-info', [TaskController::class, 'updateInfo'])->name('tasks.updateInfo');
 
-    // DAILY TASKS
+    /*
+    |--------------------------------------------------------------------------
+    | DAILY TASKS (SISTEM BARU)
+    |--------------------------------------------------------------------------
+    */
+
+    // tambah daily task
     Route::post('/tasks/{task}/dailytasks', [DailyTaskController::class, 'store'])
         ->name('tasks.dailytasks.store');
 
-    Route::post('/daily-tasks/{dailyTask}/claim-and-upload', [DailyTaskController::class, 'claimAndUpload'])
-        ->name('dailytasks.claim_and_upload');
-
+    // download file
     Route::get('/daily-tasks/{dailyTask}/download', [DailyTaskController::class, 'download'])
         ->name('dailytasks.download');
 
     Route::prefix('daily-tasks')->group(function () {
-        Route::patch('{dailyTask}/claim', [DailyTaskController::class, 'claim'])->name('dailytasks.claim');
 
-        Route::get('{dailyTask}/upload', [DailyTaskController::class, 'showUploadForm'])->name('dailytasks.upload.form');
-        Route::post('{dailyTask}/upload', [DailyTaskController::class, 'handleUpload'])->name('dailytasks.upload.handle');
+        // ✅ AMBIL TUGAS (ganti claim)
+        Route::patch('{dailyTask}/take', [DailyTaskController::class, 'take'])
+            ->name('dailytasks.take');
 
-        Route::patch('{dailyTask}/approve', [DailyTaskController::class, 'approve'])->name('dailytasks.approve');
-        Route::patch('{dailyTask}/reject', [DailyTaskController::class, 'reject'])->name('dailytasks.reject');
+        // form upload
+        Route::get('{dailyTask}/upload', [DailyTaskController::class, 'showUploadForm'])
+            ->name('dailytasks.upload.form');
 
-        Route::patch('{dailyTask}', [DailyTaskController::class, 'update'])->name('dailytasks.update');
-        Route::delete('{dailyTask}', [DailyTaskController::class, 'destroy'])->name('dailytasks.destroy');
+        // handle upload (hanya satu)
+        Route::post('{dailyTask}/upload', [DailyTaskController::class, 'handleUpload'])
+            ->name('dailytasks.upload.handle');
+
+        // edit & hapus
+        Route::patch('{dailyTask}', [DailyTaskController::class, 'update'])
+            ->name('dailytasks.update');
+
+        Route::delete('{dailyTask}', [DailyTaskController::class, 'destroy'])
+            ->name('dailytasks.destroy');
     });
 
-    // DIVISION TASKS
+    /*
+    |--------------------------------------------------------------------------
+    | DIVISION TASKS (STAFF)
+    |--------------------------------------------------------------------------
+    */
     Route::get('/division-tasks', [DivisionTaskController::class, 'index'])
         ->name('division-tasks.index');
 
-    // ADMIN TASKS
+    /*
+    |--------------------------------------------------------------------------
+    | ADMIN TASKS
+    |--------------------------------------------------------------------------
+    */
     Route::resource('admin-tasks', AdminTaskController::class);
     Route::get('/admin-tasks/{adminTask}/upload',
         [AdminTaskController::class, 'showUploadForm']
@@ -102,23 +131,39 @@ Route::middleware('auth')->group(function () {
         [AdminTaskController::class, 'downloadFile']
     )->name('admin-tasks.downloadFile');
 
-    // AD HOC TASKS
+    /*
+    |--------------------------------------------------------------------------
+    | AD HOC TASKS
+    |--------------------------------------------------------------------------
+    */
     Route::resource('ad-hoc-tasks', AdHocTaskController::class);
     Route::get('/ad-hoc-tasks/{adHocTask}/upload', [AdHocTaskController::class, 'showUploadForm'])->name('ad-hoc-tasks.upload.form');
     Route::post('/ad-hoc-tasks/{adHocTask}/upload', [AdHocTaskController::class, 'handleUpload'])->name('ad-hoc-tasks.upload.handle');
     Route::get('/ad-hoc-tasks/{adHocTask}/download', [AdHocTaskController::class, 'downloadFile'])->name('ad-hoc-tasks.downloadFile');
 
-    // LEAVES
+    /*
+    |--------------------------------------------------------------------------
+    | LEAVES
+    |--------------------------------------------------------------------------
+    */
     Route::resource('leaves', LeaveController::class);
     Route::patch('/leaves/{leave}/approve', [LeaveController::class, 'approve'])->name('leaves.approve');
     Route::patch('/leaves/{leave}/reject', [LeaveController::class, 'reject'])->name('leaves.reject');
 
-    // REPORTS
+    /*
+    |--------------------------------------------------------------------------
+    | REPORTS
+    |--------------------------------------------------------------------------
+    */
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/projects/export', [ReportController::class, 'exportProjects'])->name('reports.projects.export');
     Route::get('/reports/daily-tasks/export', [ReportController::class, 'exportDailyTasks'])->name('reports.daily-tasks.export');
 
-    // SCHEDULES
+    /*
+    |--------------------------------------------------------------------------
+    | SCHEDULES
+    |--------------------------------------------------------------------------
+    */
     Route::resource('schedules', ScheduleController::class);
     Route::post('/schedules/{schedule}/done', [ScheduleController::class, 'markDone'])
         ->name('schedules.done');

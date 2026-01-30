@@ -83,15 +83,19 @@ class DailyTask extends Model
     public function getStatusBasedProgressAttribute(): int
     {
         return match ($this->status) {
-            'Selesai'           => 100,
-            'Menunggu Validasi' => 75,
-            'Lanjutkan'         => 70,
-            'Revisi'            => 60,
-            'Dikerjakan'        => 50,
-            'Belum Dikerjakan'  => 25,
-            default             => 0,
+            'Belum Dikerjakan' => 0,
+            'Selesai' => 100,
+
+            // semua kondisi kerja mentok 70%
+            'Menunggu Validasi',
+            'Revisi',
+            'Lanjutkan',
+            'Dikerjakan' => 70,
+
+            default => 0,
         };
     }
+
 
     /*
     |--------------------------------------------------------------------------

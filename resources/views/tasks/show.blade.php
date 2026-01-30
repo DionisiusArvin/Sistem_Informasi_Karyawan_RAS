@@ -123,14 +123,20 @@
                                             {{ $dailyTask->assignedToStaff->name ?? 'Belum Diambil' }}
                                         </td>
 
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="flex items-center">
-                                                <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-600">
-                                                    <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ $dailyTask->status_based_progress }}%"></div>
+                                        <td class="py-4 px-4 text-center">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-sm font-semibold">
+                                                    {{ $dailyTask->status_based_progress }}%
+                                                </span>
+
+                                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                                    <div class="bg-blue-600 h-2.5 rounded-full"
+                                                        style="width: {{ $dailyTask->status_based_progress }}%">
+                                                    </div>
                                                 </div>
-                                                <span class="ml-3 text-sm font-medium text-gray-500 dark:text-gray-300">{{ $dailyTask->status_based_progress }}%</span>
                                             </div>
                                         </td>
+
                                         
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                                             @if($lastUpload)
@@ -214,7 +220,7 @@
 
                                                             {{-- Jika tugas belum diklaim --}}
                                                             @if(is_null($dailyTask->assigned_to_staff_id))
-                                                                <form action="{{ route('dailytasks.claim', $dailyTask->id) }}" method="POST">
+                                                                <form action="{{ route('dailytasks.take', $dailyTask->id) }}" method="POST">
                                                                     @csrf
                                                                     @method('PATCH')
                                                                     <button type="submit" class="text-sm px-4 text-green-600 hover:underline font-semibold">
@@ -253,7 +259,7 @@
                                             <div x-show="showRevisionModal" @keydown.escape.window="showRevisionModal = false" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" style="display: none;">
                                                 <div @click.away="showRevisionModal = false" class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
                                                     <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Catatan Revisi untuk: {{ $dailyTask->name }}</h3>
-                                                    <form action="{{ route('dailytasks.reject', $dailyTask->id) }}" method="POST">
+                                                        <form action="{{ route('validation.reject', $dailyTask->id) }}" method="POST">
                                                         @csrf @method('PATCH')
                                                         <textarea name="revision_notes" rows="4" class="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md shadow-sm" placeholder="Jelaskan bagian yang perlu direvisi..." required></textarea>
                                                         <div class="mt-4 flex justify-end space-x-2">
@@ -278,7 +284,7 @@
                                                     </h3>
 
                                                     {{-- PENTING: route claim_and_upload + csrf --}}
-                                                    <form action="{{ route('dailytasks.claim_and_upload', $dailyTask->id) }}"
+                                                        <form action="{{ route('dailytasks.upload.handle', $dailyTask->id) }}"
                                                         method="POST"
                                                         enctype="multipart/form-data">
                                                         @csrf
@@ -340,48 +346,97 @@
                                                     </form>
                                                 </div>
                                             </div>
-
                                             {{-- Edit Modal --}}
-                                            <div x-show="showEditModal" @keydown.escape.window="showEditModal = false" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" style="display: none;">
-                                                <div @click.away="showEditModal = false" class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
-                                                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Edit Tugas Harian</h3>
+                                            <div x-show="showEditModal"
+                                                @keydown.escape.window="showEditModal = false"
+                                                class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+                                                style="display: none;">
+
+                                                <div @click.away="showEditModal = false"
+                                                    class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
+
+                                                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                                                        Edit Tugas Harian
+                                                    </h3>
+
                                                     <form action="{{ route('dailytasks.update', $dailyTask->id) }}" method="POST">
-                                                        @csrf @method('PATCH')
+                                                        @csrf
+                                                        @method('PATCH')
+
                                                         <div class="space-y-4">
+
+                                                            {{-- ITEM PEKERJAAN (INI YANG PENTING) --}}
                                                             <div>
-                                                                <x-input-label for="edit_name_{{ $dailyTask->id }}" value="Nama Tugas Harian" />
-                                                                <x-text-input id="edit_name_{{ $dailyTask->id }}" class="block mt-1 w-full" type="text" name="name" value="{{ $dailyTask->name }}" required />
+                                                                <x-input-label value="Item Pekerjaan" />
+                                                                <select name="project_item_id" required
+                                                                    class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
+
+                                                                    @foreach($task->project->checklists as $checklist)
+                                                                        <optgroup label="{{ $checklist->name }}">
+                                                                            @foreach($checklist->items as $item)
+                                                                                <option value="{{ $item->id }}"
+                                                                                    {{ $dailyTask->project_item_id == $item->id ? 'selected' : '' }}>
+                                                                                    {{ $item->name }}
+                                                                                </option>
+                                                                            @endforeach
+                                                                        </optgroup>
+                                                                    @endforeach
+
+                                                                </select>
                                                             </div>
+
+                                                            {{-- DUE DATE --}}
                                                             <div>
-                                                                <x-input-label for="edit_due_date_{{ $dailyTask->id }}" value="Batas Waktu" />
-                                                                <x-text-input id="edit_due_date_{{ $dailyTask->id }}" class="block mt-1 w-full" type="date" name="due_date" value="{{ \Carbon\Carbon::parse($dailyTask->due_date)->format('Y-m-d') }}"  required />
+                                                                <x-input-label value="Batas Waktu" />
+                                                                <input type="date"
+                                                                    name="due_date"
+                                                                    value="{{ \Carbon\Carbon::parse($dailyTask->due_date)->format('Y-m-d') }}"
+                                                                    class="block mt-1 w-full border-gray-300 rounded-md shadow-sm"
+                                                                    required>
                                                             </div>
+
+                                                            {{-- DESKRIPSI --}}
                                                             <div>
-                                                                <x-input-label for="edit_description_{{ $dailyTask->id }}" value="Deskripsi" />
-                                                                <x-text-input id="edit_description_{{ $dailyTask->id }}" class="block mt-1 w-full" type="text" name="description" value="{{ $dailyTask->description }}" required />
+                                                                <x-input-label value="Deskripsi" />
+                                                                <textarea name="description"
+                                                                    class="block mt-1 w-full border-gray-300 rounded-md shadow-sm"
+                                                                    rows="3">{{ $dailyTask->description }}</textarea>
                                                             </div>
-                                                            <div class="mb-4">
-                                                                <label for="edit_assigned_to_staff_id_{{ $dailyTask->id }}" class="block text-sm font-medium text-gray-700">
-                                                                    Tugaskan ke (Opsional)
-                                                                </label>
-                                                                <select name="assigned_to_staff_id" id="edit_assigned_to_staff_id_{{ $dailyTask->id }}"
-                                                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+
+                                                            {{-- ASSIGN --}}
+                                                            <div>
+                                                                <x-input-label value="Tugaskan ke (Opsional)" />
+                                                                <select name="assigned_to_staff_id"
+                                                                    class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
                                                                     <option value="">-- Semua Staff Bisa Ambil --</option>
                                                                     @foreach ($users as $user)
-                                                                        <option value="{{ $user->id }}" {{ $dailyTask->assigned_to_staff_id == $user->id ? 'selected' : '' }}>
+                                                                        <option value="{{ $user->id }}"
+                                                                            {{ $dailyTask->assigned_to_staff_id == $user->id ? 'selected' : '' }}>
                                                                             {{ $user->name }} ({{ $user->role }})
                                                                         </option>
                                                                     @endforeach
                                                                 </select>
                                                             </div>
+
                                                         </div>
+
                                                         <div class="mt-6 flex justify-end space-x-2">
-                                                            <button type="button" @click="showEditModal = false" class="px-4 py-2 bg-gray-200 dark:bg-gray-600 rounded-md">Batal</button>
-                                                            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md">Simpan</button>
+                                                            <button type="button"
+                                                                    @click="showEditModal = false"
+                                                                    class="px-4 py-2 bg-gray-200 rounded-md">
+                                                                Batal
+                                                            </button>
+
+                                                            <button type="submit"
+                                                                    class="px-4 py-2 bg-blue-600 text-white rounded-md">
+                                                                Simpan
+                                                            </button>
                                                         </div>
+
                                                     </form>
                                                 </div>
                                             </div>
+
                                         </td>
                                     </tr>
                                 @empty

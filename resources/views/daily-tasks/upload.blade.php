@@ -15,13 +15,14 @@
                     @csrf
 
                     <div class="p-6 space-y-6">
-                        <p class="text-sm text-gray-800 dark:text-gray-200">
-                            Silakan cantumkan bukti pekerjaan Anda.
+
+                        <p class="text-sm text-gray-700 dark:text-gray-300">
+                            Silakan unggah bukti pekerjaan Anda. Minimal isi salah satu: <b>Link</b> atau <b>File</b>.
                         </p>
 
                         {{-- LINK --}}
                         <div>
-                            <x-input-label for="link_url" value="Cantumkan Link" />
+                            <x-input-label for="link_url" value="Cantumkan Link (opsional)" />
                             <x-text-input
                                 id="link_url"
                                 class="block mt-1 w-full"
@@ -34,8 +35,8 @@
                         </div>
 
                         {{-- FILE --}}
-                        <div class="mt-4">
-                            <x-input-label for="file" value="Upload File Tambahan" />
+                        <div>
+                            <x-input-label for="file" value="Upload File (opsional)" />
                             <input
                                 id="file"
                                 type="file"
@@ -50,8 +51,8 @@
                         </div>
 
                         {{-- NOTES --}}
-                        <div class="mt-4">
-                            <x-input-label for="notes" value="Catatan (Opsional)" />
+                        <div>
+                            <x-input-label for="notes" value="Catatan (opsional)" />
                             <textarea
                                 name="notes"
                                 id="notes"
@@ -60,6 +61,7 @@
                                        dark:bg-gray-900 dark:text-gray-300 rounded-md shadow-sm"
                             >{{ old('notes') }}</textarea>
                         </div>
+
                     </div>
 
                     <div class="p-6 bg-gray-50 dark:bg-gray-700/50 flex justify-end">
@@ -67,6 +69,7 @@
                             Kirim Pekerjaan
                         </x-primary-button>
                     </div>
+
                 </form>
 
             </div>

@@ -30,7 +30,7 @@
                                 <td class="py-3 px-4">{{ $task->task->project->name ?? '-' }}</td>
                                 <td class="text-center py-3 px-4">{{ \Carbon\Carbon::parse($task->due_date)->format('d M Y') }}</td>
                                 <td class="text-center py-3 px-4">
-                                    <form action="{{ route('dailytasks.claim', $task->id) }}" method="POST">
+                                    <form action="{{ route('dailytasks.take', $task->id) }}" method="POST">
                                         @csrf
                                         @method('PATCH')
                                         <button type="submit" class="text-sm text-green-600 hover:underline font-semibold">Ambil Tugas</button>
