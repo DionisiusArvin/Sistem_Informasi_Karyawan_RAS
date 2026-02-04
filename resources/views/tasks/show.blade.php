@@ -1,11 +1,121 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Detail Tugas: {{ $task->name }}
-        </h2>
+        <div class="flex flex-col space-y-1">
+            <div class="flex items-start">
+                <span class="w-33 font-semibold text-xl text-gray-800 dark:text-gray-200">Nama Proyek :&nbsp;</span>
+                <span class="text-xl text-gray-800 dark:text-gray-200 flex-1">
+                    {{ $task->project->name }}
+                </span>
+            </div>
+            <div class="flex items-start">
+                <span class="w-33 font-semibold text-xl text-gray-800 dark:text-gray-200">Tugas Utama :&nbsp;</span>
+                <span class="text-xl text-gray-800 dark:text-gray-200 flex-1">
+                    {{ $task->name ?: $task->jenis_tugas }}
+                </span>
+            </div>
+            <div class="flex items-start">
+                <span class="w-33 font-semibold text-xl text-gray-800 dark:text-gray-200">Jenis Tugas :&nbsp;</span>
+                <span class="text-xl text-gray-800 dark:text-gray-200 flex-1">
+                    {{ $task->jenis_tugas }}
+                </span>
+            </div>
+        </div>
     </x-slot>
 
-    <div class="py-12" x-data="{ showForm: false }">
+    @php
+        $dailyTaskOptionsByCategory = [
+            'PBG' => [
+                'Data Umum' => [
+                    'Data Persetujuan Lingkungan (mengikuti peraturan perundangan yang berlaku)',
+                    'Data Siteplan yang telah disetujui Pemerintah Daerah Setempat',
+                    'Data Penyedia Jasa Perencana',
+                    'Data Intensitas Bangunan (KKPR/KRK)',
+                    'Data Identitas Pemilik Bangunan (KTP/KITAS)',
+                ],
+                'Data Teknis Arsitektur' => [
+                    'Rekomendasi Peil Banjir',
+                    'Spesifikasi Teknis Arsitektur Bangunan',
+                    'Gambar Rencana Detail Bangunan',
+                    'Gambar Rencana Tampak Bangunan',
+                    'Gambar Rencana Potongan Bangunan',
+                    'Gambar Rencana Denah Bangunan',
+                    'Gambar Rencana Tapak Bangunan',
+                    'Gambar Situasi',
+                ],
+                'Data Teknis Struktur' => [
+                    'Spesifikasi Teknis Struktur Bangunan',
+                    'Perhitungan Teknis Struktur',
+                    'Gambar Rencana Dan Detail Teknis Tangga',
+                    'Gambar Rencana Dan Detail Teknis Pelat Lantai',
+                    'Gambar Rencana Dan Detail Teknis Penutup',
+                    'Gambar Rencana Dan Detail Teknis Rangka Atap',
+                    'Gambar Rencana Dan Detail Teknis Balok',
+                    'Gambar Rencana Dan Detail Teknis Kolom',
+                    'Gambar Rencana Dan Detail Teknis Fondasi dan sloof',
+                ],
+                'Data Teknis MEP' => [
+                    'Spesifikasi Teknis Mekanikal, Elektrikal, dan Plambing',
+                    'Perhitungan Teknis Mekanikal, Elektrikal, dan Plambing',
+                    'Gambar Rencana Dan Detail Pengelolaan Air Limbah',
+                    'Gambar Rencana Dan Detail Pengelolaan Air Bersih',
+                    'Gambar Rencana Dan Detail Pencahayaan Umum, dan Pencahanyaan Khusus',
+                    'Gambar Rencana Dan Detail Sumber Listrik, dan Jaringan Listrik',
+                ],
+                'Data Tambahan' => [
+                    'Gambar Sederhana Batas Tanah',
+                    'Hasil Penyelidikan Tanah',
+                    'Peil Banjir',
+                ],
+                'Upload' => [
+                    'Upload semua dokumen ke sistem',
+                ],
+            ],
+            'SLF' => [
+                'Data Umum' => [
+                    'Data Penyedia Jasa Pengkaji Teknis',
+                    'Laporan Pemeriksaan Kelaikan Fungsi Bangunan',
+                    'Surat Pernyataan Kelaikan Fungsi',
+                    'Data Intensitas Bangunan (KKPR/KRK)',
+                    'Data Identitas Pemilik Bangunan (KTP/KITAS)',
+                ],
+                'Data Teknis Arsitektur' => [
+                    'Rekomendasi Peil Banjir',
+                    'Gambar Detail Bangunan',
+                    'Gambar Tampak Bangunan',
+                    'Gambar Potongan Bangunan',
+                    'Gambar Denah Bangunan',
+                    'Gambar Tapak Bangunan',
+                    'Spesifikasi Teknis Arsitektur Bangunan',
+                    'Gambar Situasi',
+                ],
+                'Data Teknis Struktur' => [
+                    'Gambar Dan Detail Teknis Penutup',
+                    'Gambar Dan Detail Teknis Rangka Atap',
+                    'Gambar Dan Detail Teknis Balok',
+                    'Gambar Dan Detail Teknis Kolom',
+                    'Gambar Dan Detail Teknis Fondasi dan sloof',
+                    'Spesifikasi Teknis Struktur Bangunan',
+                    'Perhitungan Teknis Struktur',
+                ],
+                'Data Teknis MEP' => [
+                    'Gambar Dan Detail Pengelolaan Air Limbah',
+                    'Gambar Dan Detail Pengelolaan Air Bersih',
+                    'Gambar Dan Detail Pencahayaan Umum, dan Pencahanyaan Khusus',
+                    'Gambar Dan Detail Sumber Listrik, dan Jaringan Listrik',
+                    'Spesifikasi Teknis Mekanikal, Elektrikal, dan Plambing',
+                    'Perhitungan Teknis Mekanikal, Elektrikal, dan Plambing',
+                ],
+                'Upload' => [
+                    'Upload semua dokumen ke sistem',
+                ],
+            ],
+        ];
+        $templateCategory = $task->project->category ?? null;
+        $showTemplate = array_key_exists($templateCategory, $dailyTaskOptionsByCategory);
+        $dailyTaskOptions = $dailyTaskOptionsByCategory[$templateCategory][$task->jenis_tugas] ?? [];
+    @endphp
+
+    <div class="py-5" x-data="{ showForm: false }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-lg sm:rounded-lg">
                 <div class="p-6">
@@ -27,11 +137,41 @@
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div class="md:col-span-2">
                                     <x-input-label for="name" value="Nama Tugas Harian" />
-                                    <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required />
+                                    @if($showTemplate)
+                                        <select id="name" name="name"
+                                            class="block mt-1 w-full dark:bg-gray-900 dark:text-gray-200 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                                            required>
+                                            <option value="" disabled {{ old('name') ? '' : 'selected' }}>Pilih tugas harian</option>
+                                            @foreach($dailyTaskOptions as $option)
+                                                <option value="{{ $option }}" {{ old('name') === $option ? 'selected' : '' }}>
+                                                    {{ $option }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    @else
+                                        <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required />
+                                    @endif
                                 </div>
                                 <div>
                                     <x-input-label for="due_date" value="Batas Waktu" />
                                     <x-text-input id="due_date" class="block mt-1 w-full" type="date" name="due_date" :value="old('due_date')" required />
+                                </div>
+                                <div class="mt-4">
+                                <x-input-label for="description" value="Deskripsi" />
+                                <textarea id="description" name="description" rows="3" 
+                                    class="block mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 
+                                        dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 
+                                        focus:ring-indigo-500 sm:text-sm">{{ old('description') }}</textarea>
+                                </div>
+                                <div class="mt-4">
+                                    <x-input-label for="assigned_to_staff_id" value="Tugaskan ke (Opsional)" />
+                                    <select name="assigned_to_staff_id" id="assigned_to_staff_id"
+                                        class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
+                                        <option value="">-- Semua Staff Bisa Ambil --</option>
+                                        @foreach ($users as $user)
+                                            <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->role }})</option>
+                                        @endforeach
+                                    </select>
                                 </div>
                             </div>
                             <div class="flex items-center justify-end mt-4">
@@ -47,7 +187,7 @@
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
-                                    <th scope="col" class="w-2/5 px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Tugas & Catatan</th>
+                                    <th scope="col" class="w-2/5 px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Tugas</th>
                                     <th scope="col" class="w-1/5 px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Pekerja</th>
                                     <th scope="col" class="w-1/5 px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Progress</th>
                                     <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">File/Link</th>
@@ -71,9 +211,10 @@
                                             @php
                                                 $lastUpload = $dailyTask->activities->where('activity_type', 'upload_pekerjaan')->last();
                                             @endphp
-                                            @if($lastUpload && $lastUpload->notes)
-                                                <div class="mt-1 text-xs text-gray-500 italic">Catatan: "{{ $lastUpload->notes }}"</div>
-                                            @endif
+                                            <div class="text-sm text-gray-500 mt-1">{{ $dailyTask->description }}</div>
+                                            @php
+                                                $lastUpload = $dailyTask->activities->where('activity_type', 'upload_pekerjaan')->last();
+                                            @endphp
                                         </td>
 
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
@@ -104,6 +245,9 @@
                                                     @if($lastUpload->link_url)
                                                         <a href="{{ $lastUpload->link_url }}" target="_blank" class="font-medium text-blue-600 hover:text-blue-800">Lihat Link</a>
                                                     @endif
+                                                    @if($lastUpload && $lastUpload->notes)
+                                                        <div class="mt-1 text-xs text-gray-500 italic">Catatan: "{{ $lastUpload->notes }}"</div>
+                                                    @endif
                                                 </div>
                                             @else
                                                 <span class="text-gray-400">-</span> 
@@ -115,6 +259,7 @@
                                                 @if($dailyTask->status === 'Selesai') bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300
                                                 @elseif($dailyTask->status === 'Menunggu Validasi') bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300
                                                 @elseif($dailyTask->status === 'Revisi') bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300
+                                                @elseif($dailyTask->status === 'Lanjutkan') bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300
                                                 @else bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300 @endif">
                                                 {{ $dailyTask->status }}
                                                 @if ($dailyTask->status === 'Selesai')
@@ -161,7 +306,41 @@
                                                                 <button type="submit" onclick="return confirm('Yakin hapus tugas ini?')" class="w-full text-left text-red-600 dark:text-red-400 block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600">Hapus</button>
                                                             </form>
                                                         @endif
+                                                        
+                                                        @if(auth()->user()->role === 'staff')
 
+                                                            {{-- Jika tugas belum diklaim --}}
+                                                            @if(is_null($dailyTask->assigned_to_staff_id))
+                                                                <form action="{{ route('dailytasks.claim', $dailyTask->id) }}" method="POST">
+                                                                    @csrf
+                                                                    @method('PATCH')
+                                                                    <button type="submit" class="text-sm px-4 text-green-600 hover:underline font-semibold">
+                                                                        Ambil Tugas
+                                                                    </button>
+                                                                </form>
+
+                                                            {{-- Jika status revisi --}}
+                                                            @elseif($dailyTask->status === 'Revisi')
+                                                                <a href="{{ route('dailytasks.upload.form', $dailyTask->id) }}"
+                                                                    class="text-blue-600 dark:text-blue-400 block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600">
+                                                                    Upload Pekerjaan
+                                                                </a>
+
+                                                            @elseif($dailyTask->status === 'Lanjutkan')
+                                                                <a href="{{ route('dailytasks.upload.form', $dailyTask->id) }}"
+                                                                    class="text-blue-600 dark:text-blue-400 block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600">
+                                                                    Upload Pekerjaan
+                                                                </a>
+
+                                                            {{-- Jika sudah diklaim oleh staff yang bersangkutan --}}
+                                                            @elseif($dailyTask->assigned_to_staff_id === auth()->id())
+                                                                <a href="{{ route('dailytasks.upload.form', $dailyTask->id) }}"
+                                                                    class="text-blue-600 dark:text-blue-400 block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600">
+                                                                    Upload Pekerjaan
+                                                                </a>
+                                                            @endif
+
+                                                        @endif
                                                     </div>
                                                 </div>
                                             </div>
@@ -219,11 +398,42 @@
                                                         <div class="space-y-4">
                                                             <div>
                                                                 <x-input-label for="edit_name_{{ $dailyTask->id }}" value="Nama Tugas Harian" />
-                                                                <x-text-input id="edit_name_{{ $dailyTask->id }}" class="block mt-1 w-full" type="text" name="name" value="{{ $dailyTask->name }}" required />
+                                    @if($showTemplate)
+                                        <select id="edit_name_{{ $dailyTask->id }}" name="name"
+                                                                        class="block mt-1 w-full dark:bg-gray-900 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                                                                        required>
+                                                                        <option value="" disabled {{ old('name', $dailyTask->name) ? '' : 'selected' }}>Pilih tugas harian</option>
+                                                                        @foreach($dailyTaskOptions as $option)
+                                                                            <option value="{{ $option }}" {{ old('name', $dailyTask->name) === $option ? 'selected' : '' }}>
+                                                                                {{ $option }}
+                                                                            </option>
+                                                                        @endforeach
+                                                                    </select>
+                                                                @else
+                                                                    <x-text-input id="edit_name_{{ $dailyTask->id }}" class="block mt-1 w-full" type="text" name="name" value="{{ old('name', $dailyTask->name) }}" required />
+                                                                @endif
                                                             </div>
                                                             <div>
                                                                 <x-input-label for="edit_due_date_{{ $dailyTask->id }}" value="Batas Waktu" />
                                                                 <x-text-input id="edit_due_date_{{ $dailyTask->id }}" class="block mt-1 w-full" type="date" name="due_date" value="{{ \Carbon\Carbon::parse($dailyTask->due_date)->format('Y-m-d') }}"  required />
+                                                            </div>
+                                                            <div>
+                                                                <x-input-label for="edit_description_{{ $dailyTask->id }}" value="Deskripsi" />
+                                                                <x-text-input id="edit_description_{{ $dailyTask->id }}" class="block mt-1 w-full" type="text" name="description" value="{{ $dailyTask->description }}" required />
+                                                            </div>
+                                                            <div class="mb-4">
+                                                                <label for="edit_assigned_to_staff_id_{{ $dailyTask->id }}" class="block text-sm font-medium text-gray-700">
+                                                                    Tugaskan ke (Opsional)
+                                                                </label>
+                                                                <select name="assigned_to_staff_id" id="edit_assigned_to_staff_id_{{ $dailyTask->id }}"
+                                                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                                                                    <option value="">-- Semua Staff Bisa Ambil --</option>
+                                                                    @foreach ($users as $user)
+                                                                        <option value="{{ $user->id }}" {{ $dailyTask->assigned_to_staff_id == $user->id ? 'selected' : '' }}>
+                                                                            {{ $user->name }} ({{ $user->role }})
+                                                                        </option>
+                                                                    @endforeach
+                                                                </select>
                                                             </div>
                                                         </div>
                                                         <div class="mt-6 flex justify-end space-x-2">

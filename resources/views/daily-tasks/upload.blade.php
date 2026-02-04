@@ -10,18 +10,18 @@
                 <form method="POST" action="{{ route('dailytasks.upload.handle', $dailyTask->id) }}" enctype="multipart/form-data">
                     @csrf
                     <div class="p-6 space-y-6">
-                        <p class="text-sm text-gray-600 dark:text-gray-400">
-                            Silakan cantumkan link pekerjaan Anda. Upload file bersifat opsional.
+                        <p class="text-sm text-gray-800 dark:text-gray-200">
+                            Silakan cantumkan bukti pekerjaan Anda.
                         </p>
 
                         <div>
-                            <x-input-label for="link_url" value="Cantumkan Link (Wajib)" />
-                            <x-text-input id="link_url" class="block mt-1 w-full" type="url" name="link_url" :value="old('link_url')" placeholder="https://..." required />
+                            <x-input-label for="link_url" value="Cantumkan Link " />
+                            <x-text-input id="link_url" class="block mt-1 w-full" type="url" name="link_url" :value="old('link_url')" placeholder="https://..." />
                             <x-input-error :messages="$errors->get('link_url')" class="mt-2" />
                         </div>
 
                         <div class="mt-4">
-                            <x-input-label for="file" value="Upload File Tambahan (Opsional)" />
+                            <x-input-label for="file" value="Upload File Tambahan " />
                             <input id="file" class="block mt-1 w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" type="file" name="file" />
                             <x-input-error :messages="$errors->get('file')" class="mt-2" />
                         </div>

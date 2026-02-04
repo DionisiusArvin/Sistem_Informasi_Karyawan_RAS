@@ -11,21 +11,25 @@ use Illuminate\Support\Facades\Storage;
 
 class AdHocTaskController extends Controller
 {
+    /** ============================
+     *  CREATE
+     *  ============================ */
     public function create()
     {
-        if (! Gate::allows('manage-ad-hoc-tasks')) {
+        if (!Gate::allows('manage-ad-hoc-tasks')) {
             abort(403);
         }
 
-        // Ambil semua user yang bisa diberi tugas (bukan manager)
         $users = User::where('role', '!=', 'manager')->get();
-
-        return view('ad-hoc-tasks.create', ['users' => $users]);
+        return view('ad-hoc-tasks.create', compact('users'));
     }
 
+    /** ============================
+     *  STORE
+     *  ============================ */
     public function store(Request $request)
     {
-        if (! Gate::allows('manage-ad-hoc-tasks')) {
+        if (!Gate::allows('manage-ad-hoc-tasks')) {
             abort(403);
         }
 
@@ -38,7 +42,7 @@ class AdHocTaskController extends Controller
 
         AdHocTask::create([
             'name' => $validated['name'],
-            'description' => $validated['description'],
+            'description' => $validated['description'] ?? null,
             'assigned_to_id' => $validated['assigned_to_id'],
             'due_date' => $validated['due_date'],
             'assigned_by_id' => Auth::id(),
@@ -47,87 +51,138 @@ class AdHocTaskController extends Controller
 
         return redirect()->route('ad-hoc-tasks.index')->with('success', 'Tugas mendadak berhasil dibuat.');
     }
-    
-    public function index()
-{
-    $user = Auth::user();
 
-    if ($user->role === 'manager') {
-        $tasks = AdHocTask::with(['assignedTo', 'assignedBy'])
-            ->latest()
-            ->paginate(10); // ✅ paginate
-    } elseif ($user->role === 'kepala_divisi') {
-        $staffIds = User::where('division_id', $user->division_id)->pluck('id');
-        $tasks = AdHocTask::where('assigned_by_id', $user->id)
-            ->orWhereIn('assigned_to_id', $staffIds)
-            ->with(['assignedTo', 'assignedBy'])
-            ->latest()
-            ->paginate(10); // ✅ paginate
-    } else { // Staff & Admin
-        $tasks = AdHocTask::where('assigned_to_id', $user->id)
-            ->with(['assignedTo', 'assignedBy'])
-            ->latest()
-            ->paginate(10); // ✅ paginate
+    /** ============================
+     *  INDEX
+     *  ============================ */
+    public function index()
+    {
+        $user = Auth::user();
+
+        if ($user->role === 'manager') {
+            $tasks = AdHocTask::with(['assignedTo', 'assignedBy'])
+                ->latest()->paginate(10);
+        } elseif ($user->role === 'kepala_divisi') {
+            $staffIds = User::where('division_id', $user->division_id)->pluck('id');
+            $tasks = AdHocTask::where('assigned_by_id', $user->id)
+                ->orWhereIn('assigned_to_id', $staffIds)
+                ->with(['assignedTo', 'assignedBy'])
+                ->latest()->paginate(10);
+        } else {
+            $tasks = AdHocTask::where('assigned_to_id', $user->id)
+                ->with(['assignedTo', 'assignedBy'])
+                ->latest()->paginate(10);
+        }
+
+        return view('ad-hoc-tasks.index', compact('tasks'));
     }
 
-    return view('ad-hoc-tasks.index', compact('tasks'));
-}
-
-
+    /** ============================
+     *  UPLOAD FORM
+     *  ============================ */
     public function showUploadForm(AdHocTask $adHocTask)
     {
         if ($adHocTask->assigned_to_id !== Auth::id()) {
             abort(403);
         }
+
         return view('ad-hoc-tasks.upload', ['task' => $adHocTask]);
     }
 
-    public function handleUpload(Request $request, AdHocTask $adHocTask)
-{
-    if (auth()->id() !== $adHocTask->assigned_to_id && auth()->id() !== $adHocTask->assigned_by_id) {
-        abort(403);
-    }
-
-    $validated = $request->validate([
-        'file_path' => 'nullable|file|max:10240',
-        'link' => 'nullable|url',
-        'notes' => 'nullable|string',
-    ]);
-
-    $filePath = null;
-    if ($request->hasFile('file_path')) {
-        $filePath = $request->file('file_path')->store('adhoc_files', 'public');
-    }
-
-    $adHocTask->update([
-        'status'    => 'Selesai',
-        'file_path' => $filePath,
-        'notes'     => $validated['notes'] ?? null,
-        'link'      => $validated['link'] ?? null,
-    ]);
-
-    return redirect()->route('ad-hoc-tasks.index')->with('success', 'Tugas mendadak berhasil di-upload.');
-}
-public function downloadFile($id)
+    /** ============================
+     *  HANDLE UPLOAD
+     *  ============================ */
+    public function handleUpload(Request $request, $id)
 {
     $task = AdHocTask::findOrFail($id);
 
-    if (!$task->file_path) {
-    return response()->download($filePath, basename($task->file_path));
-}
+    $validated = $request->validate([
+        'file_path' => 'nullable|file|max:102400', // maksimal 10MB
+        'link' => 'nullable|url',
+        'notes' => 'nullable|string|max:500',
+    ]);
 
-$filePath = storage_path('app/public/'.$task->file_path);
-
-
-    if (!file_exists($filePath)) {
-        return redirect()->back()->with('error', 'File tidak ditemukan.');
+    // Pastikan minimal satu dari file/link diisi
+    if (!$request->hasFile('file_path') && empty($request->link)) {
+        return back()->withErrors(['file_path' => 'Harap unggah file atau isi link.'])->withInput();
     }
 
-    return response()->download($filePath, $task->file);
+    // Simpan file jika ada
+    if ($request->hasFile('file_path')) {
+        $path = $request->file('file_path')->store('adhoc_files', 'public');
+        $validated['file_path'] = $path;
+    }
+
+    // Update task
+    $task->update([
+        'status' => 'Selesai',
+        'file_path' => $validated['file_path'] ?? null,
+        'link' => $validated['link'] ?? null,
+        'notes' => $validated['notes'] ?? null,
+    ]);
+
+    return redirect()
+        ->route('ad-hoc-tasks.index')
+        ->with('success', 'Tugas berhasil diselesaikan!');
 }
 
 
-public function destroy(AdHocTask $adHocTask)
+    /** ============================
+     *  DOWNLOAD FILE
+     *  ============================ */
+    public function downloadFile($id)
+    {
+        $task = AdHocTask::findOrFail($id);
+
+        if (!$task->file_path) {
+            return redirect()->back()->with('error', 'Tidak ada file untuk diunduh.');
+        }
+
+        $filePath = storage_path('app/public/' . $task->file_path);
+
+        if (!file_exists($filePath)) {
+            return redirect()->back()->with('error', 'File tidak ditemukan.');
+        }
+
+        return response()->download($filePath, basename($task->file_path));
+    }
+
+    /** ============================
+     *  EDIT
+     *  ============================ */
+    public function edit($id)
+    {
+        $task = AdHocTask::findOrFail($id);
+        $users = User::all();
+        return view('ad-hoc-tasks.edit', compact('task', 'users'));
+    }
+
+    /** ============================
+     *  UPDATE
+     *  ============================ */
+    public function update(Request $request, $id)
+    {
+        $task = AdHocTask::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'due_date' => 'nullable|date',
+            'status' => 'required|string|in:Belum Dikerjakan,Proses,Selesai',
+            'link' => 'nullable|url',
+            'notes' => 'nullable|string',
+            'assigned_to_id' => 'required|exists:users,id',
+        ]);
+
+        $task->update($validated);
+
+        return redirect()->route('ad-hoc-tasks.index')->with('success', 'Tugas berhasil diperbarui.');
+    }
+
+    /** ============================
+     *  DELETE
+     *  ============================ */
+    public function destroy(AdHocTask $adHocTask)
     {
         if (!Gate::allows('manage-ad-hoc-tasks')) {
             abort(403);
@@ -135,56 +190,29 @@ public function destroy(AdHocTask $adHocTask)
 
         $adHocTask->delete();
 
-        return redirect()->route('ad-hoc-tasks.index')->with('success', 'Tugas Mendadak berhasil dihapus.');
+        return redirect()->route('ad-hoc-tasks.index')->with('success', 'Tugas mendadak berhasil dihapus.');
     }
 
-    public function edit($id)
-{
-    $task = AdHocTask::findOrFail($id);
-    $users = User::all(); // ambil semua user untuk pilihan ditugaskan
+    /** ============================
+     *  UPLOAD SIMPLE (optional)
+     *  ============================ */
+    public function upload(Request $request, $id)
+    {
+        $task = AdHocTask::findOrFail($id);
 
-    return view('ad-hoc-tasks.edit', compact('task', 'users'));
-}
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->storeAs('adhoc_files', $filename, 'public');
+            $task->file_path = 'adhoc_files/' . $filename;
+        }
 
-    public function update(Request $request, $id)
-{
-    $task = AdHocTask::findOrFail($id);
-
-    $request->validate([
-        'name'        => 'required|string|max:255',
-        'description' => 'nullable|string',
-        'due_date'    => 'nullable|date',
-        'status'      => 'required|string|in:Belum Dikerjakan,Proses,Selesai',
-        'link'        => 'nullable|url',
-        'notes'       => 'nullable|string',
-        'assigned_to_id' => 'required|exists:users,id',
-    ]);
-
-    $task->update($request->all());
-
-    return redirect()->route('ad-hoc-tasks.index')
-                     ->with('success', 'Tugas berhasil diperbarui');
-}
-
-public function upload(Request $request, $id)
-{
-    $task = AdHocTask::findOrFail($id);
-
-    if ($request->hasFile('file')) {
-        $file = $request->file('file');
-        $filename = time().'_'.$file->getClientOriginalName();
-        $file->storeAs('uploads', $filename, 'public');
-
-        $task->file_path = 'uploads/'.$filename; // atau langsung 'adhoc_files/...' kalau mau seragam
-        
-    }
         if ($request->filled('link')) {
-        $task->link = $request->input('link');
+            $task->link = $request->input('link');
+        }
+
+        $task->save();
+
+        return redirect()->back()->with('success', 'File berhasil diupload.');
     }
-$task->save();
-
-    return redirect()->back()->with('success', 'File berhasil diupload.');
-}
-
-
 }

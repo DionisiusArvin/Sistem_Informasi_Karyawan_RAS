@@ -21,15 +21,25 @@ class DailyTaskController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'due_date' => 'required|date',
+            'description' => 'nullable|string',
+            'assigned_to_staff_id' => 'nullable|exists:users,id',
         ]);
-        // Hapus semua validasi terkait 'weight' dari sini
-        DailyTask::create([
+
+        // Buat DailyTask baru
+        $dailyTask = DailyTask::create([
             'task_id' => $task->id,
+            'project_id' => $task->project_id, // otomatis isi project_id
             'name' => $validated['name'],
             'due_date' => $validated['due_date'],
-            'status' => 'Tersedia',
+            'description' => $validated['description'] ?? null,
+            'status' => 'Belum Dikerjakan',
+            'assigned_to_staff_id' => $validated['assigned_to_staff_id'] ?? null,
         ]);
-        return back()->with('success', 'Tugas harian berhasil ditambahkan.');
+
+        // Redirect ke halaman detail Task induk
+        return redirect()
+            ->route('tasks.show', $task->id)
+            ->with('success', 'Daily Task berhasil dibuat.');
     }
 
     public function claim(DailyTask $dailyTask)
@@ -57,35 +67,41 @@ class DailyTaskController extends Controller
     }
 
     public function handleUpload(Request $request, DailyTask $dailyTask)
-    {
-        if ($dailyTask->assigned_to_staff_id !== Auth::id()) {
-            abort(403);
-        }
-
-        $validated = $request->validate([
-            'file' => 'nullable|file|mimes:pdf,jpg,png,dwg,zip|max:10240',
-            'link_url' => 'required|url', // link sekarang wajib
-            'notes' => 'nullable|string',
-        ]);
-
-        $filePath = null;
-        if ($request->hasFile('file')) {
-            $filePath = $request->file('file')->store('task_files', 'public');
-        }
-
-        TaskActivity::create([
-            'daily_task_id' => $dailyTask->id,
-            'user_id' => Auth::id(),
-            'activity_type' => 'upload_pekerjaan',
-            'notes' => $validated['notes'] ?? null,
-            'file_path' => $filePath,
-            'link_url' => $validated['link_url'], // sudah wajib
-        ]);
-
-        $dailyTask->update(['status' => 'Menunggu Validasi']);
-
-        return redirect()->route('division-tasks.index')->with('success', 'Pekerjaan berhasil di-upload.');
+{
+    if ($dailyTask->assigned_to_staff_id !== Auth::id()) {
+        abort(403);
     }
+
+    $validated = $request->validate([
+        'file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,dwg,zip,xls,xlsx|max:102400', // 100MB
+        'link_url' => 'nullable|url',
+        'notes' => 'nullable|string',
+    ]);
+
+    // Minimal salah satu (file atau link)
+    if (!$request->hasFile('file') && !$request->filled('link_url')) {
+        return back()->withErrors(['file' => 'Harus upload file atau isi link salah satu.'])->withInput();
+    }
+
+    $filePath = null;
+    if ($request->hasFile('file')) {
+        $filePath = $request->file('file')->store('task_files', 'public');
+    }
+
+    TaskActivity::create([
+        'daily_task_id' => $dailyTask->id,
+        'user_id' => Auth::id(),
+        'activity_type' => 'upload_pekerjaan',
+        'notes' => $validated['notes'] ?? null,
+        'file_path' => $filePath,
+        'link_url' => $validated['link_url'] ?? null,
+    ]);
+
+    $dailyTask->update(['status' => 'Menunggu Validasi']);
+
+    return redirect()->route('division-tasks.index')->with('success', 'Pekerjaan berhasil di-upload.');
+}
+
 
     public function approve(DailyTask $dailyTask)
     {
@@ -126,61 +142,67 @@ class DailyTaskController extends Controller
     }
 
     public function claimAndUpload(Request $request, DailyTask $dailyTask)
-    {
-        if (!Gate::allows('claim-task', $dailyTask)) {
-            abort(403);
-        }
-
-        if ($dailyTask->assigned_to_staff_id !== null) {
-            return back()->with('error', 'Tugas ini sudah diambil oleh orang lain.');
-        }
-
-        $validated = $request->validate([
-            'file' => 'nullable|file|mimes:pdf,jpg,png,dwg,zip|max:10240',
-            'link_url' => 'required|url',
-            'notes' => 'nullable|string',
-        ]);
-
-        // Claim tugas
-        $dailyTask->update([
-            'assigned_to_staff_id' => Auth::id(),
-            'status' => 'Menunggu Validasi',
-        ]);
-
-        // Simpan file jika ada
-        $filePath = null;
-        if ($request->hasFile('file')) {
-            $filePath = $request->file('file')->store('task_files', 'public');
-        }
-
-        // Simpan aktivitas
-        TaskActivity::create([
-            'daily_task_id' => $dailyTask->id,
-            'user_id' => Auth::id(),
-            'activity_type' => 'upload_pekerjaan',
-            'notes' => $validated['notes'] ?? null,
-            'file_path' => $filePath,
-            'link_url' => $validated['link_url'],
-        ]);
-
-        return back()->with('success', 'Anda berhasil mengambil dan meng-upload pekerjaan.');
+{
+    if (!Gate::allows('claim-task', $dailyTask)) {
+        abort(403);
     }
+
+    if ($dailyTask->assigned_to_staff_id !== null) {
+        return back()->with('error', 'Tugas ini sudah diambil oleh orang lain.');
+    }
+
+    $validated = $request->validate([
+        'file' => 'nullable|file|mimes:pdf,jpg,jpeg,png,dwg,zip,xls,xlsx|max:102400', // 100MB
+        'link_url' => 'nullable|url',
+        'notes' => 'nullable|string',
+    ]);
+
+    if (!$request->hasFile('file') && !$request->filled('link_url')) {
+        return back()->withErrors(['file' => 'Harus upload file atau isi link salah satu.'])->withInput();
+    }
+
+    $dailyTask->update([
+        'assigned_to_staff_id' => Auth::id(),
+        'status' => 'Menunggu Validasi',
+    ]);
+
+    $filePath = null;
+    if ($request->hasFile('file')) {
+        $filePath = $request->file('file')->store('task_files', 'public');
+    }
+
+    TaskActivity::create([
+        'daily_task_id' => $dailyTask->id,
+        'user_id' => Auth::id(),
+        'activity_type' => 'upload_pekerjaan',
+        'notes' => $validated['notes'] ?? null,
+        'file_path' => $filePath,
+        'link_url' => $validated['link_url'] ?? null,
+    ]);
+
+    return back()->with('success', 'Anda berhasil mengambil dan meng-upload pekerjaan.');
+}
+
 
     public function update(Request $request, DailyTask $dailyTask)
     {
-        // hanya kepala_divisi yang bisa update
         if (Auth::user()->role !== 'kepala_divisi') {
             abort(403);
         }
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'due_date' => 'required|date',
-        ]);
+        'name' => 'required|string|max:255',
+        'due_date' => 'required|date',
+        'description' => 'nullable|string',
+        'status' => 'nullable|string',
+        'assigned_to_staff_id' => 'nullable|exists:users,id',
+    ]);
 
-        $dailyTask->update($validated);
+    $dailyTask->update($validated);
 
-        return back()->with('success', 'Tugas harian berhasil diperbarui.');
+    return redirect()
+        ->route('tasks.show', $dailyTask->task_id)
+        ->with('success', 'Daily Task berhasil diupdate');
     }
 
     public function destroy(DailyTask $dailyTask)
@@ -204,6 +226,17 @@ class DailyTaskController extends Controller
     }
 
     return response()->download(storage_path('app/public/' . $lastUpload->file_path));
+}
+
+public function create(Task $task)
+{
+    // ambil semua user (atau filter sesuai kebutuhan)
+    $users = User::whereIn('role', ['staff', 'kepala_divisi'])->get();
+
+    return view('daily-tasks.create', [
+        'task' => $task,
+        'users' => $users, // <-- kirim ke view
+    ]);
 }
 
 

@@ -11,6 +11,8 @@ use App\Http\Controllers\DailyTaskController;
 use App\Http\Controllers\DivisionTaskController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LeaveController;
+use App\Http\Controllers\ValidationController;
+use App\Http\Controllers\ScheduleController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -24,8 +26,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
+    Route::get('/validation', [ValidationController::class, 'index'])->name('validation.index');
+    Route::post('/validation/{id}/approve', [ValidationController::class, 'approve'])->name('validation.approve');
+    Route::post('/validation/{id}/continue', [ValidationController::class, 'continue'])->name('validation.continue');
+    Route::post('/validation/{id}/reject', [ValidationController::class, 'reject'])->name('validation.reject');
 
     Route::resource('projects', ProjectController::class);
+    Route::patch('/projects/{project}/force-finish', [ProjectController::class, 'forceFinish'])->name('projects.force-finish');
     Route::resource('projects.tasks', TaskController::class)->shallow();
 
     Route::post('/tasks/{task}/dailytasks', [DailyTaskController::class, 'store'])->name('tasks.dailytasks.store');
@@ -40,6 +48,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/tasks/{task}', [TaskController::class, 'show'])->name('tasks.show');
     Route::patch('/tasks/{task}/update-division', [TaskController::class, 'updateDivision'])->name('tasks.updateDivision');
+    Route::patch('/tasks/{id}/update-info', [TaskController::class, 'updateInfo'])->name('tasks.updateInfo');
 
     Route::get('/division-tasks', [DivisionTaskController::class, 'index'])->name('division-tasks.index');
 
@@ -74,6 +83,16 @@ Route::middleware('auth')->group(function () {
     Route::patch('/leaves/{leave}/reject', [LeaveController::class, 'reject'])->name('leaves.reject');
 
     Route::get('/daily-tasks/{id}/download', [DailyTaskController::class, 'download'])->name('daily-task.download');
+    Route::post('/tasks/reorder', [TaskController::class, 'reorder'])->name('tasks.reorder');
+    
+    Route::get('/schedules', [ScheduleController::class, 'index'])->name('schedules.index');
+    Route::get('/schedules/create', [ScheduleController::class, 'create'])->name('schedules.create');
+    Route::post('/schedules', [ScheduleController::class, 'store'])->name('schedules.store');
+
+    Route::get('/schedules/{schedule}/edit', [ScheduleController::class, 'edit'])->name('schedules.edit');
+    Route::put('/schedules/{schedule}', [ScheduleController::class, 'update'])->name('schedules.update');
+
+    Route::post('/schedules/{schedule}/done', [ScheduleController::class, 'markDone'])->name('schedules.done');
 });
 
 require __DIR__.'/auth.php';

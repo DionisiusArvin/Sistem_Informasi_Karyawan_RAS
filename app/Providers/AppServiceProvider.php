@@ -50,6 +50,9 @@ class AppServiceProvider extends ServiceProvider
             if ($user->role === 'kepala_divisi') {
                 return $task->divisions->contains($user->division_id);
             }
+            if ($user->role === 'staff') {
+                return $task->divisions->contains($user->division_id);
+            }
             return false;
         });
 
@@ -79,7 +82,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Gate::define('update-task-division', function (User $user) {
-            return $user->role === 'manager';
+            return $user->role === 'manager' || $user->role === 'kepala_divisi';
         });
 
         Gate::define('manage-admin-tasks', function (User $user){

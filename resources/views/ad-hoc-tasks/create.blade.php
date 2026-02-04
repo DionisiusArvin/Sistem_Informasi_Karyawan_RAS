@@ -1,26 +1,26 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
             Buat Tugas Mendadak Baru
         </h2>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white p-8 rounded-lg shadow-sm">
+            <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-sm">
                 <form method="POST" action="{{ route('ad-hoc-tasks.store') }}">
                     @csrf
                     <div>
                         <x-input-label for="name" value="Nama Tugas" />
                         <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required />
                     </div>
-                    <div class="mt-4">
+                    <div class="mt-4 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200">
                         <x-input-label for="description" value="Deskripsi Tugas (Opsional)" />
-                        <textarea name="description" id="description" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">{{ old('description') }}</textarea>
+                        <textarea name="description" id="description" class="block mt-1 w-full bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-md shadow-sm">{{ old('description') }}</textarea>
                     </div>
                     <div class="mt-4">
                         <x-input-label for="assigned_to_id" value="Tugaskan ke" />
-                        <select name="assigned_to_id" id="assigned_to_id" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" required>
+                        <select name="assigned_to_id" id="assigned_to_id" class="block mt-1 w-full bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-md shadow-sm" required>
                             <option selected disabled>Pilih Karyawan</option>
                             @foreach ($users as $user)
                                 <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->role }})</option>

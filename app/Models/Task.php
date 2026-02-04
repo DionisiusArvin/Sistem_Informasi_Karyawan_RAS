@@ -13,7 +13,7 @@ class Task extends Model
     // RELASI: Satu tugas utama adalah bagian dari satu project
     public function project()
     {
-        return $this->belongsTo(Project::class);
+        return $this->belongsTo(Project::class, 'project_id');
     }
 
     //RELASI: Satu tugas utama dapat memiliki banyak divisi yang berkolaborasi
@@ -38,5 +38,14 @@ class Task extends Model
         }
         $completedDailyTasks = $this->dailyTasks()->where('status', 'Selesai')->count();
         return round(($completedDailyTasks / $totalDailyTasks) * 100);
+    }
+    
+    protected $fillable = ['project_id', 'jenis_tugas', 'name', 'description', 'order', /* field lain */];
+
+    protected static function booted()
+    {
+        static::addGlobalScope('ordered', function ($query) {
+            $query->orderBy('order', 'asc');
+        });
     }
 }

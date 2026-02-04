@@ -11,6 +11,9 @@ class Project extends Model
 {
     use HasFactory;
     protected $guarded = [];
+    protected $casts = [
+        'force_finished_at' => 'datetime',
+    ];
 
     // RELASI: Satu project dimiliki oleh satu user (manager)
     public function manager()
@@ -36,6 +39,10 @@ class Project extends Model
 
     public function getProgressPercentage()
     {
+        if ($this->isForceFinished()) {
+            return 100;
+        }
+
         // Eager load relasi untuk efisiensi
         $tasks = $this->tasks()->with('dailyTasks')->get();
 
@@ -49,6 +56,11 @@ class Project extends Model
         });
 
         return round($averageProgress);
+    }
+
+    public function isForceFinished(): bool
+    {
+        return !is_null($this->force_finished_at);
     }
 
 
@@ -94,7 +106,10 @@ class Project extends Model
             return 'bahaya';
         }
     }
-
-
+    
+    public function pic()
+    {
+        return $this->belongsTo(User::class, 'pic_id');
+    }
 
 }
