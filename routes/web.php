@@ -64,6 +64,7 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::resource('projects', ProjectController::class);
+    Route::patch('/projects/{project}/force-finish', [ProjectController::class, 'forceFinish'])->name('projects.force-finish');
     Route::resource('projects.tasks', TaskController::class)->shallow();
 
     Route::get('/tasks/{task}', [TaskController::class, 'show'])->name('tasks.show');
@@ -156,8 +157,10 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/admin-tasks', [ReportController::class, 'adminTasks'])->name('reports.admin-tasks');
     Route::get('/reports/projects/export', [ReportController::class, 'exportProjects'])->name('reports.projects.export');
     Route::get('/reports/daily-tasks/export', [ReportController::class, 'exportDailyTasks'])->name('reports.daily-tasks.export');
+    Route::get('/reports/admin-tasks/export', [ReportController::class, 'exportAdminTasks'])->name('reports.admin-tasks.export');
 
     /*
     |--------------------------------------------------------------------------

@@ -150,6 +150,22 @@ class ProjectController extends Controller
             ->with('success', 'Proyek berhasil dihapus!');
     }
 
+    public function forceFinish(Project $project)
+    {
+        if (! Gate::allows('manage-projects')) {
+            abort(403);
+        }
+
+        if (! $project->isForceFinished()) {
+            $project->force_finished_at = now();
+            $project->save();
+        }
+
+        return redirect()
+            ->route('projects.show', $project->id)
+            ->with('success', 'Proyek ditandai selesai secara paksa.');
+    }
+
     public function show(Project $project)
     {
         if (! Gate::allows('view-project')) {

@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\DailyTask;
+use App\Models\AdminTask;
 use App\Exports\DailyTasksReportExport;
+use App\Exports\AdminTasksReportExport;
 use App\Models\User; // <-- Tambahkan ini
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
@@ -68,5 +70,54 @@ class ReportController extends Controller
         $date = $request->input('date') ?? Carbon::today()->format('Y-m-d');
 
         return Excel::download(new DailyTasksReportExport($date), "daily_tasks_{$date}.xlsx");
+    }
+
+    public function adminTasks(Request $request)
+    {
+        if (! Gate::allows('manage-admin-tasks')) {
+            abort(403);
+        }
+
+        $user = Auth::user();
+        $selectedDate = $request->input('date') ? Carbon::parse($request->input('date')) : Carbon::today();
+        $selectedUserId = $request->input('user_id');
+
+        $reportDataQuery = AdminTask::whereDate('updated_at', $selectedDate)
+            ->with(['assignedToAdmin', 'project']);
+
+        $filterableUsers = collect();
+
+        if ($user->role === 'manager') {
+            $filterableUsers = User::where('role', 'admin')->get();
+            if ($selectedUserId) {
+                $reportDataQuery->where('assigned_to_admin_id', $selectedUserId);
+            }
+        } elseif ($user->role === 'admin') {
+            $reportDataQuery->where('assigned_to_admin_id', $user->id);
+        }
+
+        $reportData = $reportDataQuery->get();
+
+        return view('reports.admin', [
+            'reportData' => $reportData,
+            'selectedDate' => $selectedDate->format('Y-m-d'),
+            'filterableUsers' => $filterableUsers,
+            'selectedUserId' => $selectedUserId,
+        ]);
+    }
+
+    public function exportAdminTasks(Request $request)
+    {
+        if (! Gate::allows('manage-admin-tasks')) {
+            abort(403);
+        }
+
+        $date = $request->input('date') ?? Carbon::today()->format('Y-m-d');
+        $userId = $request->input('user_id');
+
+        return Excel::download(
+            new AdminTasksReportExport($date, $userId),
+            "admin_tasks_{$date}.xlsx"
+        );
     }
 }

@@ -116,6 +116,10 @@ Breadcrumbs::for('reports.index', function (BreadcrumbTrail $trail) {
     $trail->push('Laporan', route('reports.index'));
 });
 
+Breadcrumbs::for('reports.admin-tasks', function (BreadcrumbTrail $trail) {
+    $trail->push('Laporan Admin', route('reports.admin-tasks'));
+});
+
 Breadcrumbs::for('ad-hoc-tasks.index', function (BreadcrumbTrail $trail) {
     $trail->push('Tugas Mendadak', route('ad-hoc-tasks.index'));
 });
@@ -177,4 +181,3 @@ Breadcrumbs::for('performance.excel', function (BreadcrumbTrail $trail) {
     $trail->parent('performance.index');
     $trail->push('Export Excel');
 });
-

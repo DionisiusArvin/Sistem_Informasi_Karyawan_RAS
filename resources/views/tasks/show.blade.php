@@ -10,11 +10,110 @@
             <div class="flex items-start">
                 <span class="w-33 font-semibold text-xl text-gray-800 dark:text-gray-200">Tugas Utama :&nbsp;</span>
                 <span class="text-xl text-gray-800 dark:text-gray-200 flex-1">
-                    {{ $task->name }}
+                    {{ $task->name ?: $task->jenis_tugas }}
+                </span>
+            </div>
+            <div class="flex items-start">
+                <span class="w-33 font-semibold text-xl text-gray-800 dark:text-gray-200">Jenis Tugas :&nbsp;</span>
+                <span class="text-xl text-gray-800 dark:text-gray-200 flex-1">
+                    {{ $task->jenis_tugas }}
                 </span>
             </div>
         </div>
     </x-slot>
+
+    @php
+        $dailyTaskOptionsByCategory = [
+            'PBG' => [
+                'Data Umum' => [
+                    'Data Persetujuan Lingkungan (mengikuti peraturan perundangan yang berlaku)',
+                    'Data Siteplan yang telah disetujui Pemerintah Daerah Setempat',
+                    'Data Penyedia Jasa Perencana',
+                    'Data Intensitas Bangunan (KKPR/KRK)',
+                    'Data Identitas Pemilik Bangunan (KTP/KITAS)',
+                ],
+                'Data Teknis Arsitektur' => [
+                    'Rekomendasi Peil Banjir',
+                    'Spesifikasi Teknis Arsitektur Bangunan',
+                    'Gambar Rencana Detail Bangunan',
+                    'Gambar Rencana Tampak Bangunan',
+                    'Gambar Rencana Potongan Bangunan',
+                    'Gambar Rencana Denah Bangunan',
+                    'Gambar Rencana Tapak Bangunan',
+                    'Gambar Situasi',
+                ],
+                'Data Teknis Struktur' => [
+                    'Spesifikasi Teknis Struktur Bangunan',
+                    'Perhitungan Teknis Struktur',
+                    'Gambar Rencana Dan Detail Teknis Tangga',
+                    'Gambar Rencana Dan Detail Teknis Pelat Lantai',
+                    'Gambar Rencana Dan Detail Teknis Penutup',
+                    'Gambar Rencana Dan Detail Teknis Rangka Atap',
+                    'Gambar Rencana Dan Detail Teknis Balok',
+                    'Gambar Rencana Dan Detail Teknis Kolom',
+                    'Gambar Rencana Dan Detail Teknis Fondasi dan sloof',
+                ],
+                'Data Teknis MEP' => [
+                    'Spesifikasi Teknis Mekanikal, Elektrikal, dan Plambing',
+                    'Perhitungan Teknis Mekanikal, Elektrikal, dan Plambing',
+                    'Gambar Rencana Dan Detail Pengelolaan Air Limbah',
+                    'Gambar Rencana Dan Detail Pengelolaan Air Bersih',
+                    'Gambar Rencana Dan Detail Pencahayaan Umum, dan Pencahanyaan Khusus',
+                    'Gambar Rencana Dan Detail Sumber Listrik, dan Jaringan Listrik',
+                ],
+                'Data Tambahan' => [
+                    'Gambar Sederhana Batas Tanah',
+                    'Hasil Penyelidikan Tanah',
+                    'Peil Banjir',
+                ],
+                'Upload' => [
+                    'Upload semua dokumen ke sistem',
+                ],
+            ],
+            'SLF' => [
+                'Data Umum' => [
+                    'Data Penyedia Jasa Pengkaji Teknis',
+                    'Laporan Pemeriksaan Kelaikan Fungsi Bangunan',
+                    'Surat Pernyataan Kelaikan Fungsi',
+                    'Data Intensitas Bangunan (KKPR/KRK)',
+                    'Data Identitas Pemilik Bangunan (KTP/KITAS)',
+                ],
+                'Data Teknis Arsitektur' => [
+                    'Rekomendasi Peil Banjir',
+                    'Gambar Detail Bangunan',
+                    'Gambar Tampak Bangunan',
+                    'Gambar Potongan Bangunan',
+                    'Gambar Denah Bangunan',
+                    'Gambar Tapak Bangunan',
+                    'Spesifikasi Teknis Arsitektur Bangunan',
+                    'Gambar Situasi',
+                ],
+                'Data Teknis Struktur' => [
+                    'Gambar Dan Detail Teknis Penutup',
+                    'Gambar Dan Detail Teknis Rangka Atap',
+                    'Gambar Dan Detail Teknis Balok',
+                    'Gambar Dan Detail Teknis Kolom',
+                    'Gambar Dan Detail Teknis Fondasi dan sloof',
+                    'Spesifikasi Teknis Struktur Bangunan',
+                    'Perhitungan Teknis Struktur',
+                ],
+                'Data Teknis MEP' => [
+                    'Gambar Dan Detail Pengelolaan Air Limbah',
+                    'Gambar Dan Detail Pengelolaan Air Bersih',
+                    'Gambar Dan Detail Pencahayaan Umum, dan Pencahanyaan Khusus',
+                    'Gambar Dan Detail Sumber Listrik, dan Jaringan Listrik',
+                    'Spesifikasi Teknis Mekanikal, Elektrikal, dan Plambing',
+                    'Perhitungan Teknis Mekanikal, Elektrikal, dan Plambing',
+                ],
+                'Upload' => [
+                    'Upload semua dokumen ke sistem',
+                ],
+            ],
+        ];
+        $templateCategory = $task->project->category ?? null;
+        $showTemplate = array_key_exists($templateCategory, $dailyTaskOptionsByCategory);
+        $dailyTaskOptions = $dailyTaskOptionsByCategory[$templateCategory][$task->jenis_tugas] ?? [];
+    @endphp
 
     <div class="py-5" x-data="{ showForm: false }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -37,22 +136,36 @@
                             @csrf
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div class="md:col-span-2">
-                                    <x-input-label for="project_item_id" value="Item Pekerjaan" />
-                                    <select name="project_item_id" id="project_item_id" required
-                                        class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
+                                    @if($showTemplate)
+                                        <x-input-label for="name" value="Nama Tugas Harian" />
+                                        <select id="name" name="name"
+                                            class="block mt-1 w-full dark:bg-gray-900 dark:text-gray-200 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                                            required>
+                                            <option value="" disabled {{ old('name') ? '' : 'selected' }}>Pilih tugas harian</option>
+                                            @foreach($dailyTaskOptions as $option)
+                                                <option value="{{ $option }}" {{ old('name') === $option ? 'selected' : '' }}>
+                                                    {{ $option }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    @else
+                                        <x-input-label for="project_item_id" value="Item Pekerjaan" />
+                                        <select name="project_item_id" id="project_item_id" required
+                                            class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
 
-                                        <option value="">Pilih Item Pekerjaan</option>
+                                            <option value="">Pilih Item Pekerjaan</option>
 
-                                        @foreach($task->project->checklists as $checklist)
-                                            <optgroup label="{{ $checklist->name }}">
-                                                @foreach($checklist->items as $item)
-                                                    <option value="{{ $item->id }}">
-                                                        {{ $item->name }}
-                                                    </option>
-                                                @endforeach
-                                            </optgroup>
-                                        @endforeach
-                                    </select>
+                                            @foreach($task->project->checklists as $checklist)
+                                                <optgroup label="{{ $checklist->name }}">
+                                                    @foreach($checklist->items as $item)
+                                                        <option value="{{ $item->id }}">
+                                                            {{ $item->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </optgroup>
+                                            @endforeach
+                                        </select>
+                                    @endif
                                 </div>
                                 <div>
                                     <x-input-label for="due_date" value="Batas Waktu" />
@@ -367,22 +480,36 @@
 
                                                             {{-- ITEM PEKERJAAN (INI YANG PENTING) --}}
                                                             <div>
-                                                                <x-input-label value="Item Pekerjaan" />
-                                                                <select name="project_item_id" required
-                                                                    class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
+                                                                @if($showTemplate)
+                                                                    <x-input-label for="edit_name_{{ $dailyTask->id }}" value="Nama Tugas Harian" />
+                                                                    <select id="edit_name_{{ $dailyTask->id }}" name="name"
+                                                                        class="block mt-1 w-full dark:bg-gray-900 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                                                                        required>
+                                                                        <option value="" disabled {{ old('name', $dailyTask->name) ? '' : 'selected' }}>Pilih tugas harian</option>
+                                                                        @foreach($dailyTaskOptions as $option)
+                                                                            <option value="{{ $option }}" {{ old('name', $dailyTask->name) === $option ? 'selected' : '' }}>
+                                                                                {{ $option }}
+                                                                            </option>
+                                                                        @endforeach
+                                                                    </select>
+                                                                @else
+                                                                    <x-input-label value="Item Pekerjaan" />
+                                                                    <select name="project_item_id" required
+                                                                        class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
 
-                                                                    @foreach($task->project->checklists as $checklist)
-                                                                        <optgroup label="{{ $checklist->name }}">
-                                                                            @foreach($checklist->items as $item)
-                                                                                <option value="{{ $item->id }}"
-                                                                                    {{ $dailyTask->project_item_id == $item->id ? 'selected' : '' }}>
-                                                                                    {{ $item->name }}
-                                                                                </option>
-                                                                            @endforeach
-                                                                        </optgroup>
-                                                                    @endforeach
+                                                                        @foreach($task->project->checklists as $checklist)
+                                                                            <optgroup label="{{ $checklist->name }}">
+                                                                                @foreach($checklist->items as $item)
+                                                                                    <option value="{{ $item->id }}"
+                                                                                        {{ $dailyTask->project_item_id == $item->id ? 'selected' : '' }}>
+                                                                                        {{ $item->name }}
+                                                                                    </option>
+                                                                                @endforeach
+                                                                            </optgroup>
+                                                                        @endforeach
 
-                                                                </select>
+                                                                    </select>
+                                                                @endif
                                                             </div>
 
                                                             {{-- DUE DATE --}}

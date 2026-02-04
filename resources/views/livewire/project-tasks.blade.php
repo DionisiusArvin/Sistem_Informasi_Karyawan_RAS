@@ -37,7 +37,10 @@
 
                 {{-- Kolom Tugas --}}
                 <td class="py-4 px-4">
-                    <p class="font-semibold text-gray-800 dark:text-gray-200">{{ $task->name }}</p>
+                    <p class="font-semibold text-gray-800 dark:text-gray-200">
+                        <span class="mr-2 font-semibold text-gray-600 dark:text-gray-300">{{ $task->jenis_tugas ?? '-' }}</span>
+                        {{ $task->name ?: '-' }}
+                    </p>
                     @if($task->description)
                         <p class="text-sm dark:text-gray-200 text-gray-500 mt-1 italic">{{ $task->description }}</p>
                     @endif
@@ -149,4 +152,3 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
-

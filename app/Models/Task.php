@@ -21,6 +21,7 @@ class Task extends Model
     // dari code versi 1 (dipakai controller lama)
     protected $fillable = [
         'project_id',
+        'jenis_tugas',
         'name',
         'description',
         'user_id',   // penting untuk penanggung jawab task

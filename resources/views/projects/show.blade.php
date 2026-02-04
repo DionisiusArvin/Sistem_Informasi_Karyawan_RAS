@@ -1,20 +1,42 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Detail Proyek: {{ $project->name }}
-        </h2>
-        {{-- Kode Proyek ditampilkan di bawah judul --}}
-        @if($project->kode_proyek)
-            <p class="text-sm mt-1 text-gray-600 dark:text-gray-300">
-                <span class="font-semibold">Kode Proyek:</span>
-                <span class="font-mono">{{ $project->kode_proyek }}</span>
-                @if($project->category)
-                    <p class="text-xs font-semibold text-white bg-blue-600 inline-block px-2 py-0.5 rounded mt-1">
-                        {{ $project->category }}
+        <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div>
+                <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+                    Detail Proyek: {{ $project->name }}
+                </h2>
+                {{-- Kode Proyek ditampilkan di bawah judul --}}
+                @if($project->kode_proyek)
+                    <p class="text-sm mt-1 text-gray-600 dark:text-gray-300">
+                        <span class="font-semibold">Kode Proyek:</span>
+                        <span class="font-mono">{{ $project->kode_proyek }}</span>
+                        @if($project->category)
+                            <span class="block text-xs font-semibold text-white bg-blue-600 inline-block px-2 py-0.5 rounded mt-1">
+                                {{ $project->category }}
+                            </span>
+                        @endif
                     </p>
                 @endif
-            </p>
-        @endif
+            </div>
+            @can('manage-projects')
+                <div class="flex items-center space-x-2">
+                    @if($project->isForceFinished())
+                        <span class="text-xs font-semibold text-red-700 bg-red-100 px-2 py-1 rounded">
+                            Selesai (Paksa)
+                        </span>
+                    @elseif($project->getProgressPercentage() < 100)
+                        <form action="{{ route('projects.force-finish', $project->id) }}" method="POST"
+                              onsubmit="return confirm('Yakin menandai proyek ini selesai secara paksa? Tugas yang belum selesai akan tetap terbuka.');">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold shadow-md hover:bg-red-700">
+                                Tandai Selesai (Paksa)
+                            </button>
+                        </form>
+                    @endif
+                </div>
+            @endcan
+        </div>
     </x-slot>
 
     <div class="py-12">

@@ -27,8 +27,31 @@ class TaskController extends Controller
     /* ================= STORE ================= */
     public function store(Request $request, Project $project)
     {
+        $jenisTugasOptionsByCategory = [
+            'PBG' => [
+                'Data Umum',
+                'Data Teknis Arsitektur',
+                'Data Teknis Struktur',
+                'Data Teknis MEP',
+                'Data Tambahan',
+                'Upload',
+            ],
+            'SLF' => [
+                'Data Umum',
+                'Data Teknis Arsitektur',
+                'Data Teknis Struktur',
+                'Data Teknis MEP',
+                'Upload',
+            ],
+        ];
+        $jenisTugasOptions = $jenisTugasOptionsByCategory[$project->category ?? ''] ?? null;
+        $jenisTugasRule = $jenisTugasOptions
+            ? 'required|string|in:' . implode(',', $jenisTugasOptions)
+            : 'nullable|string|max:255';
+
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'jenis_tugas' => $jenisTugasRule,
+            'name' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'divisions' => 'required|array',
             'divisions.*' => 'exists:divisions,id',
@@ -36,7 +59,8 @@ class TaskController extends Controller
 
         $task = Task::create([
             'project_id' => $project->id,
-            'name' => $validated['name'],
+            'jenis_tugas' => $validated['jenis_tugas'] ?? ($project->category ?? 'Non-PBG'),
+            'name' => $validated['name'] ?? '',
             'description' => $validated['description'] ?? null,
             'order' => 0,
         ]);
@@ -124,15 +148,39 @@ class TaskController extends Controller
     /* ================= UPDATE ================= */
     public function update(Request $request, Task $task)
     {
+        $jenisTugasOptionsByCategory = [
+            'PBG' => [
+                'Data Umum',
+                'Data Teknis Arsitektur',
+                'Data Teknis Struktur',
+                'Data Teknis MEP',
+                'Data Tambahan',
+                'Upload',
+            ],
+            'SLF' => [
+                'Data Umum',
+                'Data Teknis Arsitektur',
+                'Data Teknis Struktur',
+                'Data Teknis MEP',
+                'Upload',
+            ],
+        ];
+        $jenisTugasOptions = $jenisTugasOptionsByCategory[$task->project->category ?? ''] ?? null;
+        $jenisTugasRule = $jenisTugasOptions
+            ? 'required|string|in:' . implode(',', $jenisTugasOptions)
+            : 'nullable|string|max:255';
+
         $validated = $request->validate([
-            'name'        => 'required|string|max:255',
+            'jenis_tugas' => $jenisTugasRule,
+            'name'        => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'divisions'   => 'required|array',
             'divisions.*' => 'exists:divisions,id',
         ]);
 
         $task->update([
-            'name'        => $validated['name'],
+            'jenis_tugas' => $validated['jenis_tugas'] ?? $task->jenis_tugas,
+            'name'        => $validated['name'] ?? '',
             'description' => $validated['description'] ?? null,
         ]);
 

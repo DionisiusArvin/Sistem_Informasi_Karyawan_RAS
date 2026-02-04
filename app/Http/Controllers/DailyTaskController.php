@@ -24,17 +24,125 @@ class DailyTaskController extends Controller
     /* ================= STORE ================= */
     public function store(Request $request, Task $task)
     {
-        $validated = $request->validate([
-            'project_item_id' => 'required|exists:project_items,id',
-            'due_date' => 'required|date',
-            'description' => 'nullable|string',
-        ]);
+        $dailyTaskOptionsByCategory = [
+            'PBG' => [
+                'Data Umum' => [
+                    'Data Persetujuan Lingkungan (mengikuti peraturan perundangan yang berlaku)',
+                    'Data Siteplan yang telah disetujui Pemerintah Daerah Setempat',
+                    'Data Penyedia Jasa Perencana',
+                    'Data Intensitas Bangunan (KKPR/KRK)',
+                    'Data Identitas Pemilik Bangunan (KTP/KITAS)',
+                ],
+                'Data Teknis Arsitektur' => [
+                    'Rekomendasi Peil Banjir',
+                    'Spesifikasi Teknis Arsitektur Bangunan',
+                    'Gambar Rencana Detail Bangunan',
+                    'Gambar Rencana Tampak Bangunan',
+                    'Gambar Rencana Potongan Bangunan',
+                    'Gambar Rencana Denah Bangunan',
+                    'Gambar Rencana Tapak Bangunan',
+                    'Gambar Situasi',
+                ],
+                'Data Teknis Struktur' => [
+                    'Spesifikasi Teknis Struktur Bangunan',
+                    'Perhitungan Teknis Struktur',
+                    'Gambar Rencana Dan Detail Teknis Tangga',
+                    'Gambar Rencana Dan Detail Teknis Pelat Lantai',
+                    'Gambar Rencana Dan Detail Teknis Penutup',
+                    'Gambar Rencana Dan Detail Teknis Rangka Atap',
+                    'Gambar Rencana Dan Detail Teknis Balok',
+                    'Gambar Rencana Dan Detail Teknis Kolom',
+                    'Gambar Rencana Dan Detail Teknis Fondasi dan sloof',
+                ],
+                'Data Teknis MEP' => [
+                    'Spesifikasi Teknis Mekanikal, Elektrikal, dan Plambing',
+                    'Perhitungan Teknis Mekanikal, Elektrikal, dan Plambing',
+                    'Gambar Rencana Dan Detail Pengelolaan Air Limbah',
+                    'Gambar Rencana Dan Detail Pengelolaan Air Bersih',
+                    'Gambar Rencana Dan Detail Pencahayaan Umum, dan Pencahanyaan Khusus',
+                    'Gambar Rencana Dan Detail Sumber Listrik, dan Jaringan Listrik',
+                ],
+                'Data Tambahan' => [
+                    'Gambar Sederhana Batas Tanah',
+                    'Hasil Penyelidikan Tanah',
+                    'Peil Banjir',
+                ],
+                'Upload' => [
+                    'Upload semua dokumen ke sistem',
+                ],
+            ],
+            'SLF' => [
+                'Data Umum' => [
+                    'Data Penyedia Jasa Pengkaji Teknis',
+                    'Laporan Pemeriksaan Kelaikan Fungsi Bangunan',
+                    'Surat Pernyataan Kelaikan Fungsi',
+                    'Data Intensitas Bangunan (KKPR/KRK)',
+                    'Data Identitas Pemilik Bangunan (KTP/KITAS)',
+                ],
+                'Data Teknis Arsitektur' => [
+                    'Rekomendasi Peil Banjir',
+                    'Gambar Detail Bangunan',
+                    'Gambar Tampak Bangunan',
+                    'Gambar Potongan Bangunan',
+                    'Gambar Denah Bangunan',
+                    'Gambar Tapak Bangunan',
+                    'Spesifikasi Teknis Arsitektur Bangunan',
+                    'Gambar Situasi',
+                ],
+                'Data Teknis Struktur' => [
+                    'Gambar Dan Detail Teknis Penutup',
+                    'Gambar Dan Detail Teknis Rangka Atap',
+                    'Gambar Dan Detail Teknis Balok',
+                    'Gambar Dan Detail Teknis Kolom',
+                    'Gambar Dan Detail Teknis Fondasi dan sloof',
+                    'Spesifikasi Teknis Struktur Bangunan',
+                    'Perhitungan Teknis Struktur',
+                ],
+                'Data Teknis MEP' => [
+                    'Gambar Dan Detail Pengelolaan Air Limbah',
+                    'Gambar Dan Detail Pengelolaan Air Bersih',
+                    'Gambar Dan Detail Pencahayaan Umum, dan Pencahanyaan Khusus',
+                    'Gambar Dan Detail Sumber Listrik, dan Jaringan Listrik',
+                    'Spesifikasi Teknis Mekanikal, Elektrikal, dan Plambing',
+                    'Perhitungan Teknis Mekanikal, Elektrikal, dan Plambing',
+                ],
+                'Upload' => [
+                    'Upload semua dokumen ke sistem',
+                ],
+            ],
+        ];
+        $templateCategory = $task->project->category ?? null;
+        $showTemplate = array_key_exists($templateCategory, $dailyTaskOptionsByCategory);
+        $dailyTaskOptions = $dailyTaskOptionsByCategory[$templateCategory][$task->jenis_tugas] ?? [];
+
+        if ($showTemplate) {
+            $nameRule = $dailyTaskOptions
+                ? 'required|string|in:' . implode(',', $dailyTaskOptions)
+                : 'required|string|max:255';
+            $validated = $request->validate([
+                'name' => $nameRule,
+                'due_date' => 'required|date',
+                'description' => 'nullable|string',
+            ]);
+
+            $projectItemId = null;
+            $name = $validated['name'];
+        } else {
+            $validated = $request->validate([
+                'project_item_id' => 'required|exists:project_items,id',
+                'due_date' => 'required|date',
+                'description' => 'nullable|string',
+            ]);
+
+            $projectItemId = $validated['project_item_id'];
+            $name = \App\Models\ProjectItem::find($validated['project_item_id'])->name;
+        }
 
         DailyTask::create([
             'task_id' => $task->id,
             'project_id' => $task->project_id,
-            'project_item_id' => $validated['project_item_id'],
-            'name' => \App\Models\ProjectItem::find($validated['project_item_id'])->name,
+            'project_item_id' => $projectItemId,
+            'name' => $name,
             'due_date' => $validated['due_date'],
             'description' => $validated['description'] ?? null,
             'status' => 'Belum Dikerjakan',
@@ -169,19 +277,128 @@ class DailyTaskController extends Controller
         abort(403);
     }
 
-    $validated = $request->validate([
-        'project_item_id' => 'required|exists:project_items,id',
-        'due_date' => 'required|date',
-        'description' => 'nullable|string',
-    ]);
+    $dailyTaskOptionsByCategory = [
+        'PBG' => [
+            'Data Umum' => [
+                'Data Persetujuan Lingkungan (mengikuti peraturan perundangan yang berlaku)',
+                'Data Siteplan yang telah disetujui Pemerintah Daerah Setempat',
+                'Data Penyedia Jasa Perencana',
+                'Data Intensitas Bangunan (KKPR/KRK)',
+                'Data Identitas Pemilik Bangunan (KTP/KITAS)',
+            ],
+            'Data Teknis Arsitektur' => [
+                'Rekomendasi Peil Banjir',
+                'Spesifikasi Teknis Arsitektur Bangunan',
+                'Gambar Rencana Detail Bangunan',
+                'Gambar Rencana Tampak Bangunan',
+                'Gambar Rencana Potongan Bangunan',
+                'Gambar Rencana Denah Bangunan',
+                'Gambar Rencana Tapak Bangunan',
+                'Gambar Situasi',
+            ],
+            'Data Teknis Struktur' => [
+                'Spesifikasi Teknis Struktur Bangunan',
+                'Perhitungan Teknis Struktur',
+                'Gambar Rencana Dan Detail Teknis Tangga',
+                'Gambar Rencana Dan Detail Teknis Pelat Lantai',
+                'Gambar Rencana Dan Detail Teknis Penutup',
+                'Gambar Rencana Dan Detail Teknis Rangka Atap',
+                'Gambar Rencana Dan Detail Teknis Balok',
+                'Gambar Rencana Dan Detail Teknis Kolom',
+                'Gambar Rencana Dan Detail Teknis Fondasi dan sloof',
+            ],
+            'Data Teknis MEP' => [
+                'Spesifikasi Teknis Mekanikal, Elektrikal, dan Plambing',
+                'Perhitungan Teknis Mekanikal, Elektrikal, dan Plambing',
+                'Gambar Rencana Dan Detail Pengelolaan Air Limbah',
+                'Gambar Rencana Dan Detail Pengelolaan Air Bersih',
+                'Gambar Rencana Dan Detail Pencahayaan Umum, dan Pencahanyaan Khusus',
+                'Gambar Rencana Dan Detail Sumber Listrik, dan Jaringan Listrik',
+            ],
+            'Data Tambahan' => [
+                'Gambar Sederhana Batas Tanah',
+                'Hasil Penyelidikan Tanah',
+                'Peil Banjir',
+            ],
+            'Upload' => [
+                'Upload semua dokumen ke sistem',
+            ],
+        ],
+        'SLF' => [
+            'Data Umum' => [
+                'Data Penyedia Jasa Pengkaji Teknis',
+                'Laporan Pemeriksaan Kelaikan Fungsi Bangunan',
+                'Surat Pernyataan Kelaikan Fungsi',
+                'Data Intensitas Bangunan (KKPR/KRK)',
+                'Data Identitas Pemilik Bangunan (KTP/KITAS)',
+            ],
+            'Data Teknis Arsitektur' => [
+                'Rekomendasi Peil Banjir',
+                'Gambar Detail Bangunan',
+                'Gambar Tampak Bangunan',
+                'Gambar Potongan Bangunan',
+                'Gambar Denah Bangunan',
+                'Gambar Tapak Bangunan',
+                'Spesifikasi Teknis Arsitektur Bangunan',
+                'Gambar Situasi',
+            ],
+            'Data Teknis Struktur' => [
+                'Gambar Dan Detail Teknis Penutup',
+                'Gambar Dan Detail Teknis Rangka Atap',
+                'Gambar Dan Detail Teknis Balok',
+                'Gambar Dan Detail Teknis Kolom',
+                'Gambar Dan Detail Teknis Fondasi dan sloof',
+                'Spesifikasi Teknis Struktur Bangunan',
+                'Perhitungan Teknis Struktur',
+            ],
+            'Data Teknis MEP' => [
+                'Gambar Dan Detail Pengelolaan Air Limbah',
+                'Gambar Dan Detail Pengelolaan Air Bersih',
+                'Gambar Dan Detail Pencahayaan Umum, dan Pencahanyaan Khusus',
+                'Gambar Dan Detail Sumber Listrik, dan Jaringan Listrik',
+                'Spesifikasi Teknis Mekanikal, Elektrikal, dan Plambing',
+                'Perhitungan Teknis Mekanikal, Elektrikal, dan Plambing',
+            ],
+            'Upload' => [
+                'Upload semua dokumen ke sistem',
+            ],
+        ],
+    ];
+    $templateCategory = $dailyTask->task->project->category ?? null;
+    $showTemplate = array_key_exists($templateCategory, $dailyTaskOptionsByCategory);
+    $dailyTaskOptions = $dailyTaskOptionsByCategory[$templateCategory][$dailyTask->task->jenis_tugas] ?? [];
 
-    $dailyTask->update([
-        // name ikut item pekerjaan (biar konsisten)
-        'project_item_id' => $validated['project_item_id'],
-        'name' => \App\Models\ProjectItem::find($validated['project_item_id'])->name,
-        'due_date' => $validated['due_date'],
-        'description' => $validated['description'] ?? null,
-    ]);
+    if ($showTemplate) {
+        $nameRule = $dailyTaskOptions
+            ? 'required|string|in:' . implode(',', $dailyTaskOptions)
+            : 'required|string|max:255';
+        $validated = $request->validate([
+            'name' => $nameRule,
+            'due_date' => 'required|date',
+            'description' => 'nullable|string',
+        ]);
+
+        $dailyTask->update([
+            'project_item_id' => null,
+            'name' => $validated['name'],
+            'due_date' => $validated['due_date'],
+            'description' => $validated['description'] ?? null,
+        ]);
+    } else {
+        $validated = $request->validate([
+            'project_item_id' => 'required|exists:project_items,id',
+            'due_date' => 'required|date',
+            'description' => 'nullable|string',
+        ]);
+
+        $dailyTask->update([
+            // name ikut item pekerjaan (biar konsisten)
+            'project_item_id' => $validated['project_item_id'],
+            'name' => \App\Models\ProjectItem::find($validated['project_item_id'])->name,
+            'due_date' => $validated['due_date'],
+            'description' => $validated['description'] ?? null,
+        ]);
+    }
 
     return back()->with('success', 'Daily Task berhasil diperbarui.');
     }
