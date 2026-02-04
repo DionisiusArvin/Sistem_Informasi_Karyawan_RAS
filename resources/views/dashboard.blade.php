@@ -53,6 +53,48 @@
                             </div>
                         </div>
                     </div>
+
+                    {{-- Proyek Berjalan --}}
+                    <div class="p-6 rounded-2xl shadow-md bg-gradient-to-br from-cyan-100 via-cyan-50 to-white
+                                dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border border-cyan-200/50
+                                dark:border-gray-700 transition hover:scale-[1.02] hover:shadow-xl">
+                        <div>
+                            <div class="text-lg font-medium text-gray-800 dark:text-gray-200">
+                                Proyek Berjalan
+                            </div>
+                            <div class="mt-3 text-4xl font-extrabold text-gray-900 dark:text-white">
+                                {{ $totalProjectsRunning ?? 0 }}
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Proyek Selesai --}}
+                    <div class="p-6 rounded-2xl shadow-md bg-gradient-to-br from-emerald-100 via-emerald-50 to-white
+                                dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border border-emerald-200/50
+                                dark:border-gray-700 transition hover:scale-[1.02] hover:shadow-xl">
+                        <div>
+                            <div class="text-lg font-medium text-gray-800 dark:text-gray-200">
+                                Proyek Selesai
+                            </div>
+                            <div class="mt-3 text-4xl font-extrabold text-gray-900 dark:text-white">
+                                {{ $totalProjectsCompleted ?? 0 }}
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Proyek Terlambat --}}
+                    <div class="p-6 rounded-2xl shadow-md bg-gradient-to-br from-red-100 via-rose-50 to-white
+                                dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border border-red-200/50
+                                dark:border-gray-700 transition hover:scale-[1.02] hover:shadow-xl">
+                        <div>
+                            <div class="text-lg font-medium text-gray-800 dark:text-gray-200">
+                                Proyek Terlambat
+                            </div>
+                            <div class="mt-3 text-4xl font-extrabold text-gray-900 dark:text-white">
+                                {{ $totalProjectsLate ?? 0 }}
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 {{-- Chart --}}
@@ -236,7 +278,17 @@
                             grid: { color: c.grid }
                         },
                         x: {
-                            ticks: { color: c.text },
+                            ticks: { 
+                                color: c.text,
+                                autoSkip: true,
+                                maxTicksLimit: 10,
+                                maxRotation: 25,
+                                minRotation: 0,
+                                callback: function(value) {
+                                    const label = this.getLabelForValue(value);
+                                    return label.length > 18 ? label.slice(0, 18) + '…' : label;
+                                }
+                            },
                             grid: { color: c.grid }
                         }
                     }

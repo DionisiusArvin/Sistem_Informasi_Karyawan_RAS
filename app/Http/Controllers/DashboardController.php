@@ -8,6 +8,7 @@ use App\Models\DailyTask;
 use App\Models\Schedule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -19,6 +20,7 @@ class DashboardController extends Controller
         if ($user->role === 'manager') {
 
             $projects = Project::with('dailyTasks')->get();
+            $today = Carbon::today();
 
             // Hitung total omset dalam 1 tahun kalender
             $currentYear = now()->year;
@@ -28,8 +30,25 @@ class DashboardController extends Controller
             $chartData = $projects->map(fn($project) => $project->getProgressPercentage());
             $chartLabels = $projects->map(fn($project) => $project->name);
 
+            $totalProjectsCompleted = $projects->filter(
+                fn($project) => $project->getProgressPercentage() >= 100
+            )->count();
+            $totalProjectsLate = $projects->filter(function ($project) use ($today) {
+                $progress = $project->getProgressPercentage();
+                $endDate = Carbon::parse($project->end_date)->startOfDay();
+                return $progress < 100 && $endDate->lt($today);
+            })->count();
+            $totalProjectsRunning = $projects->filter(function ($project) use ($today) {
+                $progress = $project->getProgressPercentage();
+                $endDate = Carbon::parse($project->end_date)->startOfDay();
+                return $progress < 100 && $endDate->gte($today);
+            })->count();
+
             $viewData = [
                 'totalProjects' => $projects->count(),
+                'totalProjectsRunning' => $totalProjectsRunning,
+                'totalProjectsCompleted' => $totalProjectsCompleted,
+                'totalProjectsLate' => $totalProjectsLate,
                 'totalOmset' => $totalOmset,
                 'tasksToValidate' => DailyTask::where('status', 'Menunggu Validasi')->count(),
                 'chartData' => $chartData,
