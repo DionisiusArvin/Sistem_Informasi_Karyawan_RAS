@@ -55,7 +55,7 @@
                                                     (auth()->user()->role === 'staff' || auth()->user()->role === 'kepala_divisi') && 
                                                     $task->status !== 'Selesai'
                                                 )
-                                                    <a href="{{ route('ad-hoc-tasks.upload', $task->id) }}"
+                                                    <a href="{{ route('ad-hoc-tasks.upload.form', $task->id) }}"
                                                     class="inline-block px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700">
                                                         Upload
                                                     </a>
@@ -69,7 +69,7 @@
                                                     @if(($task->assigned_to_id === auth()->id()) && 
                                                         (auth()->user()->role === 'kepala_divisi') && 
                                                         $task->status !== 'Selesai')
-                                                        <a href="{{ route('ad-hoc-tasks.upload', $task->id) }}"
+                                                        <a href="{{ route('ad-hoc-tasks.upload.form', $task->id) }}"
                                                            class="inline-block px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700">
                                                             Upload
                                                         </a>

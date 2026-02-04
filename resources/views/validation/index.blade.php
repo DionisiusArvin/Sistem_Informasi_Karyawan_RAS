@@ -47,7 +47,7 @@
 
                                             @if($lastUpload->file_path)
                                                 <a href="{{ url('storage/' . $lastUpload->file_path) }}" target="_blank" class="text-green-600 text-sm">Lihat File</a>
-                                                <a href="{{ route('daily-task.download', $task->id) }}" class="text-indigo-600 text-sm">Download</a>
+                                                <a href="{{ route('dailytasks.download', $task->id) }}" class="text-indigo-600 text-sm">Download</a>
                                             @endif
 
                                             @if($lastUpload->link_url)

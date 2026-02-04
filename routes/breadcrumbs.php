@@ -98,9 +98,18 @@ Breadcrumbs::for('admin-tasks.create', function (BreadcrumbTrail $trail) {
     $trail->push('Edit Tugas', route('admin-tasks.create'));
 });
 
-Breadcrumbs::for('admin-tasks.upload', function (BreadcrumbTrail $trail) {
-    $trail->parent('admin-tasks.index');
-    $trail->push('Edit Tugas', route('admin-tasks.upload'));
+Breadcrumbs::for('admin-tasks.upload.form', function (BreadcrumbTrail $trail, AdminTask $adminTask) {
+    // naik ke detail proyek (karena upload admin task ada di halaman project)
+    if ($adminTask->project) {
+        $trail->parent('projects.show', $adminTask->project);
+    } else {
+        $trail->parent('admin-tasks.index');
+    }
+
+    $trail->push(
+        'Upload Tugas Administrasi',
+        route('admin-tasks.upload.form', $adminTask)
+    );
 });
 
 Breadcrumbs::for('reports.index', function (BreadcrumbTrail $trail) {
@@ -147,3 +156,25 @@ Breadcrumbs::for('profile.edit', function (BreadcrumbTrail $trail) {
 Breadcrumbs::for('schedules.index', function (BreadcrumbTrail $trail) {
     $trail->push('Jadwal', route('schedules.index'));
 });
+
+// === PERFORMA KARYAWAN ===
+Breadcrumbs::for('performance.index', function (BreadcrumbTrail $trail) {
+    $trail->parent('dashboard');
+    $trail->push('Performa Karyawan', route('performance.index'));
+});
+
+Breadcrumbs::for('performance.calculate', function (BreadcrumbTrail $trail) {
+    $trail->parent('performance.index');
+    $trail->push('Hasil Perhitungan');
+});
+
+Breadcrumbs::for('performance.pdf', function (BreadcrumbTrail $trail) {
+    $trail->parent('performance.index');
+    $trail->push('Export PDF');
+});
+
+Breadcrumbs::for('performance.excel', function (BreadcrumbTrail $trail) {
+    $trail->parent('performance.index');
+    $trail->push('Export Excel');
+});
+

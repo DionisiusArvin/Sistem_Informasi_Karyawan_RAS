@@ -1,8 +1,8 @@
 <x-app-layout>
     <x-slot name="header">
-        <span class="text-2xl font-semibold text-gray-900 dark:text-gray-100 tracking-wide">
+        <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">
             {{ __('Dashboard') }}
-        </span>
+        </h2>
     </x-slot>
 
     <div class="py-10">
@@ -288,13 +288,38 @@
         });
 
         // === APPLY DARK MODE ON CHANGE ===
-        const observer = new MutationObserver(() => {
-            if (managerChart) applyDarkMode(managerChart);
-            doughnutCharts.forEach(c => {
-                c.options.plugins.legend.labels.color = getColors().text;
-                c.update();
-            });
+const observer = new MutationObserver(() => {
+    const c = getColors();
+
+    // === MANAGER CHART ===
+    if (managerChart) {
+        managerChart.options.plugins.legend.labels.color = c.text;
+        managerChart.options.scales.x.ticks.color = c.text;
+        managerChart.options.scales.y.ticks.color = c.text;
+        managerChart.options.scales.x.grid.color = c.grid;
+        managerChart.options.scales.y.grid.color = c.grid;
+
+        managerChart.data.datasets.forEach(ds => {
+            if (ds.label === "Progress Pengerjaan (%)") {
+                ds.backgroundColor = c.bgProgress;
+                ds.borderColor = c.border;
+            }
         });
+
+        managerChart.update();
+    }
+
+    // === DOUGHNUT CHART ===
+    doughnutCharts.forEach(chart => {
+        chart.options.plugins.legend.labels.color = c.text;
+        chart.update();
+    });
+});
+
+observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class']
+});
 
         observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     });

@@ -12,9 +12,6 @@ use Illuminate\Validation\Rule;
 
 class ProjectController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
         if (! Gate::allows('view-project')) {
@@ -60,31 +57,25 @@ class ProjectController extends Controller
         ]);
     }
 
-
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        // Pastikan hanya manager yang bisa membuat proyek
         if (! Gate::allows('manage-projects')) {
             abort(403);
         }
+
         $picUsers = User::whereIn('role', ['manager', 'kepala_divisi'])->get();
         return view('projects.create', compact('picUsers'));
     }
 
     public function store(Request $request)
     {
-        // 1. Pastikan hanya manager yang bisa menyimpan proyek
         if (! Gate::allows('manage-projects')) {
             abort(403);
         }
 
-        // 2. Validasi semua input dari form
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'kode_proyek' => 'nullable|string|max:255|unique:projects,kode_proyek', // <-- Tambahkan
+            'kode_proyek' => 'nullable|string|max:255|unique:projects,kode_proyek',
             'client_name' => 'required|string|max:255',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
@@ -93,21 +84,24 @@ class ProjectController extends Controller
             'pic_id' => 'nullable|exists:users,id',
         ]);
 
-        // 3. Tambahkan ID manager yang sedang login ke data
         $validated['manager_id'] = Auth::id();
 
-        // 4. Buat dan simpan proyek baru
-        Project::create($validated);
+        // ✅ WAJIB pakai variable project
+        $project = Project::create($validated);
 
-        // 5. Arahkan kembali ke halaman daftar proyek dengan pesan sukses
-        return redirect()->route('projects.index')->with('success', 'Proyek berhasil dibuat!');
+        // ✅ AUTO BUAT CHECKLIST
+        $this->createDefaultChecklist($project);
+
+        return redirect()->route('projects.index')
+            ->with('success', 'Proyek berhasil dibuat!');
     }
     
-    public function edit(Project $project) // Laravel akan otomatis mencari project berdasarkan ID
+    public function edit(Project $project)
     {
         if (! Gate::allows('manage-projects')) {
             abort(403);
         }
+
         $users = User::whereIn('role', ['manager', 'kepala_divisi'])->get();
 
         return view('projects.edit', [
@@ -122,15 +116,14 @@ class ProjectController extends Controller
             abort(403);
         }
 
-        // Validasi data yang diubah
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'kode_proyek' => [
-            'nullable',
-            'string',
-            'max:255',
-            Rule::unique('projects')->ignore($project->id),
-        ],
+                'nullable',
+                'string',
+                'max:255',
+                Rule::unique('projects')->ignore($project->id),
+            ],
             'client_name' => 'required|string|max:255',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
@@ -139,40 +132,22 @@ class ProjectController extends Controller
             'pic_id' => 'nullable|exists:users,id',
         ]);
 
-        // Update data proyek di database
         $project->update($validated);
 
-        return redirect()->route('projects.index')->with('success', 'Proyek berhasil diperbarui!');
+        return redirect()->route('projects.index')
+            ->with('success', 'Proyek berhasil diperbarui!');
     }
     
     public function destroy(Project $project)
     {
-        // Pastikan hanya manager yang bisa menghapus
         if (! Gate::allows('manage-projects')) {
             abort(403);
         }
 
-        // Hapus proyek dari database
         $project->delete();
 
-        // Redirect kembali dengan pesan sukses
-        return redirect()->route('projects.index')->with('success', 'Proyek berhasil dihapus!');
-    }
-
-    public function forceFinish(Project $project)
-    {
-        if (! Gate::allows('manage-projects')) {
-            abort(403);
-        }
-
-        if (! $project->isForceFinished()) {
-            $project->force_finished_at = now();
-            $project->save();
-        }
-
-        return redirect()
-            ->route('projects.show', $project->id)
-            ->with('success', 'Proyek ditandai selesai secara paksa.');
+        return redirect()->route('projects.index')
+            ->with('success', 'Proyek berhasil dihapus!');
     }
 
     public function show(Project $project)
@@ -181,20 +156,41 @@ class ProjectController extends Controller
             abort(403);
         }
 
-        // Muat relasi task + divisions + relasi adminTask
         $project->load('tasks.divisions', 'adminTasks.assignedToAdmin'); 
 
-        // Ambil semua divisi (untuk pilihan manager ubah akses)
         $divisions = Division::all();
-
-        $breadcrumbs = [
-            ['label' => 'Proyek', 'url' => route('projects.index')],
-            ['label' => $project->name, 'url' => route('projects.show', $project->id)],
-        ];
 
         return view('projects.show', [
             'project'   => $project,
             'divisions' => $divisions, 
         ]);
+    }
+
+    /* =========================================================
+       AUTO CHECKLIST SAAT PROJECT DIBUAT
+       ========================================================= */
+    private function createDefaultChecklist($project)
+    {
+        $gambarKerja = $project->checklists()->create([
+            'name' => 'Gambar Kerja'
+        ]);
+
+        $gambarKerja->items()->createMany([
+            ['name' => 'Denah'],
+            ['name' => 'Tampak'],
+            ['name' => 'Potongan'],
+            ['name' => 'Detail Pondasi'],
+        ]);
+
+        $rab = $project->checklists()->create([
+            'name' => 'Rencana Anggaran Biaya'
+        ]);
+
+        $rab->items()->createMany([
+            ['name' => 'Perhitungan Volume'],
+        ]);
+
+        $project->checklists()->create(['name' => 'RKS']);
+        $project->checklists()->create(['name' => 'Spesifikasi Teknis']);
     }
 }

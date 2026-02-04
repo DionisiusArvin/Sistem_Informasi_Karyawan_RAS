@@ -37,6 +37,11 @@ class Project extends Model
         return $this->hasMany(AdminTask::class);
     }
 
+    public function checklists()
+    {
+        return $this->hasMany(ProjectChecklist::class);
+    }
+
     public function getProgressPercentage()
     {
         if ($this->isForceFinished()) {

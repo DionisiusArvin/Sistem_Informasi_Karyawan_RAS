@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class AdHocTask extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'name',
         'description',
@@ -15,8 +16,8 @@ class AdHocTask extends Model
         'due_date',
         'assigned_by_id',
         'status',
-        'file_path', // <-- Tambah
-        'notes',     // <-- Tambah
+        'file_path',
+        'notes',
         'link',
     ];
 
@@ -30,5 +31,11 @@ class AdHocTask extends Model
     public function assignedBy()
     {
         return $this->belongsTo(User::class, 'assigned_by_id');
+    }
+
+    // 🔥 WAJIB: agar fitur activity / upload tidak error
+    public function activities()
+    {
+        return $this->hasMany(\App\Models\TaskActivity::class, 'ad_hoc_task_id');
     }
 }

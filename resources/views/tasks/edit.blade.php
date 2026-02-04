@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl dark:text-gray-200 text-gray-800 leading-tight">
-            Edit Tugas: {{ $task->name ?: $task->jenis_tugas }}
+            Edit Tugas: {{ $task->name }}
         </h2>
     </x-slot>
 
@@ -14,43 +14,7 @@
                         @method('PUT')
 
                         <div>
-                            <label class="block text-sm dark:text-gray-200 font-medium">Jenis Tugas</label>
-                            @php
-                                $jenisTugasOptionsByCategory = [
-                                    'PBG' => [
-                                        'Data Umum',
-                                        'Data Teknis Arsitektur',
-                                        'Data Teknis Struktur',
-                                        'Data Teknis MEP',
-                                        'Data Tambahan',
-                                        'Upload',
-                                    ],
-                                    'SLF' => [
-                                        'Data Umum',
-                                        'Data Teknis Arsitektur',
-                                        'Data Teknis Struktur',
-                                        'Data Teknis MEP',
-                                        'Upload',
-                                    ],
-                                ];
-                                $jenisTugasOptions = $jenisTugasOptionsByCategory[$task->project->category ?? ''] ?? null;
-                            @endphp
-                            @if($jenisTugasOptions)
-                                <select name="jenis_tugas" class="w-full rounded border-gray-300 bg-white dark:bg-gray-900" required>
-                                    <option value="" disabled>-- Pilih Jenis Tugas --</option>
-                                    @foreach($jenisTugasOptions as $option)
-                                        <option value="{{ $option }}" {{ old('jenis_tugas', $task->jenis_tugas) === $option ? 'selected' : '' }}>
-                                            {{ $option }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            @else
-                                <input type="hidden" name="jenis_tugas" value="{{ old('jenis_tugas', $task->jenis_tugas) }}">
-                            @endif
-                        </div>
-
-                        <div>
-                            <label class="block text-sm dark:text-gray-200 font-medium">Nama Tugas (Opsional)</label>
+                            <label class="block text-sm dark:text-gray-200 font-medium">Nama Tugas</label>
                             <input type="text" name="name" value="{{ old('name', $task->name) }}"
                                 class="w-full rounded border-gray-300 bg-white dark:bg-gray-900">
                         </div>
