@@ -98,7 +98,7 @@
                 </div>
 
                 {{-- Chart --}}
-                <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
+                <div class="mt-8 bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
                     <h3 class="font-semibold mb-6 text-xl text-gray-900 dark:text-gray-200">
                         Progress Seluruh Proyek
                     </h3>

@@ -38,8 +38,14 @@
                 {{-- Kolom Tugas --}}
                 <td class="py-4 px-4">
                     <p class="font-semibold text-gray-800 dark:text-gray-200">
-                        <span class="mr-2 font-semibold text-gray-600 dark:text-gray-300">{{ $task->jenis_tugas ?? '-' }}</span>
-                        {{ $task->name ?: '-' }}
+                        @if(($task->jenis_tugas ?? null) === 'Paving')
+                            {{ $task->name ?: '-' }}
+                        @elseif(!empty($task->name))
+                            <span class="mr-2 font-semibold text-gray-600 dark:text-gray-300">{{ $task->jenis_tugas ?? '-' }}</span>
+                            {{ $task->name }}
+                        @else
+                            {{ $task->jenis_tugas ?? '-' }}
+                        @endif
                     </p>
                     @if($task->description)
                         <p class="text-sm dark:text-gray-200 text-gray-500 mt-1 italic">{{ $task->description }}</p>

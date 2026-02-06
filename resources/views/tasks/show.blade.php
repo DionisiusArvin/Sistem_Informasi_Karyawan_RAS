@@ -10,15 +10,21 @@
             <div class="flex items-start">
                 <span class="w-33 font-semibold text-xl text-gray-800 dark:text-gray-200">Tugas Utama :&nbsp;</span>
                 <span class="text-xl text-gray-800 dark:text-gray-200 flex-1">
-                    {{ $task->name ?: $task->jenis_tugas }}
+                    @if(($task->jenis_tugas ?? null) === 'Paving')
+                        {{ $task->name }}
+                    @else
+                        {{ $task->name ?: $task->jenis_tugas }}
+                    @endif
                 </span>
             </div>
-            <div class="flex items-start">
-                <span class="w-33 font-semibold text-xl text-gray-800 dark:text-gray-200">Jenis Tugas :&nbsp;</span>
-                <span class="text-xl text-gray-800 dark:text-gray-200 flex-1">
-                    {{ $task->jenis_tugas }}
-                </span>
-            </div>
+            @if(($task->jenis_tugas ?? null) !== 'Paving')
+                <div class="flex items-start">
+                    <span class="w-33 font-semibold text-xl text-gray-800 dark:text-gray-200">Jenis Tugas :&nbsp;</span>
+                    <span class="text-xl text-gray-800 dark:text-gray-200 flex-1">
+                        {{ $task->jenis_tugas }}
+                    </span>
+                </div>
+            @endif
         </div>
     </x-slot>
 
@@ -109,10 +115,65 @@
                     'Upload semua dokumen ke sistem',
                 ],
             ],
+            'PERENCANAAN' => [
+                'Paving' => [
+                    'Survey' => [
+                        'Survey Lapangan',
+                    ],
+                    'Gambar Kerja' => [
+                        'Layout Eksisting',
+                        'Detail Eksisting',
+                        'Layout Rencana',
+                        'Detail Rencana',
+                        'Detail Potongan Rencana',
+                    ],
+                    'Engineering Estimate' => [
+                        'Pembuatan Item RAB',
+                        'Perhitungan Volume',
+                        'Pembuatan Analisa',
+                        'Penentuan Harga Bahan',
+                        'Setting RAB sesuai Pagu',
+                        'Time Schedule',
+                    ],
+                    'BOQ' => [
+                        'Setting BOQ dari Engineering Estimate',
+                    ],
+                    'Rencana Kerja dan Syarat2 Teknis' => [
+                        'Pembuatan Check List RKS',
+                        'Pembuatan RKS dari database yang ada',
+                        'Pembuatan RKS baru',
+                        'Spesifikasi Teknis',
+                    ],
+                    'Dokumen Teknis' => [
+                        'Rencana Kerja & Syarat-syarat Teknis',
+                        'Spesifikasi Teknis',
+                        'Metodologi Pelaksanaan Pekerjaan',
+                        'Pembuatan SMKK Konsultan',
+                        'Pembuatan SMKK Kontaktor',
+                    ],
+                    'Harga Perkiraan Sendiri' => [
+                        'Pembuatan HPS',
+                    ],
+                    'Laporan' => [
+                        'Pembuatan Laporan Pendahuluan',
+                        'Pembuatan Laporan Prarencana',
+                        'Pembuatan Laporan Antara',
+                        'Pembuatan Laporan Akhir',
+                    ],
+                    'Finalisasi Dokumen Perencanaan' => [
+                        'Print dokumen gambar',
+                        'Print dokumen EE',
+                    ],
+                ],
+            ],
         ];
         $templateCategory = $task->project->category ?? null;
-        $showTemplate = array_key_exists($templateCategory, $dailyTaskOptionsByCategory);
-        $dailyTaskOptions = $dailyTaskOptionsByCategory[$templateCategory][$task->jenis_tugas] ?? [];
+        if ($templateCategory === 'PERENCANAAN' && ($task->jenis_tugas ?? null) === 'Paving') {
+            $dailyTaskOptions = $dailyTaskOptionsByCategory['PERENCANAAN']['Paving'][$task->name] ?? [];
+        } else {
+            $dailyTaskOptions = $dailyTaskOptionsByCategory[$templateCategory][$task->jenis_tugas] ?? [];
+        }
+        $showTemplate = !empty($dailyTaskOptions);
     @endphp
 
     <div class="py-5" x-data="{ showForm: false }">
@@ -140,14 +201,37 @@
                                         <x-input-label for="name" value="Nama Tugas Harian" />
                                         <select id="name" name="name"
                                             class="block mt-1 w-full dark:bg-gray-900 dark:text-gray-200 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                                            required>
+                                            >
                                             <option value="" disabled {{ old('name') ? '' : 'selected' }}>Pilih tugas harian</option>
-                                            @foreach($dailyTaskOptions as $option)
-                                                <option value="{{ $option }}" {{ old('name') === $option ? 'selected' : '' }}>
-                                                    {{ $option }}
-                                                </option>
-                                            @endforeach
+                                            @php
+                                                $isGrouped = !array_is_list($dailyTaskOptions);
+                                                $flatTemplateOptions = $isGrouped
+                                                    ? collect($dailyTaskOptions)->flatten(1)->values()->all()
+                                                    : $dailyTaskOptions;
+                                            @endphp
+                                            @if($isGrouped)
+                                                @foreach($dailyTaskOptions as $group => $items)
+                                                    <optgroup label="{{ $group }}">
+                                                        @foreach($items as $item)
+                                                            <option value="{{ $item }}" {{ old('name') === $item ? 'selected' : '' }}>
+                                                                {{ $item }}
+                                                            </option>
+                                                        @endforeach
+                                                    </optgroup>
+                                                @endforeach
+                                            @else
+                                                @foreach($dailyTaskOptions as $option)
+                                                    <option value="{{ $option }}" {{ old('name') === $option ? 'selected' : '' }}>
+                                                        {{ $option }}
+                                                    </option>
+                                                @endforeach
+                                            @endif
                                         </select>
+                                        <div class="mt-3">
+                                            <x-input-label for="manual_name" value="Nama Tugas Harian (Manual)" />
+                                            <x-text-input id="manual_name" class="block mt-1 w-full" type="text" name="manual_name" :value="old('manual_name')" />
+                                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Isi jika tidak ada di template.</p>
+                                        </div>
                                     @else
                                         <x-input-label for="project_item_id" value="Item Pekerjaan" />
                                         <select name="project_item_id" id="project_item_id" required
@@ -484,14 +568,39 @@
                                                                     <x-input-label for="edit_name_{{ $dailyTask->id }}" value="Nama Tugas Harian" />
                                                                     <select id="edit_name_{{ $dailyTask->id }}" name="name"
                                                                         class="block mt-1 w-full dark:bg-gray-900 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                                                                        required>
+                                                                        >
                                                                         <option value="" disabled {{ old('name', $dailyTask->name) ? '' : 'selected' }}>Pilih tugas harian</option>
-                                                                        @foreach($dailyTaskOptions as $option)
-                                                                            <option value="{{ $option }}" {{ old('name', $dailyTask->name) === $option ? 'selected' : '' }}>
-                                                                                {{ $option }}
-                                                                            </option>
-                                                                        @endforeach
+                                                                        @php
+                                                                            $isGrouped = !array_is_list($dailyTaskOptions);
+                                                                            $flatTemplateOptions = $isGrouped
+                                                                                ? collect($dailyTaskOptions)->flatten(1)->values()->all()
+                                                                                : $dailyTaskOptions;
+                                                                            $isManualName = !in_array($dailyTask->name, $flatTemplateOptions, true);
+                                                                        @endphp
+                                                                        @if($isGrouped)
+                                                                            @foreach($dailyTaskOptions as $group => $items)
+                                                                                <optgroup label="{{ $group }}">
+                                                                                    @foreach($items as $item)
+                                                                                        <option value="{{ $item }}" {{ old('name', $dailyTask->name) === $item ? 'selected' : '' }}>
+                                                                                            {{ $item }}
+                                                                                        </option>
+                                                                                    @endforeach
+                                                                                </optgroup>
+                                                                            @endforeach
+                                                                        @else
+                                                                            @foreach($dailyTaskOptions as $option)
+                                                                                <option value="{{ $option }}" {{ old('name', $dailyTask->name) === $option ? 'selected' : '' }}>
+                                                                                    {{ $option }}
+                                                                                </option>
+                                                                            @endforeach
+                                                                        @endif
                                                                     </select>
+                                                                    <div class="mt-3">
+                                                                        <x-input-label for="edit_manual_name_{{ $dailyTask->id }}" value="Nama Tugas Harian (Manual)" />
+                                                                        <x-text-input id="edit_manual_name_{{ $dailyTask->id }}" class="block mt-1 w-full" type="text" name="manual_name"
+                                                                            value="{{ old('manual_name', $isManualName ? $dailyTask->name : '') }}" />
+                                                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Isi jika tidak ada di template.</p>
+                                                                    </div>
                                                                 @else
                                                                     <x-input-label value="Item Pekerjaan" />
                                                                     <select name="project_item_id" required

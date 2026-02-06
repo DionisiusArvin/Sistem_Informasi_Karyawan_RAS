@@ -32,6 +32,12 @@
                                         'Data Teknis MEP',
                                         'Upload',
                                     ],
+                                    'PERENCANAAN' => [
+                                        'Paving',
+                                        'Rigid',
+                                        'Taman',
+                                        'Makam',
+                                    ],
                                 ];
                                 $jenisTugasOptions = $jenisTugasOptionsByCategory[$task->project->category ?? ''] ?? null;
                             @endphp

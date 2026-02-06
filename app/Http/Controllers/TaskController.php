@@ -43,29 +43,105 @@ class TaskController extends Controller
                 'Data Teknis MEP',
                 'Upload',
             ],
+            'PERENCANAAN' => [
+                'Paving',
+                'Rigid',
+                'Taman',
+                'Makam',
+            ],
         ];
-        $jenisTugasOptions = $jenisTugasOptionsByCategory[$project->category ?? ''] ?? null;
+        $projectCategory = $project->category ?? null;
+        $jenisTugasOptions = $jenisTugasOptionsByCategory[$projectCategory ?? ''] ?? null;
         $jenisTugasRule = $jenisTugasOptions
             ? 'required|string|in:' . implode(',', $jenisTugasOptions)
             : 'nullable|string|max:255';
 
+        $isPbgSlf = in_array($projectCategory, ['PBG', 'SLF'], true);
+        $pbgSlfMode = $request->input('pbg_slf_mode', 'auto');
+        if ($isPbgSlf && $pbgSlfMode === 'auto') {
+            $jenisTugasRule = 'nullable|string|max:255';
+        }
+
+        $isPavingPerencanaan = ($projectCategory ?? null) === 'PERENCANAAN'
+            && ($request->input('jenis_tugas') ?? null) === 'Paving';
+        $pavingMode = $request->input('paving_mode', 'auto');
+        $nameRule = ($isPavingPerencanaan && $pavingMode === 'manual')
+            ? 'required|string|max:255'
+            : 'nullable|string|max:255';
+
         $validated = $request->validate([
             'jenis_tugas' => $jenisTugasRule,
-            'name' => 'nullable|string|max:255',
+            'name' => $nameRule,
             'description' => 'nullable|string',
             'divisions' => 'required|array',
             'divisions.*' => 'exists:divisions,id',
+            'paving_mode' => 'nullable|in:auto,manual',
+            'pbg_slf_mode' => 'nullable|in:auto,manual',
         ]);
 
-        $task = Task::create([
-            'project_id' => $project->id,
-            'jenis_tugas' => $validated['jenis_tugas'] ?? ($project->category ?? 'Non-PBG'),
-            'name' => $validated['name'] ?? '',
-            'description' => $validated['description'] ?? null,
-            'order' => 0,
-        ]);
+        if ($isPbgSlf && $pbgSlfMode === 'auto') {
+            $mainTasks = $jenisTugasOptionsByCategory[$projectCategory] ?? [];
+            $existingJenis = Task::where('project_id', $project->id)
+                ->whereIn('jenis_tugas', $mainTasks)
+                ->pluck('jenis_tugas')
+                ->toArray();
 
-        $task->divisions()->sync($validated['divisions']);
+            foreach ($mainTasks as $jenis) {
+                if (in_array($jenis, $existingJenis, true)) {
+                    continue;
+                }
+                $task = Task::create([
+                    'project_id' => $project->id,
+                    'jenis_tugas' => $jenis,
+                    'name' => '',
+                    'description' => $validated['description'] ?? null,
+                    'order' => 0,
+                ]);
+                $task->divisions()->sync($validated['divisions']);
+            }
+        } elseif (($projectCategory ?? null) === 'PERENCANAAN' && ($validated['jenis_tugas'] ?? null) === 'Paving' && $pavingMode === 'auto') {
+            $pavingMainTasks = [
+                'Survey',
+                'Gambar Kerja',
+                'Engineering Estimate',
+                'BOQ',
+                'Rencana Kerja dan Syarat2 Teknis',
+                'Dokumen Teknis',
+                'Harga Perkiraan Sendiri',
+                'Laporan',
+                'Finalisasi Dokumen Perencanaan',
+            ];
+
+            $existingNames = Task::where('project_id', $project->id)
+                ->where('jenis_tugas', 'Paving')
+                ->whereIn('name', $pavingMainTasks)
+                ->pluck('name')
+                ->toArray();
+
+            foreach ($pavingMainTasks as $taskName) {
+                if (in_array($taskName, $existingNames, true)) {
+                    continue;
+                }
+                $task = Task::create([
+                    'project_id' => $project->id,
+                    'jenis_tugas' => 'Paving',
+                    'name' => $taskName,
+                    'description' => $validated['description'] ?? null,
+                    'order' => 0,
+                ]);
+                $task->divisions()->sync($validated['divisions']);
+            }
+        } else {
+            $task = Task::create([
+                'project_id' => $project->id,
+                'jenis_tugas' => $validated['jenis_tugas'] ?? ($project->category ?? 'Non-PBG'),
+                'name' => $validated['name'] ?? '',
+                'description' => $validated['description'] ?? null,
+                'order' => 0,
+            ]);
+
+            $task->divisions()->sync($validated['divisions']);
+        }
 
         return redirect()
             ->route('projects.show', $project->id)
@@ -148,23 +224,29 @@ class TaskController extends Controller
     /* ================= UPDATE ================= */
     public function update(Request $request, Task $task)
     {
-        $jenisTugasOptionsByCategory = [
-            'PBG' => [
-                'Data Umum',
-                'Data Teknis Arsitektur',
-                'Data Teknis Struktur',
-                'Data Teknis MEP',
-                'Data Tambahan',
-                'Upload',
-            ],
-            'SLF' => [
-                'Data Umum',
-                'Data Teknis Arsitektur',
-                'Data Teknis Struktur',
-                'Data Teknis MEP',
-                'Upload',
-            ],
-        ];
+    $jenisTugasOptionsByCategory = [
+        'PBG' => [
+            'Data Umum',
+            'Data Teknis Arsitektur',
+            'Data Teknis Struktur',
+            'Data Teknis MEP',
+            'Data Tambahan',
+            'Upload',
+        ],
+        'SLF' => [
+            'Data Umum',
+            'Data Teknis Arsitektur',
+            'Data Teknis Struktur',
+            'Data Teknis MEP',
+            'Upload',
+        ],
+        'PERENCANAAN' => [
+            'Paving',
+            'Rigid',
+            'Taman',
+            'Makam',
+        ],
+    ];
         $jenisTugasOptions = $jenisTugasOptionsByCategory[$task->project->category ?? ''] ?? null;
         $jenisTugasRule = $jenisTugasOptions
             ? 'required|string|in:' . implode(',', $jenisTugasOptions)

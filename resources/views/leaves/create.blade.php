@@ -77,23 +77,60 @@
     </div>
 
     {{-- JS untuk sinkronisasi tanggal --}}
-    <!-- Toast Container (Reusable) -->
-<div 
-    x-data="{ show: false, message: '', type: 'success' }" 
-    x-show="show"
-    x-transition
-    x-cloak
-    @notify.window="
-        message = $event.detail.message; 
-        type = $event.detail.type; 
-        show = true; 
-        setTimeout(() => show = false, 3000)
-    "
-    class="fixed top-5 right-5 px-4 py-2 rounded-lg shadow-lg text-sm"
-    :class="type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'"
->
-    <span x-text="message"></span>
-</div>
+    <!-- Toast Notification -->
+    <div
+        x-data="{ show: false, message: '', type: 'success', timeoutId: null }"
+        x-show="show"
+        x-cloak
+        x-transition:enter="transform transition ease-out duration-300"
+        x-transition:enter-start="translate-y-2 opacity-0"
+        x-transition:enter-end="translate-y-0 opacity-100"
+        x-transition:leave="transform transition ease-in duration-200"
+        x-transition:leave-start="translate-y-0 opacity-100"
+        x-transition:leave-end="translate-y-2 opacity-0"
+        @notify.window="
+            message = $event.detail.message;
+            type = $event.detail.type || 'success';
+            show = true;
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => show = false, 3500);
+        "
+        class="fixed top-6 right-6 z-50 max-w-sm"
+        role="status"
+        aria-live="polite"
+    >
+        <div class="flex items-start gap-3 rounded-xl border border-gray-200/70 dark:border-gray-700/60 bg-white/90 dark:bg-gray-900/90 backdrop-blur px-4 py-3 shadow-xl ring-1 ring-black/5">
+            <div
+                class="mt-0.5 h-8 w-8 rounded-full flex items-center justify-center"
+                :class="type === 'success'
+                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300'
+                    : 'bg-rose-500/10 text-rose-600 dark:text-rose-300'"
+            >
+                <svg x-show="type === 'success'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                <svg x-show="type !== 'success'" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </div>
+
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100" x-text="type === 'success' ? 'Berhasil' : 'Terjadi Kesalahan'"></p>
+                <p class="text-sm text-gray-600 dark:text-gray-300" x-text="message"></p>
+            </div>
+
+            <button
+                type="button"
+                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                @click="show = false"
+                aria-label="Tutup notifikasi"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+    </div>
 
 <script>
     const startInput = document.getElementById('start_date');
@@ -107,14 +144,14 @@
         endInput.min = startInput.value;
 
         if (endInput.value < startInput.value) {
-            notify("⚠️ Tanggal selesai tidak boleh sebelum tanggal mulai!", "error");
+            notify("Tanggal selesai tidak boleh sebelum tanggal mulai!", "error");
             endInput.value = startInput.value;
         }
     });
 
     endInput.addEventListener('change', () => {
         if (endInput.value < startInput.value) {
-            notify("⚠️ Tanggal selesai tidak boleh sebelum tanggal mulai!", "error");
+            notify("Tanggal selesai tidak boleh sebelum tanggal mulai!", "error");
             endInput.value = startInput.value;
         }
     });
@@ -124,17 +161,18 @@
 @if(session('success'))
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            notify("✅ {{ session('success') }}", "success");
+            notify("{{ session('success') }}", "success");
         });
     </script>
 @endif
 @if(session('error'))
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            notify("❌ {{ session('error') }}", "error");
+            notify("{{ session('error') }}", "error");
         });
     </script>
 @endif
 
 
 </x-app-layout>
+

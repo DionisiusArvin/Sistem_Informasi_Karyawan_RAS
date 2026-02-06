@@ -110,23 +110,92 @@ class DailyTaskController extends Controller
                     'Upload semua dokumen ke sistem',
                 ],
             ],
+            'PERENCANAAN' => [
+                'Paving' => [
+                    'Survey' => [
+                        'Survey Lapangan',
+                    ],
+                    'Gambar Kerja' => [
+                        'Layout Eksisting',
+                        'Detail Eksisting',
+                        'Layout Rencana',
+                        'Detail Rencana',
+                        'Detail Potongan Rencana',
+                    ],
+                    'Engineering Estimate' => [
+                        'Pembuatan Item RAB',
+                        'Perhitungan Volume',
+                        'Pembuatan Analisa',
+                        'Penentuan Harga Bahan',
+                        'Setting RAB sesuai Pagu',
+                        'Time Schedule',
+                    ],
+                    'BOQ' => [
+                        'Setting BOQ dari Engineering Estimate',
+                    ],
+                    'Rencana Kerja dan Syarat2 Teknis' => [
+                        'Pembuatan Check List RKS',
+                        'Pembuatan RKS dari database yang ada',
+                        'Pembuatan RKS baru',
+                        'Spesifikasi Teknis',
+                    ],
+                    'Dokumen Teknis' => [
+                        'Rencana Kerja & Syarat-syarat Teknis',
+                        'Spesifikasi Teknis',
+                        'Metodologi Pelaksanaan Pekerjaan',
+                        'Pembuatan SMKK Konsultan',
+                        'Pembuatan SMKK Kontaktor',
+                    ],
+                    'Harga Perkiraan Sendiri' => [
+                        'Pembuatan HPS',
+                    ],
+                    'Laporan' => [
+                        'Pembuatan Laporan Pendahuluan',
+                        'Pembuatan Laporan Prarencana',
+                        'Pembuatan Laporan Antara',
+                        'Pembuatan Laporan Akhir',
+                    ],
+                    'Finalisasi Dokumen Perencanaan' => [
+                        'Print dokumen gambar',
+                        'Print dokumen EE',
+                    ],
+                ],
+            ],
         ];
         $templateCategory = $task->project->category ?? null;
-        $showTemplate = array_key_exists($templateCategory, $dailyTaskOptionsByCategory);
-        $dailyTaskOptions = $dailyTaskOptionsByCategory[$templateCategory][$task->jenis_tugas] ?? [];
+        if ($templateCategory === 'PERENCANAAN' && ($task->jenis_tugas ?? null) === 'Paving') {
+            $dailyTaskOptions = $dailyTaskOptionsByCategory['PERENCANAAN']['Paving'][$task->name] ?? [];
+        } else {
+            $dailyTaskOptions = $dailyTaskOptionsByCategory[$templateCategory][$task->jenis_tugas] ?? [];
+        }
+        $showTemplate = !empty($dailyTaskOptions);
 
         if ($showTemplate) {
-            $nameRule = $dailyTaskOptions
-                ? 'required|string|in:' . implode(',', $dailyTaskOptions)
-                : 'required|string|max:255';
-            $validated = $request->validate([
-                'name' => $nameRule,
-                'due_date' => 'required|date',
-                'description' => 'nullable|string',
-            ]);
+            $manualName = trim((string) $request->input('manual_name', ''));
+            $flatOptions = array_is_list($dailyTaskOptions)
+                ? $dailyTaskOptions
+                : collect($dailyTaskOptions)->flatten(1)->values()->all();
+
+            if ($manualName !== '') {
+                $validated = $request->validate([
+                    'manual_name' => 'required|string|max:255',
+                    'due_date' => 'required|date',
+                    'description' => 'nullable|string',
+                ]);
+                $name = $validated['manual_name'];
+            } else {
+                $nameRule = $flatOptions
+                    ? 'required|string|in:' . implode(',', $flatOptions)
+                    : 'required|string|max:255';
+                $validated = $request->validate([
+                    'name' => $nameRule,
+                    'due_date' => 'required|date',
+                    'description' => 'nullable|string',
+                ]);
+                $name = $validated['name'];
+            }
 
             $projectItemId = null;
-            $name = $validated['name'];
         } else {
             $validated = $request->validate([
                 'project_item_id' => 'required|exists:project_items,id',
@@ -363,24 +432,94 @@ class DailyTaskController extends Controller
                 'Upload semua dokumen ke sistem',
             ],
         ],
+        'PERENCANAAN' => [
+            'Paving' => [
+                'Survey' => [
+                    'Survey Lapangan',
+                ],
+                'Gambar Kerja' => [
+                    'Layout Eksisting',
+                    'Detail Eksisting',
+                    'Layout Rencana',
+                    'Detail Rencana',
+                    'Detail Potongan Rencana',
+                ],
+                'Engineering Estimate' => [
+                    'Pembuatan Item RAB',
+                    'Perhitungan Volume',
+                    'Pembuatan Analisa',
+                    'Penentuan Harga Bahan',
+                    'Setting RAB sesuai Pagu',
+                    'Time Schedule',
+                ],
+                'BOQ' => [
+                    'Setting BOQ dari Engineering Estimate',
+                ],
+                'Rencana Kerja dan Syarat2 Teknis' => [
+                    'Pembuatan Check List RKS',
+                    'Pembuatan RKS dari database yang ada',
+                    'Pembuatan RKS baru',
+                    'Spesifikasi Teknis',
+                ],
+                'Dokumen Teknis' => [
+                    'Rencana Kerja & Syarat-syarat Teknis',
+                    'Spesifikasi Teknis',
+                    'Metodologi Pelaksanaan Pekerjaan',
+                    'Pembuatan SMKK Konsultan',
+                    'Pembuatan SMKK Kontaktor',
+                ],
+                'Harga Perkiraan Sendiri' => [
+                    'Pembuatan HPS',
+                ],
+                'Laporan' => [
+                    'Pembuatan Laporan Pendahuluan',
+                    'Pembuatan Laporan Prarencana',
+                    'Pembuatan Laporan Antara',
+                    'Pembuatan Laporan Akhir',
+                ],
+                'Finalisasi Dokumen Perencanaan' => [
+                    'Print dokumen gambar',
+                    'Print dokumen EE',
+                ],
+            ],
+        ],
     ];
     $templateCategory = $dailyTask->task->project->category ?? null;
-    $showTemplate = array_key_exists($templateCategory, $dailyTaskOptionsByCategory);
-    $dailyTaskOptions = $dailyTaskOptionsByCategory[$templateCategory][$dailyTask->task->jenis_tugas] ?? [];
+    if ($templateCategory === 'PERENCANAAN' && ($dailyTask->task->jenis_tugas ?? null) === 'Paving') {
+        $dailyTaskOptions = $dailyTaskOptionsByCategory['PERENCANAAN']['Paving'][$dailyTask->task->name] ?? [];
+    } else {
+        $dailyTaskOptions = $dailyTaskOptionsByCategory[$templateCategory][$dailyTask->task->jenis_tugas] ?? [];
+    }
+    $showTemplate = !empty($dailyTaskOptions);
 
     if ($showTemplate) {
-        $nameRule = $dailyTaskOptions
-            ? 'required|string|in:' . implode(',', $dailyTaskOptions)
-            : 'required|string|max:255';
-        $validated = $request->validate([
-            'name' => $nameRule,
-            'due_date' => 'required|date',
-            'description' => 'nullable|string',
-        ]);
+        $manualName = trim((string) $request->input('manual_name', ''));
+        $flatOptions = array_is_list($dailyTaskOptions)
+            ? $dailyTaskOptions
+            : collect($dailyTaskOptions)->flatten(1)->values()->all();
+
+        if ($manualName !== '') {
+            $validated = $request->validate([
+                'manual_name' => 'required|string|max:255',
+                'due_date' => 'required|date',
+                'description' => 'nullable|string',
+            ]);
+            $name = $validated['manual_name'];
+        } else {
+            $nameRule = $flatOptions
+                ? 'required|string|in:' . implode(',', $flatOptions)
+                : 'required|string|max:255';
+            $validated = $request->validate([
+                'name' => $nameRule,
+                'due_date' => 'required|date',
+                'description' => 'nullable|string',
+            ]);
+            $name = $validated['name'];
+        }
 
         $dailyTask->update([
             'project_item_id' => null,
-            'name' => $validated['name'],
+            'name' => $name,
             'due_date' => $validated['due_date'],
             'description' => $validated['description'] ?? null,
         ]);
