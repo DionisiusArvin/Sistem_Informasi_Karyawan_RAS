@@ -170,10 +170,8 @@ class DailyTaskController extends Controller
                 'Survey',
                 'Gambar Kerja',
                 'Engineering Estimate',
-                'Time Schedule',
                 'BOQ',
                 'Rencana Kerja dan Syarat2 Teknis',
-                'Dokumen Teknis isian',
                 'Dokumen Teknis',
                 'Harga Perkiraan Sendiri',
                 'Laporan',
@@ -197,10 +195,6 @@ class DailyTaskController extends Controller
                 $baseTaskName = explode(' - ', $taskName, 2)[0];
             }
 
-            if ($baseTaskName === 'Dokumen Teknis isian') {
-                $baseTaskName = 'Dokumen Teknis';
-            }
-
             $dailyTaskOptions = $dailyTaskOptionsByCategory['PERENCANAAN']['Paving'][$baseTaskName] ?? [];
         } else {
             $dailyTaskOptions = $dailyTaskOptionsByCategory[$templateCategory][$task->jenis_tugas] ?? [];
@@ -209,27 +203,34 @@ class DailyTaskController extends Controller
 
         if ($showTemplate) {
             $manualName = trim((string) $request->input('manual_name', ''));
+            $selectedName = trim((string) $request->input('name', ''));
             $flatOptions = array_is_list($dailyTaskOptions)
                 ? $dailyTaskOptions
                 : collect($dailyTaskOptions)->flatten(1)->values()->all();
 
-            if ($manualName !== '') {
-                $validated = $request->validate([
-                    'manual_name' => 'required|string|max:255',
-                    'due_date' => 'required|date',
-                    'description' => 'nullable|string',
-                ]);
-                $name = $validated['manual_name'];
+            $nameRule = $flatOptions
+                ? 'nullable|string|in:' . implode(',', $flatOptions)
+                : 'nullable|string|max:255';
+
+            $validated = $request->validate([
+                'name' => $nameRule,
+                'manual_name' => 'nullable|string|max:255',
+                'due_date' => 'required|date',
+                'description' => 'nullable|string',
+            ]);
+
+            if ($selectedName === '' && $manualName === '') {
+                return back()->withErrors([
+                    'name' => 'Pilih tugas harian atau isi judul manual.'
+                ])->withInput();
+            }
+
+            if ($selectedName !== '' && $manualName !== '') {
+                $name = trim($selectedName . ' ' . $manualName);
+            } elseif ($selectedName !== '') {
+                $name = $selectedName;
             } else {
-                $nameRule = $flatOptions
-                    ? 'required|string|in:' . implode(',', $flatOptions)
-                    : 'required|string|max:255';
-                $validated = $request->validate([
-                    'name' => $nameRule,
-                    'due_date' => 'required|date',
-                    'description' => 'nullable|string',
-                ]);
-                $name = $validated['name'];
+                $name = $manualName;
             }
 
             $projectItemId = null;

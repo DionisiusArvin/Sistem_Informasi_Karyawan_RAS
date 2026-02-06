@@ -56,10 +56,8 @@ class ProjectTasks extends Component
             'Survey',
             'Gambar Kerja',
             'Engineering Estimate',
-            'Time Schedule',
             'BOQ',
             'Rencana Kerja dan Syarat2 Teknis',
-            'Dokumen Teknis isian',
             'Dokumen Teknis',
             'Harga Perkiraan Sendiri',
             'Laporan',
@@ -76,16 +74,20 @@ class ProjectTasks extends Component
         $tasks = $tasks->sortBy(function ($task) use ($category, $pbgOrder, $slfOrder, $pavingOrder) {
             if ($category === 'PBG') {
                 $idx = array_search($task->jenis_tugas, $pbgOrder, true);
+                $titleKey = $this->normalizeTitleKey((string) ($task->name ?? ''));
                 if ($idx !== false) {
-                    return sprintf('0-%03d', $idx);
+                    return sprintf('0-%s-%03d', $titleKey, $idx);
                 }
+                return sprintf('0-%s-999', $titleKey);
             }
 
             if ($category === 'SLF') {
                 $idx = array_search($task->jenis_tugas, $slfOrder, true);
+                $titleKey = $this->normalizeTitleKey((string) ($task->name ?? ''));
                 if ($idx !== false) {
-                    return sprintf('0-%03d', $idx);
+                    return sprintf('0-%s-%03d', $titleKey, $idx);
                 }
+                return sprintf('0-%s-999', $titleKey);
             }
 
             if ($category === 'PERENCANAAN' && ($task->jenis_tugas ?? null) === 'Paving') {

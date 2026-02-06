@@ -169,7 +169,27 @@
         ];
         $templateCategory = $task->project->category ?? null;
         if ($templateCategory === 'PERENCANAAN' && ($task->jenis_tugas ?? null) === 'Paving') {
-            $dailyTaskOptions = $dailyTaskOptionsByCategory['PERENCANAAN']['Paving'][$task->name] ?? [];
+            $pavingMainTasks = [
+                'Survey',
+                'Gambar Kerja',
+                'Engineering Estimate',
+                'BOQ',
+                'Rencana Kerja dan Syarat2 Teknis',
+                'Dokumen Teknis',
+                'Harga Perkiraan Sendiri',
+                'Laporan',
+                'Finalisasi Dokumen Perencanaan',
+            ];
+            $taskName = trim((string) ($task->name ?? ''));
+            $baseTaskName = $taskName;
+            $sortedBases = collect($pavingMainTasks)->sortByDesc(fn ($item) => strlen($item))->values();
+            foreach ($sortedBases as $base) {
+                if (\Illuminate\Support\Str::startsWith(\Illuminate\Support\Str::lower($taskName), \Illuminate\Support\Str::lower($base))) {
+                    $baseTaskName = $base;
+                    break;
+                }
+            }
+            $dailyTaskOptions = $dailyTaskOptionsByCategory['PERENCANAAN']['Paving'][$baseTaskName] ?? [];
         } else {
             $dailyTaskOptions = $dailyTaskOptionsByCategory[$templateCategory][$task->jenis_tugas] ?? [];
         }
@@ -230,7 +250,9 @@
                                         <div class="mt-3">
                                             <x-input-label for="manual_name" value="Nama Tugas Harian (Manual)" />
                                             <x-text-input id="manual_name" class="block mt-1 w-full" type="text" name="manual_name" :value="old('manual_name')" />
-                                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Isi jika tidak ada di template.</p>
+                                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                Isi jika tidak ada di template. Jika pilih template dan isi manual, judul akan digabung.
+                                            </p>
                                         </div>
                                     @else
                                         <x-input-label for="project_item_id" value="Item Pekerjaan" />

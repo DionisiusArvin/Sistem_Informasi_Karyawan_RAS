@@ -3,7 +3,8 @@
         <div class="relative w-full max-w-xs">
             <input
                 type="text"
-                wire:model.debounce.300ms="search"
+                id="taskSearchInput"
+                wire:model.live.debounce.300ms="search"
                 placeholder="Cari tugas utama..."
                 class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 pl-10 pr-3 py-2 text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
@@ -34,9 +35,12 @@
                 $selesai = $task->dailyTasks()->where('status', 'Selesai')->count();
                 $menunggu = $task->dailyTasks()->where('status', 'Menunggu Validasi')->count();
                 $revisi = $task->dailyTasks()->where('status', 'Revisi')->count();
+                $jenis = trim((string) ($task->jenis_tugas ?? ''));
+                $nama = trim(str_replace(' - ', ' ', (string) ($task->name ?? '')));
+                $displayName = trim($jenis . ' ' . $nama);
             @endphp
 
-            <tr data-id="{{ $task->id }}">
+            <tr data-id="{{ $task->id }}" data-search="{{ \Illuminate\Support\Str::lower($displayName) }}">
                 {{-- IKON DRAG (hanya kepala_divisi yang melihat) --}}
                 <td class="py-4 px-4 text-center">
                     @if(auth()->user()->role === 'kepala_divisi')
@@ -144,12 +148,26 @@
         @endforelse
 
     </tbody>
-    </table>
+</table>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 
     <script>
     document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('taskSearchInput');
+        const filterRows = () => {
+            if (!searchInput) return;
+            const term = searchInput.value.trim().toLowerCase();
+            document.querySelectorAll('#sortableTasks tr').forEach((row) => {
+                const hay = (row.getAttribute('data-search') || '').toLowerCase();
+                row.style.display = term === '' || hay.includes(term) ? '' : 'none';
+            });
+        };
+        if (searchInput) {
+            searchInput.addEventListener('input', filterRows);
+            filterRows();
+        }
+
         let table = document.getElementById('sortableTasks');
 
         Sortable.create(table, {
@@ -170,6 +188,7 @@
                     body: JSON.stringify({ order: order })
                 });
             }
+        });
         });
     });
     </script>

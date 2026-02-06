@@ -100,7 +100,7 @@ class TaskController extends Controller
                 'Engineering Estimate',
                 'BOQ',
                 'Rencana Kerja dan Syarat2 Teknis',
-                'Dokumen Teknis isian',
+                'Dokumen Teknis',
                 'Harga Perkiraan Sendiri',
                 'Laporan',
                 'Finalisasi Dokumen Perencanaan',
