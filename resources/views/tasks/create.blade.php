@@ -81,7 +81,7 @@
                         @endif
 
                         <div class="mt-4" id="name-wrapper">
-                            <x-input-label for="name" value="Nama Tugas (Opsional)" />
+                            <x-input-label for="name" value="Judul Tugas Utama (Opsional)" />
                             <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" autofocus />
                         </div>
 
@@ -149,10 +149,6 @@
                         if (jenisSelect) {
                             jenisSelect.required = !pbgAuto;
                             jenisSelect.disabled = pbgAuto;
-                        }
-                        if (nameWrapper) {
-                            const hideName = (isPaving && mode === 'auto') || pbgAuto;
-                            nameWrapper.classList.toggle('hidden', hideName);
                         }
                         if (nameInput) {
                             nameInput.required = manual;

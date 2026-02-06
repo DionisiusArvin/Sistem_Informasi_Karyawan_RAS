@@ -79,21 +79,15 @@ class TaskController extends Controller
             'pbg_slf_mode' => 'nullable|in:auto,manual',
         ]);
 
+        $autoTitle = trim((string) ($validated['name'] ?? ''));
+
         if ($isPbgSlf && $pbgSlfMode === 'auto') {
             $mainTasks = $jenisTugasOptionsByCategory[$projectCategory] ?? [];
-            $existingJenis = Task::where('project_id', $project->id)
-                ->whereIn('jenis_tugas', $mainTasks)
-                ->pluck('jenis_tugas')
-                ->toArray();
-
             foreach ($mainTasks as $jenis) {
-                if (in_array($jenis, $existingJenis, true)) {
-                    continue;
-                }
                 $task = Task::create([
                     'project_id' => $project->id,
                     'jenis_tugas' => $jenis,
-                    'name' => '',
+                    'name' => $autoTitle,
                     'description' => $validated['description'] ?? null,
                     'order' => 0,
                 ]);
@@ -111,21 +105,12 @@ class TaskController extends Controller
                 'Laporan',
                 'Finalisasi Dokumen Perencanaan',
             ];
-
-            $existingNames = Task::where('project_id', $project->id)
-                ->where('jenis_tugas', 'Paving')
-                ->whereIn('name', $pavingMainTasks)
-                ->pluck('name')
-                ->toArray();
-
             foreach ($pavingMainTasks as $taskName) {
-                if (in_array($taskName, $existingNames, true)) {
-                    continue;
-                }
+                $finalName = $autoTitle !== '' ? ($taskName . ' - ' . $autoTitle) : $taskName;
                 $task = Task::create([
                     'project_id' => $project->id,
                     'jenis_tugas' => 'Paving',
-                    'name' => $taskName,
+                    'name' => $finalName,
                     'description' => $validated['description'] ?? null,
                     'order' => 0,
                 ]);

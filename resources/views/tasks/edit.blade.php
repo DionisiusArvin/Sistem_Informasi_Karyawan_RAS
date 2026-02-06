@@ -56,7 +56,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm dark:text-gray-200 font-medium">Nama Tugas (Opsional)</label>
+                            <label class="block text-sm dark:text-gray-200 font-medium">Judul Tugas Utama (Opsional)</label>
                             <input type="text" name="name" value="{{ old('name', $task->name) }}"
                                 class="w-full rounded border-gray-300 bg-white dark:bg-gray-900">
                         </div>

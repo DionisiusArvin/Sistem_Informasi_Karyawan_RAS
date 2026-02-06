@@ -164,7 +164,12 @@ class DailyTaskController extends Controller
         ];
         $templateCategory = $task->project->category ?? null;
         if ($templateCategory === 'PERENCANAAN' && ($task->jenis_tugas ?? null) === 'Paving') {
-            $dailyTaskOptions = $dailyTaskOptionsByCategory['PERENCANAAN']['Paving'][$task->name] ?? [];
+            $taskName = $task->name ?? '';
+            $baseTaskName = $taskName;
+            if (strpos($taskName, ' - ') !== false) {
+                $baseTaskName = explode(' - ', $taskName, 2)[0];
+            }
+            $dailyTaskOptions = $dailyTaskOptionsByCategory['PERENCANAAN']['Paving'][$baseTaskName] ?? [];
         } else {
             $dailyTaskOptions = $dailyTaskOptionsByCategory[$templateCategory][$task->jenis_tugas] ?? [];
         }
