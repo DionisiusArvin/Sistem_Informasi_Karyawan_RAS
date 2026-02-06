@@ -181,7 +181,13 @@
                                 <svg x-show="openTask" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                 </svg>
-                                <span>{{ $task->name }}</span>
+                                <span>
+                                    @if(($task->jenis_tugas ?? null) === 'Paving')
+                                        {{ $task->name ? str_replace(' - ', ' ', $task->name) : '' }}
+                                    @else
+                                        {{ $task->name }}
+                                    @endif
+                                </span>
                             </button>
                             <span class="text-xs text-gray-500">{{ $task->getProgressPercentage() ?? 0 }}%</span>
                         </div>

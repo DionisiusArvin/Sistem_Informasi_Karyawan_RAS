@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 
 class DailyTaskController extends Controller
 {
@@ -164,11 +165,42 @@ class DailyTaskController extends Controller
         ];
         $templateCategory = $task->project->category ?? null;
         if ($templateCategory === 'PERENCANAAN' && ($task->jenis_tugas ?? null) === 'Paving') {
-            $taskName = $task->name ?? '';
+            $taskName = trim((string) ($task->name ?? ''));
+            $pavingMainTasks = [
+                'Survey',
+                'Gambar Kerja',
+                'Engineering Estimate',
+                'Time Schedule',
+                'BOQ',
+                'Rencana Kerja dan Syarat2 Teknis',
+                'Dokumen Teknis isian',
+                'Dokumen Teknis',
+                'Harga Perkiraan Sendiri',
+                'Laporan',
+                'Finalisasi Dokumen Perencanaan',
+            ];
+
             $baseTaskName = $taskName;
+            $sortedBases = collect($pavingMainTasks)
+                ->filter()
+                ->sortByDesc(fn ($item) => strlen($item))
+                ->values();
+
+            foreach ($sortedBases as $base) {
+                if (Str::startsWith(Str::lower($taskName), Str::lower($base))) {
+                    $baseTaskName = $base;
+                    break;
+                }
+            }
+
             if (strpos($taskName, ' - ') !== false) {
                 $baseTaskName = explode(' - ', $taskName, 2)[0];
             }
+
+            if ($baseTaskName === 'Dokumen Teknis isian') {
+                $baseTaskName = 'Dokumen Teknis';
+            }
+
             $dailyTaskOptions = $dailyTaskOptionsByCategory['PERENCANAAN']['Paving'][$baseTaskName] ?? [];
         } else {
             $dailyTaskOptions = $dailyTaskOptionsByCategory[$templateCategory][$task->jenis_tugas] ?? [];

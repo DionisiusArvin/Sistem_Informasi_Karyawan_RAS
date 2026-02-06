@@ -1,4 +1,19 @@
-<table class="min-w-full bg-white dark:bg-gray-800">
+<div>
+    <div class="mb-4 flex items-center justify-between">
+        <div class="relative w-full max-w-xs">
+            <input
+                type="text"
+                wire:model.debounce.300ms="search"
+                placeholder="Cari tugas utama..."
+                class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 pl-10 pr-3 py-2 text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+            <svg class="absolute left-3 top-2.5 h-4 w-4 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 103.5 10.5a7.5 7.5 0 0013.15 6.15z" />
+            </svg>
+        </div>
+    </div>
+
+    <table class="min-w-full bg-white dark:bg-gray-800">
     <thead class="bg-gray-50 dark:bg-gray-700">
         <tr>
             <th class="w-1/12"></th> <!-- Kolom ikon drag -->
@@ -39,7 +54,7 @@
                 <td class="py-4 px-4">
                     <p class="font-semibold text-gray-800 dark:text-gray-200">
                         @if(($task->jenis_tugas ?? null) === 'Paving')
-                            {{ $task->name ?: '-' }}
+                            {{ $task->name ? str_replace(' - ', ' ', $task->name) : '-' }}
                         @elseif(!empty($task->name))
                             <span class="mr-2 font-semibold text-gray-600 dark:text-gray-300">{{ $task->jenis_tugas ?? '-' }}</span>
                             {{ $task->name }}
@@ -129,32 +144,33 @@
         @endforelse
 
     </tbody>
-</table>
+    </table>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    let table = document.getElementById('sortableTasks');
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let table = document.getElementById('sortableTasks');
 
-    Sortable.create(table, {
-        animation: 150,
-        handle: '.drag-handle', // hanya bisa drag dari ikon
-        onEnd: function () {
-            let order = [];
-            document.querySelectorAll('#sortableTasks tr').forEach((row, index) => {
-                order.push({ id: row.getAttribute('data-id'), order: index });
-            });
+        Sortable.create(table, {
+            animation: 150,
+            handle: '.drag-handle', // hanya bisa drag dari ikon
+            onEnd: function () {
+                let order = [];
+                document.querySelectorAll('#sortableTasks tr').forEach((row, index) => {
+                    order.push({ id: row.getAttribute('data-id'), order: index });
+                });
 
-            fetch("{{ route('tasks.reorder') }}", {
-                method: 'POST',
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                },
-                body: JSON.stringify({ order: order })
-            });
-        }
+                fetch("{{ route('tasks.reorder') }}", {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                    },
+                    body: JSON.stringify({ order: order })
+                });
+            }
+        });
     });
-});
-</script>
+    </script>
+</div>

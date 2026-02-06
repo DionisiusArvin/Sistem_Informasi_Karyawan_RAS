@@ -100,13 +100,13 @@ class TaskController extends Controller
                 'Engineering Estimate',
                 'BOQ',
                 'Rencana Kerja dan Syarat2 Teknis',
-                'Dokumen Teknis',
+                'Dokumen Teknis isian',
                 'Harga Perkiraan Sendiri',
                 'Laporan',
                 'Finalisasi Dokumen Perencanaan',
             ];
             foreach ($pavingMainTasks as $taskName) {
-                $finalName = $autoTitle !== '' ? ($taskName . ' - ' . $autoTitle) : $taskName;
+                $finalName = $autoTitle !== '' ? ($taskName . ' ' . $autoTitle) : $taskName;
                 $task = Task::create([
                     'project_id' => $project->id,
                     'jenis_tugas' => 'Paving',

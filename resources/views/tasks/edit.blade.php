@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl dark:text-gray-200 text-gray-800 leading-tight">
-            Edit Tugas: {{ $task->name ?: $task->jenis_tugas }}
+            Edit Tugas: {{ ($task->jenis_tugas ?? null) === 'Paving' ? str_replace(' - ', ' ', ($task->name ?? '')) : ($task->name ?: $task->jenis_tugas) }}
         </h2>
     </x-slot>
 
