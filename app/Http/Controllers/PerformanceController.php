@@ -4,8 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Models\DailyTask;
-use Carbon\Carbon;
+use App\Models\TaskActivity;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\PerformanceExport;
@@ -74,7 +73,7 @@ class PerformanceController extends Controller
     }
 
     /* ===============================
-     * CORE KPI LOGIC (FIXED)
+     * CORE KPI LOGIC (PROGRESS-BASED)
      * =============================== */
     private function getKpiData(Request $request)
     {
@@ -85,133 +84,81 @@ class PerformanceController extends Controller
         ]);
 
         $period    = (int) $request->period;
-        $startDate = now()->subMonths($period);
-        $endDate   = now();
+        $startDate = now()->subMonths($period)->startOfDay();
+        $endDate   = now()->endOfDay();
 
-        // MINIMAL TASK SUPAYA VALID RANKING
-        $minTasks = match ($period) {
-            1  => 5,
-            6  => 30,
-            12 => 60,
-            default => 5,
-        };
+        $employeesQuery = User::where('role', '!=', 'manager');
+        if ($request->filled('user_id')) {
+            $employeesQuery->where('id', $request->user_id);
+        }
+        $employees = $employeesQuery->get();
 
-        $query = DailyTask::with('staff')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->where('status', $request->status)
-            ->whereHas('staff', fn ($q) => $q->where('role', '!=', 'manager'));
+        $statusMap = [
+            'selesai' => 'Selesai',
+            'valid' => 'Menunggu Validasi',
+        ];
+        $statusKey = strtolower((string) $request->status);
+        $statusValue = $statusKey === 'semua'
+            ? null
+            : ($statusMap[$statusKey] ?? $request->status);
+
+        $activityQuery = TaskActivity::query()
+            ->selectRaw('task_activities.user_id, COUNT(DISTINCT task_activities.daily_task_id) as total_tasks')
+            ->selectRaw('SUM((daily_tasks.weight * task_activities.progress_percent) / 8) as total_score')
+            ->join('daily_tasks', 'daily_tasks.id', '=', 'task_activities.daily_task_id')
+            ->join('users', 'users.id', '=', 'task_activities.user_id')
+            ->whereBetween('task_activities.created_at', [$startDate, $endDate])
+            ->whereNotNull('task_activities.progress_percent')
+            ->where('users.role', '!=', 'manager');
 
         if ($request->filled('user_id')) {
-            $query->where('assigned_to_staff_id', $request->user_id);
+            $activityQuery->where('task_activities.user_id', $request->user_id);
         }
 
-        $results = $query
-            ->selectRaw('assigned_to_staff_id, COUNT(*) as total_tasks')
-            ->groupBy('assigned_to_staff_id')
+        if (!empty($statusValue)) {
+            $activityQuery->where('daily_tasks.status', $statusValue);
+        }
+
+        $activityRows = $activityQuery
+            ->groupBy('task_activities.user_id')
             ->get()
-            ->map(function ($item) use ($period, $startDate, $endDate, $minTasks) {
+            ->keyBy('user_id');
 
-                $userId     = $item->assigned_to_staff_id;
-                $totalTasks = (int) $item->total_tasks;
+        $results = $employees->map(function ($employee) use ($activityRows) {
+            $row = $activityRows->get($employee->id);
 
-                /* ========= PRODUKTIVITAS ========= */
-                $productivity = min(100, ($totalTasks / ($period * 20)) * 100);
-
-                /* ========= TREND ========= */
-                $current  = $this->countTasks($userId, $startDate, $endDate);
-                $previous = $this->countTasks(
-                    $userId,
-                    $startDate->copy()->subMonths($period),
-                    $startDate
-                );
-
-                $trend = $previous == 0 ? 0 : (($current - $previous) / $previous) * 100;
-                $trendScore = max(0, min(100, $trend));
-
-                /* ========= DEADLINE ========= */
-                $timeScore = $this->calculateTimeScore($userId, $startDate, $endDate);
-
-                /* ========= FINAL KPI ========= */
-                $finalScore =
-                    ($productivity * 0.5) +
-                    ($timeScore * 0.3) +
-                    ($trendScore * 0.2);
-
-                // ❗ HUKUM kalau tugas terlalu sedikit ((dihapus))
-                if ($totalTasks < $minTasks) {
-                    $finalScore *= 0.4; // penalti 60%
-                }
-
-                return (object) [
-                    'user_id'     => $userId,
-                    'name'        => optional($item->staff)->name ?? '-',
-                    'total_tasks' => $totalTasks,
-                    'final_score' => round($finalScore, 1),
-                    'trend_icon'  => $trend >= 0 ? '📈' : '📉',
-                    'trend_value' => round($trend, 1),
-                ];
-            });
+            return (object) [
+                'user_id'     => $employee->id,
+                'name'        => $employee->name,
+                'total_tasks' => (int) ($row->total_tasks ?? 0),
+                'final_score' => round((float) ($row->total_score ?? 0), 2),
+            ];
+        });
 
         /* ================= RANKING FINAL ================= */
         $topScore = $results->max('final_score');
 
         return $results
-            // PRIORITAS: cukup tugas dulu, baru skor
-            ->sortByDesc(fn ($r) => [
-                $r->total_tasks >= $minTasks ? 1 : 0,
-                $r->final_score
-            ])
+            ->sortByDesc('final_score')
             ->values()
-            ->map(function ($row, $i) use ($topScore, $minTasks) {
-
+            ->map(function ($row, $i) use ($topScore) {
                 $row->rank = $i + 1;
 
                 [$icon, $color] = match ($row->rank) {
                     1 => ['🥇', '#facc15'],
                     2 => ['🥈', '#9ca3af'],
                     3 => ['🥉', '#cd7f32'],
-                    default => ['🏅', '#3b82f6'],
+                    default => ['🏆', '#3b82f6'],
                 };
 
                 $row->rank_icon  = $icon;
                 $row->rank_color = $color;
 
-                // ❗ Top Performer hanya jika produktif
-                $row->badge = (
-                    $row->final_score == $topScore &&
-                    $row->total_tasks >= $minTasks
-                )
+                $row->badge = ($topScore > 0 && $row->final_score == $topScore)
                     ? '🔥 Top Performer'
                     : '🥉 Needs Improvement';
 
                 return $row;
             });
-    }
-
-    /* ===============================
-     * HELPER: COUNT TASK
-     * =============================== */
-    private function countTasks($userId, $start, $end)
-    {
-        return DailyTask::where('assigned_to_staff_id', $userId)
-            ->whereBetween('created_at', [$start, $end])
-            ->count();
-    }
-
-    /* ===============================
-     * HELPER: DEADLINE SCORE
-     * =============================== */
-    private function calculateTimeScore($userId, $start, $end)
-    {
-        $tasks = DailyTask::where('assigned_to_staff_id', $userId)
-            ->whereBetween('created_at', [$start, $end])
-            ->whereNotNull('due_date')
-            ->get();
-
-        if ($tasks->count() === 0) return 0;
-
-        $onTime = $tasks->filter(fn ($t) => $t->updated_at <= $t->due_date)->count();
-
-        return round(($onTime / $tasks->count()) * 100, 1);
     }
 }

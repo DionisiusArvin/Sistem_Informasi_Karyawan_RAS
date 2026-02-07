@@ -57,7 +57,7 @@
             <th width="10%">Rank</th>
             <th width="30%">Nama</th>
             <th width="15%">Total Tugas</th>
-            <th width="15%">Final KPI</th>
+            <th width="15%">Skor KPI</th>
             <th width="30%">Status</th>
         </tr>
     </thead>

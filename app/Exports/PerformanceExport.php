@@ -27,7 +27,7 @@ class PerformanceExport implements FromCollection, WithHeadings
             return [
                 'Nama'        => $row->name,
                 'Total Tugas' => $row->total_tasks,
-                'Final KPI'   => $row->final_score,
+                'Skor KPI'    => $row->final_score,
                 'Ranking'     => $row->rank,
                 'Status'      => $status,
             ];
@@ -36,6 +36,6 @@ class PerformanceExport implements FromCollection, WithHeadings
 
     public function headings(): array
     {
-        return ['Nama', 'Total Tugas', 'Final KPI', 'Ranking', 'Status'];
+        return ['Nama', 'Total Tugas', 'Skor KPI', 'Ranking', 'Status'];
     }
 }

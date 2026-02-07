@@ -15,19 +15,18 @@
                 <tr class="bg-gray-100 dark:bg-gray-700 text-left">
                     <th class="p-3">Nama</th>
                     <th class="p-3">Total Tugas</th>
-                    <th class="p-3">Nilai KPI</th>
+                    <th class="p-3">Skor KPI</th>
                     <th class="p-3">Status</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($results as $row)
                     @php
-                        $nilai = min(100, $row->total_tasks);
-                        $status = $nilai >= 85 ? 'Baik'
-                                : ($nilai >= 70 ? 'Cukup' : 'Kurang');
-
-                        $warna = $nilai >= 85 ? 'green'
-                                : ($nilai >= 70 ? 'yellow' : 'red');
+                        $nilai = $row->final_score;
+                        $status = str_contains($row->badge, 'Top Performer')
+                            ? 'Top Performer'
+                            : 'Needs Improvement';
+                        $warna = str_contains($row->badge, 'Top Performer') ? 'green' : 'red';
                     @endphp
                     <tr class="border-t">
                         <td class="p-3">{{ $row->name }}</td>

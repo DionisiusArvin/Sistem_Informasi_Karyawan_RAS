@@ -277,6 +277,10 @@
                                     <x-input-label for="due_date" value="Batas Waktu" />
                                     <x-text-input id="due_date" class="block mt-1 w-full" type="date" name="due_date" :value="old('due_date')" required />
                                 </div>
+                                <div>
+                                    <x-input-label for="weight" value="Bobot (1-10)" />
+                                    <x-text-input id="weight" class="block mt-1 w-full" type="number" name="weight" min="1" max="10" :value="old('weight', 1)" required />
+                                </div>
                                 <div class="mt-4">
                                 <x-input-label for="description" value="Deskripsi" />
                                 <textarea id="description" name="description" rows="3" 
@@ -309,6 +313,7 @@
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
                                     <th scope="col" class="w-2/5 px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Tugas</th>
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Bobot</th>
                                     <th scope="col" class="w-1/5 px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Pekerja</th>
                                     <th scope="col" class="w-1/5 px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Progress</th>
                                     <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">File/Link</th>
@@ -336,6 +341,10 @@
                                             @php
                                                 $lastUpload = $dailyTask->activities->where('activity_type', 'upload_pekerjaan')->last();
                                             @endphp
+                                        </td>
+
+                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-400">
+                                            {{ $dailyTask->weight ?? '-' }}
                                         </td>
 
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
@@ -536,6 +545,23 @@
                                                             </div>
 
                                                             <div>
+                                                                <x-input-label for="progress_percent_{{ $dailyTask->id }}" value="Progres (%)" />
+                                                                <x-text-input
+                                                                    id="progress_percent_{{ $dailyTask->id }}"
+                                                                    class="block mt-1 w-full"
+                                                                    type="number"
+                                                                    name="progress_percent"
+                                                                    min="0"
+                                                                    max="100"
+                                                                    step="1"
+                                                                    required
+                                                                />
+                                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                                    Jika deadline lebih dari 1 hari, progres wajib diisi setiap hari.
+                                                                </p>
+                                                            </div>
+
+                                                            <div>
                                                                 <x-input-label for="notes_{{ $dailyTask->id }}" value="Catatan (Opsional)" />
                                                                 <textarea
                                                                     name="notes"
@@ -652,6 +678,16 @@
                                                                     class="block mt-1 w-full border-gray-300 rounded-md shadow-sm"
                                                                     required>
                                                             </div>
+                                                            <div>
+                                                                <x-input-label value="Bobot (1-10)" />
+                                                                <input type="number"
+                                                                    name="weight"
+                                                                    value="{{ old('weight', $dailyTask->weight ?? 1) }}"
+                                                                    min="1"
+                                                                    max="10"
+                                                                    class="block mt-1 w-full border-gray-300 rounded-md shadow-sm"
+                                                                    required>
+                                                            </div>
 
                                                             {{-- DESKRIPSI --}}
                                                             <div>
@@ -699,7 +735,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="px-6 py-12 text-center text-sm text-gray-500">
+                                        <td colspan="7" class="px-6 py-12 text-center text-sm text-gray-500">
                                             Belum ada tugas harian yang ditambahkan.
                                         </td>
                                     </tr>

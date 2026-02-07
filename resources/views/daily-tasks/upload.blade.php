@@ -50,6 +50,26 @@
                             <x-input-error :messages="$errors->get('file')" class="mt-2" />
                         </div>
 
+                        {{-- PROGRESS --}}
+                        <div>
+                            <x-input-label for="progress_percent" value="Progres (%)" />
+                            <x-text-input
+                                id="progress_percent"
+                                class="block mt-1 w-full"
+                                type="number"
+                                name="progress_percent"
+                                min="0"
+                                max="100"
+                                step="1"
+                                :value="old('progress_percent')"
+                                required
+                            />
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                Jika deadline lebih dari 1 hari, progres wajib diisi setiap hari.
+                            </p>
+                            <x-input-error :messages="$errors->get('progress_percent')" class="mt-2" />
+                        </div>
+
                         {{-- NOTES --}}
                         <div>
                             <x-input-label for="notes" value="Catatan (opsional)" />

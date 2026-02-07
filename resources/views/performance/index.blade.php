@@ -56,10 +56,13 @@
                         class="w-full rounded border-gray-300 dark:border-gray-700
                                bg-white dark:bg-gray-900
                                text-gray-900 dark:text-gray-100">
-                    <option value="selesai" @selected(($status ?? 'selesai') == 'selesai')>
+                    <option value="semua" @selected(($status ?? 'semua') == 'semua')>
+                        Semua
+                    </option>
+                    <option value="selesai" @selected(($status ?? 'semua') == 'selesai')>
                         Selesai
                     </option>
-                    <option value="valid" @selected(($status ?? 'selesai') == 'valid')>
+                    <option value="valid" @selected(($status ?? 'semua') == 'valid')>
                         Valid
                     </option>
                 </select>
@@ -81,6 +84,9 @@
             <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
                 Hasil Performa ({{ $period }} Bulan)
             </h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                Skor harian = bobot x progres (%) / 8. Skor periode adalah penjumlahan skor harian.
+            </p>
 
             <table class="w-full border-collapse text-gray-900 dark:text-gray-100">
                 <thead>
@@ -88,7 +94,7 @@
                         <th class="text-left py-2">Ranking</th>
                         <th class="text-left py-2">Nama</th>
                         <th class="text-left py-2">Total Tugas</th>
-                        <th class="text-left py-2">Final KPI</th>
+                        <th class="text-left py-2">Skor KPI</th>
                         <th class="text-left py-2">Badge</th>
                     </tr>
                 </thead>
@@ -152,7 +158,7 @@
                     data: {
                         labels: {!! json_encode($results->pluck('name')) !!},
                         datasets: [{
-                            label: 'Final KPI',
+                            label: 'Skor KPI',
                             data: {!! json_encode($results->pluck('final_score')) !!},
                             backgroundColor: '#3b82f6'
                         }]

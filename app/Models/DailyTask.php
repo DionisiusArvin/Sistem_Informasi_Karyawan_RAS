@@ -19,6 +19,11 @@ class DailyTask extends Model
         'progress',
         'completion_status',
         'description',
+        'weight',
+    ];
+
+    protected $casts = [
+        'weight' => 'integer',
     ];
 
     /*

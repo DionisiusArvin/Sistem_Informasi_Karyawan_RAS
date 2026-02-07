@@ -217,6 +217,7 @@ class DailyTaskController extends Controller
                 'manual_name' => 'nullable|string|max:255',
                 'due_date' => 'required|date',
                 'description' => 'nullable|string',
+                'weight' => 'required|integer|min:1|max:10',
             ]);
 
             if ($selectedName === '' && $manualName === '') {
@@ -239,6 +240,7 @@ class DailyTaskController extends Controller
                 'project_item_id' => 'required|exists:project_items,id',
                 'due_date' => 'required|date',
                 'description' => 'nullable|string',
+                'weight' => 'required|integer|min:1|max:10',
             ]);
 
             $projectItemId = $validated['project_item_id'];
@@ -252,6 +254,7 @@ class DailyTaskController extends Controller
             'name' => $name,
             'due_date' => $validated['due_date'],
             'description' => $validated['description'] ?? null,
+            'weight' => $validated['weight'],
             'status' => 'Belum Dikerjakan',
             'progress' => 0,
         ]);
@@ -271,13 +274,32 @@ class DailyTaskController extends Controller
         $request->validate([
             'file' => 'nullable|file|max:10240',
             'link_url' => 'nullable|url',
-            'notes' => 'nullable|string'
+            'notes' => 'nullable|string',
+            'progress_percent' => 'required|numeric|min:0|max:100',
         ]);
 
         if (!$request->file && !$request->link_url) {
             return back()->withErrors([
                 'file' => 'Isi minimal file atau link.'
             ]);
+        }
+
+        $requiresDailyProgress = Carbon::parse($dailyTask->due_date)
+            ->startOfDay()
+            ->gt(now()->startOfDay()->addDay());
+
+        if ($requiresDailyProgress) {
+            $alreadySubmittedToday = $dailyTask->activities()
+                ->where('user_id', auth()->id())
+                ->where('activity_type', 'upload_pekerjaan')
+                ->whereDate('created_at', now()->toDateString())
+                ->exists();
+
+            if ($alreadySubmittedToday) {
+                return back()->withErrors([
+                    'progress_percent' => 'Progres harian untuk tugas ini sudah dikirim hari ini.'
+                ]);
+            }
         }
 
         $filePath = null;
@@ -294,6 +316,7 @@ class DailyTaskController extends Controller
             'file_path'     => $filePath,
             'link_url'      => $request->link_url,
             'notes'         => $request->notes,
+            'progress_percent' => $request->progress_percent,
         ]);
 
         // 🔥 INI YANG SELAMA INI HILANG
@@ -541,6 +564,7 @@ class DailyTaskController extends Controller
                 'manual_name' => 'required|string|max:255',
                 'due_date' => 'required|date',
                 'description' => 'nullable|string',
+                'weight' => 'required|integer|min:1|max:10',
             ]);
             $name = $validated['manual_name'];
         } else {
@@ -551,6 +575,7 @@ class DailyTaskController extends Controller
                 'name' => $nameRule,
                 'due_date' => 'required|date',
                 'description' => 'nullable|string',
+                'weight' => 'required|integer|min:1|max:10',
             ]);
             $name = $validated['name'];
         }
@@ -560,12 +585,14 @@ class DailyTaskController extends Controller
             'name' => $name,
             'due_date' => $validated['due_date'],
             'description' => $validated['description'] ?? null,
+            'weight' => $validated['weight'],
         ]);
     } else {
         $validated = $request->validate([
             'project_item_id' => 'required|exists:project_items,id',
             'due_date' => 'required|date',
             'description' => 'nullable|string',
+            'weight' => 'required|integer|min:1|max:10',
         ]);
 
         $dailyTask->update([
@@ -574,6 +601,7 @@ class DailyTaskController extends Controller
             'name' => \App\Models\ProjectItem::find($validated['project_item_id'])->name,
             'due_date' => $validated['due_date'],
             'description' => $validated['description'] ?? null,
+            'weight' => $validated['weight'],
         ]);
     }
 

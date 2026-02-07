@@ -15,6 +15,11 @@ class TaskActivity extends Model
         'notes',
         'file_path',
         'link_url', // <-- Tambahkan ini
+        'progress_percent',
+    ];
+
+    protected $casts = [
+        'progress_percent' => 'float',
     ];
 
     // RELASI: Satu aktivitas adalah bagian dari satu tugas harian

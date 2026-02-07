@@ -27,11 +27,8 @@ class DashboardController extends Controller
             $totalOmset = Project::whereYear('start_date', $currentYear)
                 ->sum('contract_value');
 
-            $chartProjects = $projects->filter(
-                fn($project) => $project->getProgressPercentage() < 100
-            );
-            $chartData = $chartProjects->map(fn($project) => $project->getProgressPercentage());
-            $chartLabels = $chartProjects->map(fn($project) => $project->name);
+            $chartData = $projects->map(fn($project) => $project->getProgressPercentage() < 100);
+            $chartLabels = $projects->map(fn($project) => $project->name);
 
             $totalProjectsCompleted = $projects->filter(
                 fn($project) => $project->getProgressPercentage() >= 100
