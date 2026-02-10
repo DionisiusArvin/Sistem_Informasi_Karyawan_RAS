@@ -114,7 +114,7 @@
                 <div class="mb-3">
                     <label class="text-gray-700 dark:text-gray-300">Tanggal</label>
                     <input type="date" name="date" required
-                        class="w-full mt-1 rounded border-gray-300 dark:bg-gray-900 dark:border-gray-700 text-gray-700 dark:text-gray-300">
+                        class="w-full mt-1 rounded border-gray-300 dark:bg-gray-900 dark:border-gray-700 text-gray-700 dark:text-gray-300 dark:[color-scheme:dark]">
                 </div>
 
                 <div class="mb-3">
@@ -159,7 +159,7 @@
                 <div class="mb-3">
                     <label class="text-gray-700 dark:text-gray-300">Tanggal</label>
                     <input id="edit_date" type="date" name="date" required
-                        class="w-full mt-1 rounded border-gray-300 dark:bg-gray-900 dark:border-gray-700 text-gray-700 dark:text-gray-300">
+                        class="w-full mt-1 rounded border-gray-300 dark:bg-gray-900 dark:border-gray-700 text-gray-700 dark:text-gray-300 dark:[color-scheme:dark]">
                 </div>
 
                 <div class="mb-3">

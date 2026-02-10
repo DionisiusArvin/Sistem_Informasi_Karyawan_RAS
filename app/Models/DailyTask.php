@@ -12,6 +12,7 @@ class DailyTask extends Model
     protected $fillable = [
         'task_id',
         'project_id',
+        'project_item_id',      // 🔥 tambahan (wajib untuk template item)
         'name',
         'due_date',
         'status',
@@ -24,6 +25,7 @@ class DailyTask extends Model
 
     protected $casts = [
         'weight' => 'integer',
+        'due_date' => 'date',
     ];
 
     /*
@@ -38,12 +40,11 @@ class DailyTask extends Model
         return $this->belongsTo(Task::class, 'task_id');
     }
 
-        // DailyTask terhubung ke Project Item (Checklist Item)
+    // DailyTask terhubung ke Project Item (Checklist Item)
     public function item()
     {
         return $this->belongsTo(ProjectItem::class, 'project_item_id');
     }
-
 
     // DailyTask milik satu Project
     public function project()
@@ -87,21 +88,14 @@ class DailyTask extends Model
     */
     public function getStatusBasedProgressAttribute(): int
     {
-        return match ($this->status) {
-            'Belum Dikerjakan' => 0,
-            'Selesai' => 100,
+        // Kalau sudah di-approve kepala divisi
+        if ($this->status === 'Selesai') {
+            return 100;
+        }
 
-            // semua kondisi kerja mentok 70%
-            'Menunggu Validasi',
-            'Revisi',
-            'Lanjutkan',
-            'Dikerjakan' => 70,
-
-            default => 0,
-        };
+        // Selain itu pakai progress asli
+        return (int) $this->progress;
     }
-
-
     /*
     |--------------------------------------------------------------------------
     | DEFAULT STATUS SAAT MEMBUAT TASK
@@ -113,7 +107,6 @@ class DailyTask extends Model
 
         static::creating(function ($task) {
             if (empty($task->status)) {
-                // aman untuk semua flow
                 $task->status = 'Belum Dikerjakan';
             }
         });

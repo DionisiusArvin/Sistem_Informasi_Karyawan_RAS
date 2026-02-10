@@ -270,86 +270,77 @@ class DailyTaskController extends Controller
 
     /* ================= HANDLE UPLOAD ================= */
     public function handleUpload(Request $request, DailyTask $dailyTask)
-    {
-        $request->validate([
-            'file' => 'nullable|file|max:10240',
-            'link_url' => 'nullable|url',
-            'notes' => 'nullable|string',
-            'progress_percent' => 'required|numeric|min:0|max:100',
+{
+    $request->validate([
+        'file' => 'nullable|file|max:10240',
+        'link_url' => 'nullable|url',
+        'notes' => 'nullable|string',
+        'progress_percent' => 'required|integer|min:0|max:100',
+    ]);
+
+    if (!$request->file && !$request->link_url) {
+        return back()->withErrors([
+            'file' => 'Isi minimal file atau link.'
         ]);
-
-        if (!$request->file && !$request->link_url) {
-            return back()->withErrors([
-                'file' => 'Isi minimal file atau link.'
-            ]);
-        }
-
-        $requiresDailyProgress = Carbon::parse($dailyTask->due_date)
-            ->startOfDay()
-            ->gt(now()->startOfDay()->addDay());
-
-        if ($requiresDailyProgress) {
-            $alreadySubmittedToday = $dailyTask->activities()
-                ->where('user_id', auth()->id())
-                ->where('activity_type', 'upload_pekerjaan')
-                ->whereDate('created_at', now()->toDateString())
-                ->exists();
-
-            if ($alreadySubmittedToday) {
-                return back()->withErrors([
-                    'progress_percent' => 'Progres harian untuk tugas ini sudah dikirim hari ini.'
-                ]);
-            }
-        }
-
-        $filePath = null;
-
-        if ($request->hasFile('file')) {
-            $filePath = $request->file('file')->store('task_uploads', 'public');
-        }
-
-        // 🔥 SIMPAN AKTIVITAS
-        \App\Models\TaskActivity::create([
-            'daily_task_id' => $dailyTask->id,
-            'user_id'       => auth()->id(),
-            'activity_type' => 'upload_pekerjaan',
-            'file_path'     => $filePath,
-            'link_url'      => $request->link_url,
-            'notes'         => $request->notes,
-            'progress_percent' => $request->progress_percent,
-        ]);
-
-        // 🔥 INI YANG SELAMA INI HILANG
-        $dailyTask->update([
-            'status' => 'Menunggu Validasi'
-        ]);
-
-        return redirect()
-            ->route('division-tasks.index')
-            ->with('success', 'Pekerjaan berhasil diupload, menunggu validasi.');
     }
 
+    $newProgress = (int) $request->progress_percent;
+    $currentProgress = (int) $dailyTask->progress;
+
+    if ($newProgress <= $currentProgress) {
+        return back()->withErrors([
+            'progress_percent' => "Progress harus lebih besar dari {$currentProgress}%."
+        ])->withInput();
+    }
+
+    $filePath = null;
+
+    if ($request->hasFile('file')) {
+        $filePath = $request->file('file')->store('task_uploads', 'public');
+    }
+
+    TaskActivity::create([
+        'daily_task_id' => $dailyTask->id,
+        'user_id'       => auth()->id(),
+        'activity_type' => 'upload_pekerjaan',
+        'file_path'     => $filePath,
+        'link_url'      => $request->link_url,
+        'notes'         => $request->notes,
+        'progress_percent' => $newProgress,
+    ]);
+
+    $dailyTask->update([
+        'progress' => $newProgress,
+        'status' => 'Menunggu Validasi',
+        'assigned_to_staff_id' => auth()->id(),
+    ]);
+
+    return redirect()
+        ->route('division-tasks.index')
+        ->with('success', 'Pekerjaan berhasil diupload, menunggu validasi.');
+}
 
     /* ================= APPROVE ================= */
-    public function approve(DailyTask $dailyTask)
-    {
-        if (!Gate::allows('validate-task', $dailyTask)) {
-            abort(403);
-        }
-
-        $completionStatus = Carbon::now()->startOfDay()
-            ->lte(Carbon::parse($dailyTask->due_date))
-            ? 'tepat_waktu'
-            : 'terlambat';
-
-        $dailyTask->update([
-            'status' => 'Selesai',
-            'completion_status' => $completionStatus,
-            'progress' => 100,
-        ]);
-
-        return back()->with('success', 'Pekerjaan disetujui.');
+public function approve(DailyTask $dailyTask)
+{
+    if (!Gate::allows('validate-task', $dailyTask)) {
+        abort(403);
     }
+
+    $completionStatus = now()->lte($dailyTask->due_date)
+        ? 'tepat_waktu'
+        : 'terlambat';
+
+    $dailyTask->update([
+        'status' => 'Selesai',
+        'completion_status' => $completionStatus,
+        'progress' => 100,
+    ]);
+
+    return back()->with('success', 'Pekerjaan disetujui.');
+}
+
+
 
     /* ================= REJECT ================= */
     public function reject(Request $request, DailyTask $dailyTask)

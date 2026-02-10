@@ -79,6 +79,16 @@ Route::middleware('auth')->group(function () {
     */
 
     // tambah daily task
+
+    Route::post('/daily-tasks/{dailyTask}/approve', 
+        [App\Http\Controllers\DailyTaskController::class, 'approve']
+    )->name('dailytasks.approve');
+
+    Route::post('/daily-tasks/{dailyTask}/reject', 
+        [App\Http\Controllers\DailyTaskController::class, 'reject']
+    )->name('dailytasks.reject');
+
+
     Route::post('/tasks/{task}/dailytasks', [DailyTaskController::class, 'store'])
         ->name('tasks.dailytasks.store');
 

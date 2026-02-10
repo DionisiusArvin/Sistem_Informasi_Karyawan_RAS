@@ -4,8 +4,8 @@
 
         {{-- Notifikasi error --}}
         @if ($errors->any())
-            <div class="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
-                <ul class="list-disc pl-5">
+            <div class="mb-4 p-4 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg border border-red-200 dark:border-red-800">
+                <ul class="list-disc pl-5 text-sm">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
                     @endforeach
@@ -24,7 +24,7 @@
                     <input type="text" 
                         value="{{ auth()->user()->division->name }}" 
                         disabled
-                        class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm dark:bg-gray-900 dark:text-gray-200">
+                        class="mt-1 block w-full border-gray-300 dark:border-gray-700 rounded-lg shadow-sm bg-gray-50 dark:bg-gray-900 dark:text-gray-400 cursor-not-allowed">
                 </div>
             @endif
 
@@ -33,7 +33,7 @@
             <div>
                 <label for="start_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tanggal Mulai</label>
                 <input type="date" name="start_date" id="start_date" 
-                       class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm"
+                       class="mt-1 block w-full border-gray-300 dark:border-gray-700 rounded-lg shadow-sm dark:bg-gray-900 dark:text-gray-200 focus:border-indigo-500 focus:ring-indigo-500 dark:[color-scheme:dark]"
                        min="{{ date('Y-m-d') }}"
                        value="{{ old('start_date') }}" required>
             </div>
@@ -42,7 +42,7 @@
             <div>
                 <label for="end_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tanggal Selesai</label>
                 <input type="date" name="end_date" id="end_date" 
-                       class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm"
+                       class="mt-1 block w-full border-gray-300 dark:border-gray-700 rounded-lg shadow-sm dark:bg-gray-900 dark:text-gray-200 focus:border-indigo-500 focus:ring-indigo-500 dark:[color-scheme:dark]"
                        min="{{ date('Y-m-d') }}"
                        value="{{ old('end_date') }}" required>
             </div>
@@ -50,10 +50,11 @@
             {{-- Jenis cuti --}}
             <div>
                 <label for="type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Jenis</label>
-                <select name="type" id="type" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm" required>
-                    <option value="">-- Pilih Jenis --</option>
-                    <option value="sakit" {{ old('type') == 'sakit' ? 'selected' : '' }}>Sakit</option>
-                    <option value="izin" {{ old('type') == 'izin' ? 'selected' : '' }}>Izin</option>
+                <select name="type" id="type" 
+                        class="mt-1 block w-full border-gray-300 dark:border-gray-700 rounded-lg shadow-sm dark:bg-gray-900 dark:text-gray-200 focus:border-indigo-500 focus:ring-indigo-500" required>
+                    <option value="" class="dark:bg-gray-900">-- Pilih Jenis --</option>
+                    <option value="sakit" {{ old('type') == 'sakit' ? 'selected' : '' }} class="dark:bg-gray-900">Sakit</option>
+                    <option value="izin" {{ old('type') == 'izin' ? 'selected' : '' }} class="dark:bg-gray-900">Izin</option>
                 </select>
             </div>
 
@@ -61,15 +62,15 @@
             <div>
                 <label for="reason" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Alasan</label>
                 <textarea name="reason" id="reason" rows="3" 
-                          class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm"
+                          class="mt-1 block w-full border-gray-300 dark:border-gray-700 rounded-lg shadow-sm dark:bg-gray-900 dark:text-gray-200 focus:border-indigo-500 focus:ring-indigo-500"
                           required>{{ old('reason') }}</textarea>
             </div>
 
-            <div class="flex justify-end">
+            <div class="flex justify-end pt-2">
                 <a href="{{ route('leaves.index') }}" 
-                   class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg mr-2">Batal</a>
+                   class="bg-gray-500 hover:bg-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 text-white px-4 py-2 rounded-lg mr-2 transition font-medium shadow-sm">Batal</a>
                 <button type="submit" 
-                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg">
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition font-medium shadow-sm">
                     Ajukan
                 </button>
             </div>

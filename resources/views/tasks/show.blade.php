@@ -211,96 +211,102 @@
                         @endif
                     </div>
 
-                    {{-- Form Tambah Tugas (Bisa disembunyikan) --}}
+                   {{-- Form Tambah Tugas (Bisa disembunyikan) --}}
                     <div x-show="showForm" x-transition class="border-b dark:border-gray-700 mb-6 pb-6">
                         <form method="POST" action="{{ route('tasks.dailytasks.store', $task->id) }}">
                             @csrf
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div class="md:col-span-2">
-                                    @if($showTemplate)
-                                        <x-input-label for="name" value="Nama Tugas Harian" />
-                                        <select id="name" name="name"
-                                            class="block mt-1 w-full dark:bg-gray-900 dark:text-gray-200 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                                            >
-                                            <option value="" disabled {{ old('name') ? '' : 'selected' }}>Pilih tugas harian</option>
-                                            @php
-                                                $isGrouped = !array_is_list($dailyTaskOptions);
-                                                $flatTemplateOptions = $isGrouped
-                                                    ? collect($dailyTaskOptions)->flatten(1)->values()->all()
-                                                    : $dailyTaskOptions;
-                                            @endphp
-                                            @if($isGrouped)
-                                                @foreach($dailyTaskOptions as $group => $items)
-                                                    <optgroup label="{{ $group }}">
-                                                        @foreach($items as $item)
-                                                            <option value="{{ $item }}" {{ old('name') === $item ? 'selected' : '' }}>
-                                                                {{ $item }}
-                                                            </option>
+                            <div class="space-y-4">
+                                
+                                {{-- BARIS 1: [Nama Template - Lebar] [Bobot - Kecil] [Batas Waktu - Kecil] --}}
+                                <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+                                    <div class="md:col-span-4">
+                                        <x-input-label for="name" value="Nama Tugas Harian (Template)" />
+                                        @if($showTemplate)
+                                            <select id="name" name="name" 
+                                                class="block mt-1 w-full dark:bg-gray-900 dark:text-gray-200 border-gray-300 dark:border-gray-700 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm text-sm">
+                                                <option value="" disabled {{ old('name') ? '' : 'selected' }}>Pilih dari template...</option>
+                                                @php $isGrouped = !array_is_list($dailyTaskOptions); @endphp
+                                                @if($isGrouped)
+                                                    @foreach($dailyTaskOptions as $group => $items)
+                                                        <optgroup label="{{ $group }}">
+                                                            @foreach($items as $item)
+                                                                <option value="{{ $item }}" {{ old('name') === $item ? 'selected' : '' }}>{{ $item }}</option>
+                                                            @endforeach
+                                                        </optgroup>
+                                                    @endforeach
+                                                @else
+                                                    @foreach($dailyTaskOptions as $option)
+                                                        <option value="{{ $option }}" {{ old('name') === $option ? 'selected' : '' }}>{{ $option }}</option>
+                                                    @endforeach
+                                                @endif
+                                            </select>
+                                        @else
+                                            <select name="project_item_id" id="project_item_id" required 
+                                                class="block mt-1 w-full dark:bg-gray-900 dark:text-gray-200 border-gray-300 dark:border-gray-700 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm text-sm">
+                                                <option value="">Pilih Item Pekerjaan</option>
+                                                @foreach($task->project->checklists as $checklist)
+                                                    <optgroup label="{{ $checklist->name }}">
+                                                        @foreach($checklist->items as $item)
+                                                            <option value="{{ $item->id }}">{{ $item->name }}</option>
                                                         @endforeach
                                                     </optgroup>
                                                 @endforeach
-                                            @else
-                                                @foreach($dailyTaskOptions as $option)
-                                                    <option value="{{ $option }}" {{ old('name') === $option ? 'selected' : '' }}>
-                                                        {{ $option }}
-                                                    </option>
-                                                @endforeach
-                                            @endif
-                                        </select>
-                                        <div class="mt-3">
-                                            <x-input-label for="manual_name" value="Nama Tugas Harian (Manual)" />
-                                            <x-text-input id="manual_name" class="block mt-1 w-full" type="text" name="manual_name" :value="old('manual_name')" />
-                                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                                Isi jika tidak ada di template. Jika pilih template dan isi manual, judul akan digabung.
-                                            </p>
-                                        </div>
-                                    @else
-                                        <x-input-label for="project_item_id" value="Item Pekerjaan" />
-                                        <select name="project_item_id" id="project_item_id" required
-                                            class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
+                                            </select>
+                                        @endif
+                                    </div>
+                                    <div class="md:col-span-1">
+                                        <x-input-label for="weight" value="Bobot" />
+                                        <x-text-input id="weight" class="block mt-1 w-full dark:bg-gray-900 text-sm" type="number" name="weight" min="1" max="10" :value="old('weight', 1)" required />
+                                    </div>
+                                    <div class="md:col-span-1">
+                                        <x-input-label for="due_date" value="Batas Waktu" />
+                                        <x-text-input id="due_date" class="block mt-1 w-full dark:bg-gray-900 dark:[color-scheme:dark] text-sm" type="date" name="due_date" :value="old('due_date')" required />
+                                    </div>
+                                </div>
 
-                                            <option value="">Pilih Item Pekerjaan</option>
-
-                                            @foreach($task->project->checklists as $checklist)
-                                                <optgroup label="{{ $checklist->name }}">
-                                                    @foreach($checklist->items as $item)
-                                                        <option value="{{ $item->id }}">
-                                                            {{ $item->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </optgroup>
+                                {{-- BARIS 2: [Nama Manual - Lebar] [Tugaskan ke - Kecil/Press] --}}
+                                <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+                                    <div class="md:col-span-4">
+                                        {{-- Label tetap md:text-left agar rapi di kiri --}}
+                                        <x-input-label for="manual_name" value="Nama Tugas Harian (Manual)" class="text-left" />
+                                        
+                                        <x-text-input id="manual_name" 
+                                            class="block mt-1 w-full dark:bg-gray-900 text-sm" {{-- Hapus text-center di sini --}}
+                                            type="text" name="manual_name" 
+                                            :value="old('manual_name')" 
+                                            placeholder="Isi manual..."/>
+                                    </div>
+                                    
+                                    <div class="md:col-span-2">
+                                        <x-input-label for="assigned_to_staff_id" value="Tugaskan ke" class="text-center md:text-left" />
+                                        
+                                        <select name="assigned_to_staff_id" id="assigned_to_staff_id" 
+                                            class="block mt-1 w-full dark:bg-gray-900 dark:text-gray-200 border-gray-300 dark:border-gray-700 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm text-sm text-center appearance-none"
+                                            style="text-align-last: center;"> {{-- Bagian ini tetap di tengah --}}
+                                            
+                                            <option value="" class="text-left">-- Semua Staff Bisa Ambil --</option>
+                                            @foreach ($users as $user)
+                                                <option value="{{ $user->id }}" class="text-left">{{ $user->name }}</option>
                                             @endforeach
                                         </select>
-                                    @endif
+                                    </div>
                                 </div>
+
+                                {{-- BARIS 3: Deskripsi --}}
                                 <div>
-                                    <x-input-label for="due_date" value="Batas Waktu" />
-                                    <x-text-input id="due_date" class="block mt-1 w-full" type="date" name="due_date" :value="old('due_date')" required />
+                                    <x-input-label for="description" value="Deskripsi Tugas" />
+                                    <textarea id="description" name="description" rows="2" 
+                                        class="block mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                                        >{{ old('description') }}</textarea>
                                 </div>
-                                <div>
-                                    <x-input-label for="weight" value="Bobot (1-10)" />
-                                    <x-text-input id="weight" class="block mt-1 w-full" type="number" name="weight" min="1" max="10" :value="old('weight', 1)" required />
+
+                                {{-- BARIS 4: Tombol Simpan --}}
+                                <div class="flex items-center justify-end pt-2">
+                                    <x-primary-button class="!bg-blue-600 hover:!bg-blue-700 active:!bg-blue-800 focus:!ring-blue-500 !text-white border-none shadow-sm px-6">
+                                        <i class="fas fa-save mr-2 text-white"></i> 
+                                        <span class="text-white font-bold">SIMPAN TUGAS</span>
+                                    </x-primary-button>
                                 </div>
-                                <div class="mt-4">
-                                <x-input-label for="description" value="Deskripsi" />
-                                <textarea id="description" name="description" rows="3" 
-                                    class="block mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 
-                                        dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 
-                                        focus:ring-indigo-500 sm:text-sm">{{ old('description') }}</textarea>
-                                </div>
-                                <div class="mt-4">
-                                    <x-input-label for="assigned_to_staff_id" value="Tugaskan ke (Opsional)" />
-                                    <select name="assigned_to_staff_id" id="assigned_to_staff_id"
-                                        class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
-                                        <option value="">-- Semua Staff Bisa Ambil --</option>
-                                        @foreach ($users as $user)
-                                            <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->role }})</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-end mt-4">
-                                <x-primary-button>Simpan Tugas</x-primary-button>
                             </div>
                         </form>
                     </div>
@@ -353,13 +359,12 @@
 
                                         <td class="py-4 px-4 text-center">
                                             <div class="flex items-center gap-2">
-                                                <span class="text-sm font-semibold">
-                                                    {{ $dailyTask->status_based_progress }}%
+                                                <span class="text-gray-800 dark:text-white font-semibold tabular-nums">
+                                                    {{ $dailyTask->fresh()->progress }}%
                                                 </span>
-
                                                 <div class="w-full bg-gray-200 rounded-full h-2.5">
                                                     <div class="bg-blue-600 h-2.5 rounded-full"
-                                                        style="width: {{ $dailyTask->status_based_progress }}%">
+                                                        style="width: {{ $dailyTask->fresh()->progress }}%">
                                                     </div>
                                                 </div>
                                             </div>
@@ -578,12 +583,12 @@
                                                         <div class="mt-6 flex justify-end space-x-2">
                                                             <button type="button"
                                                                     @click="showUploadModal = false"
-                                                                    class="px-4 py-2 bg-gray-200 dark:bg-gray-600 rounded-md">
+                                                                    class="px-4 py-2 bg-gray-500 dark:bg-gray-700 text-white rounded-md hover:bg-gray-600 transition duration-150">
                                                                 Batal
                                                             </button>
 
                                                             <button type="submit"
-                                                                    class="px-4 py-2 bg-blue-600 text-white rounded-md">
+                                                                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-150">
                                                                 Kirim Pekerjaan
                                                             </button>
                                                         </div>
@@ -609,14 +614,12 @@
                                                         @method('PATCH')
 
                                                         <div class="space-y-4">
-
-                                                            {{-- ITEM PEKERJAAN (INI YANG PENTING) --}}
+                                                            {{-- ITEM PEKERJAAN / NAMA TUGAS --}}
                                                             <div>
                                                                 @if($showTemplate)
                                                                     <x-input-label for="edit_name_{{ $dailyTask->id }}" value="Nama Tugas Harian" />
                                                                     <select id="edit_name_{{ $dailyTask->id }}" name="name"
-                                                                        class="block mt-1 w-full dark:bg-gray-900 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                                                                        >
+                                                                        class="block mt-1 w-full dark:bg-gray-900 dark:text-gray-200 border-gray-300 dark:border-gray-700 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
                                                                         <option value="" disabled {{ old('name', $dailyTask->name) ? '' : 'selected' }}>Pilih tugas harian</option>
                                                                         @php
                                                                             $isGrouped = !array_is_list($dailyTaskOptions);
@@ -627,44 +630,39 @@
                                                                         @endphp
                                                                         @if($isGrouped)
                                                                             @foreach($dailyTaskOptions as $group => $items)
-                                                                                <optgroup label="{{ $group }}">
+                                                                                <optgroup label="{{ $group }}" class="dark:bg-gray-800">
                                                                                     @foreach($items as $item)
-                                                                                        <option value="{{ $item }}" {{ old('name', $dailyTask->name) === $item ? 'selected' : '' }}>
-                                                                                            {{ $item }}
-                                                                                        </option>
+                                                                                        <option value="{{ $item }}" {{ old('name', $dailyTask->name) === $item ? 'selected' : '' }}>{{ $item }}</option>
                                                                                     @endforeach
                                                                                 </optgroup>
                                                                             @endforeach
                                                                         @else
                                                                             @foreach($dailyTaskOptions as $option)
-                                                                                <option value="{{ $option }}" {{ old('name', $dailyTask->name) === $option ? 'selected' : '' }}>
-                                                                                    {{ $option }}
-                                                                                </option>
+                                                                                <option value="{{ $option }}" {{ old('name', $dailyTask->name) === $option ? 'selected' : '' }}>{{ $option }}</option>
                                                                             @endforeach
                                                                         @endif
                                                                     </select>
+
                                                                     <div class="mt-3">
                                                                         <x-input-label for="edit_manual_name_{{ $dailyTask->id }}" value="Nama Tugas Harian (Manual)" />
-                                                                        <x-text-input id="edit_manual_name_{{ $dailyTask->id }}" class="block mt-1 w-full" type="text" name="manual_name"
+                                                                        {{-- Menambahkan dark:bg-gray-900 agar sinkron --}}
+                                                                        <x-text-input id="edit_manual_name_{{ $dailyTask->id }}" 
+                                                                            class="block mt-1 w-full dark:bg-gray-900" 
+                                                                            type="text" name="manual_name"
                                                                             value="{{ old('manual_name', $isManualName ? $dailyTask->name : '') }}" />
                                                                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Isi jika tidak ada di template.</p>
                                                                     </div>
                                                                 @else
                                                                     <x-input-label value="Item Pekerjaan" />
                                                                     <select name="project_item_id" required
-                                                                        class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
-
+                                                                        class="block mt-1 w-full dark:bg-gray-900 dark:text-gray-200 border-gray-300 dark:border-gray-700 rounded-md shadow-sm">
                                                                         @foreach($task->project->checklists as $checklist)
-                                                                            <optgroup label="{{ $checklist->name }}">
+                                                                            <optgroup label="{{ $checklist->name }}" class="dark:bg-gray-800">
                                                                                 @foreach($checklist->items as $item)
-                                                                                    <option value="{{ $item->id }}"
-                                                                                        {{ $dailyTask->project_item_id == $item->id ? 'selected' : '' }}>
-                                                                                        {{ $item->name }}
-                                                                                    </option>
+                                                                                    <option value="{{ $item->id }}" {{ $dailyTask->project_item_id == $item->id ? 'selected' : '' }}>{{ $item->name }}</option>
                                                                                 @endforeach
                                                                             </optgroup>
                                                                         @endforeach
-
                                                                     </select>
                                                                 @endif
                                                             </div>
@@ -675,17 +673,18 @@
                                                                 <input type="date"
                                                                     name="due_date"
                                                                     value="{{ \Carbon\Carbon::parse($dailyTask->due_date)->format('Y-m-d') }}"
-                                                                    class="block mt-1 w-full border-gray-300 rounded-md shadow-sm"
+                                                                    class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 rounded-md shadow-sm dark:[color-scheme:dark]"
                                                                     required>
                                                             </div>
+
+                                                            {{-- BOBOT --}}
                                                             <div>
                                                                 <x-input-label value="Bobot (1-10)" />
                                                                 <input type="number"
                                                                     name="weight"
                                                                     value="{{ old('weight', $dailyTask->weight ?? 1) }}"
-                                                                    min="1"
-                                                                    max="10"
-                                                                    class="block mt-1 w-full border-gray-300 rounded-md shadow-sm"
+                                                                    min="1" max="10"
+                                                                    class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 rounded-md shadow-sm"
                                                                     required>
                                                             </div>
 
@@ -693,7 +692,7 @@
                                                             <div>
                                                                 <x-input-label value="Deskripsi" />
                                                                 <textarea name="description"
-                                                                    class="block mt-1 w-full border-gray-300 rounded-md shadow-sm"
+                                                                    class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 rounded-md shadow-sm"
                                                                     rows="3">{{ $dailyTask->description }}</textarea>
                                                             </div>
 
@@ -701,32 +700,28 @@
                                                             <div>
                                                                 <x-input-label value="Tugaskan ke (Opsional)" />
                                                                 <select name="assigned_to_staff_id"
-                                                                    class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
+                                                                    class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 rounded-md shadow-sm">
                                                                     <option value="">-- Semua Staff Bisa Ambil --</option>
                                                                     @foreach ($users as $user)
-                                                                        <option value="{{ $user->id }}"
-                                                                            {{ $dailyTask->assigned_to_staff_id == $user->id ? 'selected' : '' }}>
+                                                                        <option value="{{ $user->id }}" {{ $dailyTask->assigned_to_staff_id == $user->id ? 'selected' : '' }}>
                                                                             {{ $user->name }} ({{ $user->role }})
                                                                         </option>
                                                                     @endforeach
                                                                 </select>
                                                             </div>
-
                                                         </div>
 
+                                                        {{-- BUTTONS --}}
                                                         <div class="mt-6 flex justify-end space-x-2">
-                                                            <button type="button"
-                                                                    @click="showEditModal = false"
-                                                                    class="px-4 py-2 bg-gray-200 rounded-md">
+                                                            <button type="button" @click="showEditModal = false"
+                                                                class="px-4 py-2 bg-gray-200 dark:bg-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">
                                                                 Batal
                                                             </button>
-
                                                             <button type="submit"
-                                                                    class="px-4 py-2 bg-blue-600 text-white rounded-md">
+                                                                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 shadow-md">
                                                                 Simpan
                                                             </button>
                                                         </div>
-
                                                     </form>
                                                 </div>
                                             </div>

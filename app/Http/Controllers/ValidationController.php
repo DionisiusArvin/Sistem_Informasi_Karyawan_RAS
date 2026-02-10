@@ -26,16 +26,23 @@ class ValidationController extends Controller
 
     public function approve($id)
     {
-        $task = DailyTask::findOrFail($id);
+        $dailyTask = DailyTask::findOrFail($id);
 
         $completionStatus = Carbon::now()->startOfDay()
-            ->lte(Carbon::parse($task->due_date))
+            ->lte(Carbon::parse($dailyTask->due_date))
             ? 'tepat_waktu'
             : 'terlambat';
 
-        $task->update([
+        // UPDATE DAILY TASK
+        $dailyTask->update([
             'status' => 'Selesai',
             'completion_status' => $completionStatus,
+            'progress' => 100, // ← INI YANG HILANG
+        ]);
+
+        // UPDATE TASK UTAMA (biar tabel sinkron)
+        $dailyTask->task->update([
+            'progress' => 100,
         ]);
 
         return back()->with('success', 'Tugas harian berhasil divalidasi.');

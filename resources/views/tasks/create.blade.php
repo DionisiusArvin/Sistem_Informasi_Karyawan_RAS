@@ -41,7 +41,7 @@
                                 $jenisTugasOptions = $jenisTugasOptionsByCategory[$project->category ?? ''] ?? null;
                             @endphp
                             @if($jenisTugasOptions)
-                                <select id="jenis_tugas" name="jenis_tugas" class="block mt-1 w-full dark:bg-gray-900 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                                <select id="jenis_tugas" name="jenis_tugas" class="block mt-1 w-full dark:bg-gray-900 border-gray-300 dark:border-gray-600 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
                                     <option value="" disabled {{ old('jenis_tugas') ? '' : 'selected' }}>Pilih jenis tugas</option>
                                     @foreach($jenisTugasOptions as $option)
                                         <option value="{{ $option }}" {{ old('jenis_tugas') === $option ? 'selected' : '' }}>
@@ -57,7 +57,7 @@
                         @if(in_array($project->category ?? null, ['PBG', 'SLF']))
                             <div class="mt-4" id="pbg-slf-mode-wrapper">
                                 <x-input-label for="pbg_slf_mode" value="Mode Tugas Utama" />
-                                <select id="pbg_slf_mode" name="pbg_slf_mode" class="block mt-1 w-full dark:bg-gray-900 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                                <select id="pbg_slf_mode" name="pbg_slf_mode" class="block mt-1 w-full dark:bg-gray-900 border-gray-300 dark:border-gray-600 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
                                     <option value="auto" {{ old('pbg_slf_mode', 'auto') === 'auto' ? 'selected' : '' }}>Auto-generate semua jenis</option>
                                     <option value="manual" {{ old('pbg_slf_mode') === 'manual' ? 'selected' : '' }}>Input Manual</option>
                                 </select>
@@ -82,12 +82,12 @@
 
                         <div class="mt-4" id="name-wrapper">
                             <x-input-label for="name" value="Judul Tugas Utama (Opsional)" />
-                            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" autofocus />
+                            <x-text-input id="name" class="block mt-1 w-full dark:bg-gray-900" type="text" name="name" :value="old('name')" autofocus />
                         </div>
 
                         <div class="mt-4">
                             <x-input-label for="description" value="Deskripsi (Opsional)" />
-                            <textarea name="description" id="description" class="block mt-1 w-full dark:bg-gray-900 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">{{ old('description') }}</textarea>
+                            <textarea name="description" id="description" class="block mt-1 w-full dark:bg-gray-900 border-gray-300 dark:border-gray-600 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">{{ old('description') }}</textarea>
                         </div>
 
                         <div class="mt-4">
@@ -103,9 +103,9 @@
                         </div>
                         
                         <div class="flex items-center justify-end mt-4">
-                            <x-primary-button>
+                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:border-blue-900 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150">
                                 Simpan Tugas
-                            </x-primary-button>
+                            </button>
                         </div>
                     </form>
                 </div>

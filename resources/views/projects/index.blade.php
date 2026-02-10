@@ -9,19 +9,19 @@
                 <div class="flex bg-gray-200 dark:bg-gray-700 p-1 rounded-lg text-sm">
                     <a 
                         href="{{ route('projects.index', ['status' => 'on-progress']) }}"
-                        class="px-3 py-1 rounded-md transition {{ $statusFilter == 'on-progress' ? 'bg-white dark:bg-gray-900 text-blue-600 font-semibold shadow' : 'text-gray-500 hover:text-gray-700' }}"
+                        class="px-3 py-1 rounded-md transition {{ $statusFilter == 'on-progress' ? 'bg-white dark:bg-gray-900 text-blue-600 font-semibold shadow' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200' }}"
                     >
                         On Progress
                     </a>
                     <a 
                         href="{{ route('projects.index', ['status' => 'finished']) }}"
-                        class="px-3 py-1 rounded-md transition {{ $statusFilter == 'finished' ? 'bg-white dark:bg-gray-900 text-blue-600 font-semibold shadow' : 'text-gray-500 hover:text-gray-700' }}"
+                        class="px-3 py-1 rounded-md transition {{ $statusFilter == 'finished' ? 'bg-white dark:bg-gray-900 text-blue-600 font-semibold shadow' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200' }}"
                     >
                         Selesai
                     </a>
                     <a 
                         href="{{ route('projects.index', ['status' => 'all']) }}"
-                        class="px-3 py-1 rounded-md transition {{ $statusFilter == 'all' ? 'bg-white dark:bg-gray-900 text-blue-600 font-semibold shadow' : 'text-gray-500 hover:text-gray-700' }}"
+                        class="px-3 py-1 rounded-md transition {{ $statusFilter == 'all' ? 'bg-white dark:bg-gray-900 text-blue-600 font-semibold shadow' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200' }}"
                     >
                         Semua
                     </a>

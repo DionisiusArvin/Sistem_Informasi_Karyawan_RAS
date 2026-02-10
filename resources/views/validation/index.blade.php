@@ -164,8 +164,8 @@
                             placeholder="Jelaskan bagian yang perlu direvisi..." required></textarea>
 
                     <div class="mt-4 flex justify-end space-x-2">
-                        <button type="button" @click="showRevisi = false"
-                                class="px-4 py-2 bg-gray-200 dark:bg-gray-600 rounded">
+                        <button type="button" @click="showLanjut=false"
+                            class="px-4 py-2 bg-gray-200 dark:bg-gray-600 rounded text-gray-900 dark:text-gray-300">
                             Batal
                         </button>
 

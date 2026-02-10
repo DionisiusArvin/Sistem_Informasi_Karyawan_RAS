@@ -32,12 +32,12 @@
                 {{-- TANGGAL --}}
                 <input type="date" name="date" id="filter-tanggal"
                        value="{{ request('date') }}"
-                       class="text-sm h-9 border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600">
+                       class="text-sm h-9 border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:[color-scheme:dark]">
 
                 {{-- RANGE --}}
                 <div id="filter-range" class="flex gap-2">
-                    <input type="date" name="from" value="{{ request('from') }}" class="text-sm h-9 border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600">
-                    <input type="date" name="to" value="{{ request('to') }}" class="text-sm h-9 border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600">
+                    <input type="date" name="from" value="{{ request('from') }}" class="text-sm h-9 border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:[color-scheme:dark]">
+                    <input type="date" name="to" value="{{ request('to') }}" class="text-sm h-9 border-gray-300 rounded-md dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:[color-scheme:dark]">
                 </div>
 
                 {{-- BULAN --}}
