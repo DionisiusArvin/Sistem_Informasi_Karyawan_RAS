@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
+use App\Services\NotificationService;
 
 class DailyTaskController extends Controller
 {
@@ -247,17 +248,35 @@ class DailyTaskController extends Controller
             $name = \App\Models\ProjectItem::find($validated['project_item_id'])->name;
         }
 
-        DailyTask::create([
-            'task_id' => $task->id,
-            'project_id' => $task->project_id,
-            'project_item_id' => $projectItemId,
-            'name' => $name,
-            'due_date' => $validated['due_date'],
-            'description' => $validated['description'] ?? null,
-            'weight' => $validated['weight'],
-            'status' => 'Belum Dikerjakan',
-            'progress' => 0,
-        ]);
+$dailyTask = DailyTask::create([
+    'task_id' => $task->id,
+    'project_id' => $task->project_id,
+    'project_item_id' => $projectItemId,
+    'name' => $name,
+    'due_date' => $validated['due_date'],
+    'description' => $validated['description'] ?? null,
+    'weight' => $validated['weight'],
+    'status' => 'Belum Dikerjakan',
+    'progress' => 0,
+]);
+
+// ================= NOTIF KE SEMUA STAFF DIVISI =================
+$divisionId = $task->divisions()->first()->id ?? null;
+
+if ($divisionId) {
+    $staffs = User::where('division_id', $divisionId)
+        ->where('role', 'staff')
+        ->get();
+
+    foreach ($staffs as $staff) {
+        NotificationService::send(
+            $staff->id,
+            'Tugas Baru Dari Kepala Divisi',
+            'Ada tugas baru untuk divisi Anda: ' . $dailyTask->name,
+            route('division-tasks.index') . '#task-' . $dailyTask->id
+        );
+    }
+}
 
         return back()->with('success', 'Daily Task berhasil dibuat.');
     }
@@ -314,6 +333,20 @@ class DailyTaskController extends Controller
         'status' => 'Menunggu Validasi',
         'assigned_to_staff_id' => auth()->id(),
     ]);
+
+    // ================= NOTIF KE KEPALA DIVISI =================
+    $kepalaDivisi = User::where('division_id', auth()->user()->division_id)
+        ->where('role', 'kepala_divisi')
+        ->first();
+
+    if ($kepalaDivisi) {
+        NotificationService::send(
+            $kepalaDivisi->id,
+            'Tugas Selesai',
+            auth()->user()->name . ' telah menyelesaikan tugas: ' . $dailyTask->name,
+            route('division-tasks.index') . '#task-' . $dailyTask->id
+        );
+    }
 
     return redirect()
         ->route('division-tasks.index')

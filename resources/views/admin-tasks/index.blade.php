@@ -7,9 +7,18 @@
             
             <div class="flex items-center space-x-2">
                 <div class="flex bg-gray-200 dark:bg-gray-700 p-1 rounded-lg text-sm">
-                    <a href="{{ route('admin-tasks.index', ['type' => 'all']) }}" class="px-3 py-1 rounded-md transition {{ $filterType == 'all' ? 'bg-white dark:bg-gray-900 text-blue-600 font-semibold shadow' : 'text-gray-500 hover:text-gray-700' }}">Semua</a>
-                    <a href="{{ route('admin-tasks.index', ['type' => 'project']) }}" class="px-3 py-1 rounded-md transition {{ $filterType == 'project' ? 'bg-white dark:bg-gray-900 text-blue-600 font-semibold shadow' : 'text-gray-500 hover:text-gray-700' }}">Proyek</a>
-                    <a href="{{ route('admin-tasks.index', ['type' => 'non-project']) }}" class="px-3 py-1 rounded-md transition {{ $filterType == 'non-project' ? 'bg-white dark:bg-gray-900 text-blue-600 font-semibold shadow' : 'text-gray-500 hover:text-gray-700' }}">Non-Proyek</a>
+                    <a href="{{ route('admin-tasks.index', ['type' => 'all']) }}" 
+                    class="px-3 py-1 rounded-md transition {{ $filterType == 'all' ? 'bg-white dark:bg-gray-900 text-blue-600 font-semibold shadow' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200' }}">
+                        Semua
+                    </a>
+                    <a href="{{ route('admin-tasks.index', ['type' => 'project']) }}" 
+                    class="px-3 py-1 rounded-md transition {{ $filterType == 'project' ? 'bg-white dark:bg-gray-900 text-blue-600 font-semibold shadow' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200' }}">
+                        Proyek
+                    </a>
+                    <a href="{{ route('admin-tasks.index', ['type' => 'non-project']) }}" 
+                    class="px-3 py-1 rounded-md transition {{ $filterType == 'non-project' ? 'bg-white dark:bg-gray-900 text-blue-600 font-semibold shadow' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200' }}">
+                        Non-Proyek
+                    </a>
                 </div>
 
                 @can('manage-admin-tasks')

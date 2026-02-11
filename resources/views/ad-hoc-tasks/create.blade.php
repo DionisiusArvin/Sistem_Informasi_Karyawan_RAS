@@ -17,13 +17,11 @@
 
                     <div class="mt-4 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200">
                         <x-input-label for="description" value="Deskripsi Tugas (Opsional)" />
-                        {{-- Menambahkan border-gray-300 dark:border-gray-700 --}}
                         <textarea name="description" id="description" class="block mt-1 w-full bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-700 rounded-md shadow-sm">{{ old('description') }}</textarea>
                     </div>
 
                     <div class="mt-4">
                         <x-input-label for="assigned_to_id" value="Tugaskan ke" />
-                        {{-- Menambahkan border-gray-300 dark:border-gray-700 --}}
                         <select name="assigned_to_id" id="assigned_to_id" class="block mt-1 w-full bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-700 rounded-md shadow-sm" required>
                             <option selected disabled>Pilih Karyawan</option>
                             @foreach ($users as $user)
@@ -39,6 +37,17 @@
                             type="date" 
                             name="due_date" 
                             :value="old('due_date')" />
+                    </div>
+
+                    {{-- ✅ TAMBAHAN BOBOT TUGAS --}}
+                    <div class="mt-4">
+                        <x-input-label value="Bobot Tugas (Untuk KPI)" />
+                        <input type="number"
+                               name="weight"
+                               value="1"
+                               min="1"
+                               max="10"
+                               class="block mt-1 w-full bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-700 rounded-md shadow-sm" />
                     </div>
 
                     <div class="flex justify-end mt-6">

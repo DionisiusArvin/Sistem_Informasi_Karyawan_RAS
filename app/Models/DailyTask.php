@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Events\DataChanged;
 
 class DailyTask extends Model
 {
@@ -12,7 +13,7 @@ class DailyTask extends Model
     protected $fillable = [
         'task_id',
         'project_id',
-        'project_item_id',      // 🔥 tambahan (wajib untuk template item)
+        'project_item_id',
         'name',
         'due_date',
         'status',
@@ -30,29 +31,45 @@ class DailyTask extends Model
 
     /*
     |--------------------------------------------------------------------------
+    | AUTO REALTIME 🔥
+    |--------------------------------------------------------------------------
+    */
+    protected static function booted()
+    {
+        static::created(function ($task) {
+            broadcast(new DataChanged($task));
+        });
+
+        static::updated(function ($task) {
+            broadcast(new DataChanged($task));
+        });
+
+        static::deleted(function ($task) {
+            broadcast(new DataChanged($task->id));
+        });
+    }
+
+    /*
+    |--------------------------------------------------------------------------
     | RELATIONS
     |--------------------------------------------------------------------------
     */
 
-    // DailyTask milik satu Task
     public function task()
     {
         return $this->belongsTo(Task::class, 'task_id');
     }
 
-    // DailyTask terhubung ke Project Item (Checklist Item)
     public function item()
     {
         return $this->belongsTo(ProjectItem::class, 'project_item_id');
     }
 
-    // DailyTask milik satu Project
     public function project()
     {
         return $this->belongsTo(Project::class);
     }
 
-    // RELASI MANY PROJECT (jika dipakai)
     public function projects()
     {
         return $this->belongsToMany(
@@ -63,19 +80,16 @@ class DailyTask extends Model
         );
     }
 
-    // DailyTask dikerjakan satu staff
     public function staff()
     {
         return $this->belongsTo(User::class, 'assigned_to_staff_id');
     }
 
-    // Alias staff (dipakai di controller/view)
     public function assignedToStaff()
     {
         return $this->belongsTo(User::class, 'assigned_to_staff_id');
     }
 
-    // Aktivitas upload / komentar
     public function activities()
     {
         return $this->hasMany(TaskActivity::class, 'daily_task_id');
@@ -83,19 +97,18 @@ class DailyTask extends Model
 
     /*
     |--------------------------------------------------------------------------
-    | ACCESSOR: PROGRESS BERDASARKAN STATUS
+    | ACCESSOR
     |--------------------------------------------------------------------------
     */
     public function getStatusBasedProgressAttribute(): int
     {
-        // Kalau sudah di-approve kepala divisi
         if ($this->status === 'Selesai') {
             return 100;
         }
 
-        // Selain itu pakai progress asli
         return (int) $this->progress;
     }
+
     /*
     |--------------------------------------------------------------------------
     | DEFAULT STATUS SAAT MEMBUAT TASK

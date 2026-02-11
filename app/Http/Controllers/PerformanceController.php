@@ -5,26 +5,19 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\TaskActivity;
+use App\Models\AdHocTask; // ✅ TAMBAHAN
 use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\PerformanceExport;
 
 class PerformanceController extends Controller
 {
-    /* ===============================
-     * HALAMAN FILTER
-     * =============================== */
     public function index()
     {
-        // semua user kecuali manager
         $employees = User::where('role', '!=', 'manager')->get();
-
         return view('performance.index', compact('employees'));
     }
 
-    /* ===============================
-     * HITUNG KPI
-     * =============================== */
     public function calculate(Request $request)
     {
         $results   = $this->getKpiData($request);
@@ -39,9 +32,6 @@ class PerformanceController extends Controller
         ]);
     }
 
-    /* ===============================
-     * EXPORT PDF
-     * =============================== */
     public function exportPdf(Request $request)
     {
         $results = $this->getKpiData($request);
@@ -61,9 +51,6 @@ class PerformanceController extends Controller
         ->download('kpi-karyawan.pdf');
     }
 
-    /* ===============================
-     * EXPORT EXCEL
-     * =============================== */
     public function exportExcel(Request $request)
     {
         return Excel::download(
@@ -72,9 +59,7 @@ class PerformanceController extends Controller
         );
     }
 
-    /* ===============================
-     * CORE KPI LOGIC (PROGRESS-BASED)
-     * =============================== */
+    /* ================= KPI LOGIC ================= */
     private function getKpiData(Request $request)
     {
         $request->validate([
@@ -97,11 +82,13 @@ class PerformanceController extends Controller
             'selesai' => 'Selesai',
             'valid' => 'Menunggu Validasi',
         ];
+
         $statusKey = strtolower((string) $request->status);
         $statusValue = $statusKey === 'semua'
             ? null
             : ($statusMap[$statusKey] ?? $request->status);
 
+        /* ================= DAILY TASK SCORE ================= */
         $activityQuery = TaskActivity::query()
             ->selectRaw('task_activities.user_id, COUNT(DISTINCT task_activities.daily_task_id) as total_tasks')
             ->selectRaw('SUM((daily_tasks.weight * task_activities.progress_percent) / 8) as total_score')
@@ -124,18 +111,37 @@ class PerformanceController extends Controller
             ->get()
             ->keyBy('user_id');
 
-        $results = $employees->map(function ($employee) use ($activityRows) {
+        /* ================= GABUNG DAILY + ADHOC ================= */
+        $results = $employees->map(function ($employee) use ($activityRows, $startDate, $endDate) {
+
             $row = $activityRows->get($employee->id);
+
+            $dailyScore = (float) ($row->total_score ?? 0);
+            $dailyTasks = (int) ($row->total_tasks ?? 0);
+
+            // ✅ HITUNG ADHOC
+            $adhocScore = AdHocTask::where('assigned_to_id', $employee->id)
+                ->where('status', 'Selesai')
+                ->whereBetween('updated_at', [$startDate, $endDate])
+                ->sum('weight');
+
+            $adhocTasks = AdHocTask::where('assigned_to_id', $employee->id)
+                ->where('status', 'Selesai')
+                ->whereBetween('updated_at', [$startDate, $endDate])
+                ->count();
+
+            $totalScore = $dailyScore + $adhocScore;
+            $totalTasks = $dailyTasks + $adhocTasks;
 
             return (object) [
                 'user_id'     => $employee->id,
                 'name'        => $employee->name,
-                'total_tasks' => (int) ($row->total_tasks ?? 0),
-                'final_score' => round((float) ($row->total_score ?? 0), 2),
+                'total_tasks' => $totalTasks,
+                'final_score' => round($totalScore, 2),
             ];
         });
 
-        /* ================= RANKING FINAL ================= */
+        /* ================= RANKING ================= */
         $topScore = $results->max('final_score');
 
         return $results

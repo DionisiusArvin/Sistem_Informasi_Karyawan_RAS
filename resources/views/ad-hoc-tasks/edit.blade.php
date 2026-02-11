@@ -12,10 +12,8 @@
 
     <div class="py-12">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-            {{-- Container dengan background & border dark mode --}}
             <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-sm border border-transparent dark:border-gray-700">
 
-                {{-- ERROR VALIDATION --}}
                 @if ($errors->any())
                     <div class="mb-6 p-4 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg border border-red-200 dark:border-red-800">
                         <ul class="list-disc pl-5">
@@ -61,7 +59,6 @@
                     {{-- Deadline --}}
                     <div class="mb-4">
                         <x-input-label for="due_date" value="Deadline" />
-                        {{-- color-scheme:dark agar ikon kalender putih di dark mode --}}
                         <x-text-input 
                             id="due_date" 
                             name="due_date" 
@@ -69,6 +66,17 @@
                             class="block mt-1 w-full dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 focus:border-blue-500 focus:ring-blue-500 [color-scheme:light] dark:[color-scheme:dark]" 
                             value="{{ old('due_date', $taskData->due_date) }}" 
                         />
+                    </div>
+
+                    {{-- ✅ Bobot Tugas (Untuk KPI) --}}
+                    <div class="mb-4">
+                        <x-input-label value="Bobot Tugas (Untuk KPI)" />
+                        <input type="number"
+                               name="weight"
+                               value="{{ old('weight', $taskData->weight) }}"
+                               min="1"
+                               max="10"
+                               class="block mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
                     </div>
 
                     {{-- Ditugaskan Kepada --}}
@@ -109,7 +117,7 @@
                         </select>
                     </div>
 
-                    {{-- Tombol Simpan (Biru) --}}
+                    {{-- Tombol Simpan --}}
                     <div class="flex justify-end mt-6">
                         <button type="submit" 
                             class="inline-flex items-center px-6 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150 shadow-sm">

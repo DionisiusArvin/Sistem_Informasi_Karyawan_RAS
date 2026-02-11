@@ -7,10 +7,10 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use App\Services\NotificationService;
 
 class AdHocTaskController extends Controller
 {
-    /* ================= INDEX ================= */
     public function index()
     {
         $user = Auth::user();
@@ -34,7 +34,6 @@ class AdHocTaskController extends Controller
         return view('ad-hoc-tasks.index', compact('tasks'));
     }
 
-    /* ================= CREATE ================= */
     public function create()
     {
         Gate::authorize('manage-ad-hoc-tasks');
@@ -42,7 +41,6 @@ class AdHocTaskController extends Controller
         return view('ad-hoc-tasks.create', compact('users'));
     }
 
-    /* ================= STORE ================= */
     public function store(Request $request)
     {
         Gate::authorize('manage-ad-hoc-tasks');
@@ -52,32 +50,37 @@ class AdHocTaskController extends Controller
             'description' => 'nullable|string',
             'assigned_to_id' => 'required|exists:users,id',
             'due_date' => 'nullable|date',
+            'weight' => 'required|integer|min:1|max:10', // ✅ tambah
         ]);
 
-        AdHocTask::create([
+        $task = AdHocTask::create([
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
             'assigned_to_id' => $validated['assigned_to_id'],
             'due_date' => $validated['due_date'],
             'assigned_by_id' => Auth::id(),
             'status' => 'Belum Dikerjakan',
+            'weight' => $validated['weight'], // ✅ tambah
         ]);
+
+        NotificationService::send(
+            $validated['assigned_to_id'],
+            'Tugas Mendadak Untuk Anda',
+            $validated['name'],
+            route('ad-hoc-tasks.index') . '#adhoc-' . $task->id
+        );
 
         return redirect()->route('ad-hoc-tasks.index')
             ->with('success', 'Tugas mendadak berhasil dibuat.');
     }
 
-    /* ================= EDIT (WAJIB ADA) ================= */
     public function edit(AdHocTask $adHocTask)
     {
         Gate::authorize('manage-ad-hoc-tasks');
-
         $users = User::where('role', '!=', 'manager')->get();
-
         return view('ad-hoc-tasks.edit', compact('adHocTask', 'users'));
     }
 
-    /* ================= UPDATE (WAJIB ADA) ================= */
     public function update(Request $request, AdHocTask $adHocTask)
     {
         Gate::authorize('manage-ad-hoc-tasks');
@@ -88,15 +91,22 @@ class AdHocTaskController extends Controller
             'due_date' => 'nullable|date',
             'status' => 'required|in:Belum Dikerjakan,Menunggu Validasi,Proses,Selesai',
             'assigned_to_id' => 'required|exists:users,id',
+            'weight' => 'required|integer|min:1|max:10', // ✅ tambah
         ]);
 
         $adHocTask->update($validated);
+
+        NotificationService::send(
+            $adHocTask->assigned_to_id,
+            'Status Tugas Mendadak Diperbarui',
+            'Tugas "' . $adHocTask->name . '" telah ' . $validated['status'],
+            route('ad-hoc-tasks.index') . '#adhoc-' . $adHocTask->id
+        );
 
         return redirect()->route('ad-hoc-tasks.index')
             ->with('success', 'Tugas berhasil diperbarui.');
     }
 
-    /* ================= UPLOAD FORM ================= */
     public function uploadForm(AdHocTask $adHocTask)
     {
         if ($adHocTask->assigned_to_id !== Auth::id()) {
@@ -111,7 +121,6 @@ class AdHocTaskController extends Controller
         return $this->uploadForm($adHocTask);
     }
 
-    /* ================= HANDLE UPLOAD ================= */
     public function handleUpload(Request $request, AdHocTask $adHocTask)
     {
         if ($adHocTask->assigned_to_id !== Auth::id()) {
@@ -143,13 +152,36 @@ class AdHocTaskController extends Controller
             'status'    => $isKepalaDivisi ? 'Selesai' : 'Menunggu Validasi',
         ]);
 
+        $kepalaDivisi = User::where('role', 'kepala_divisi')
+            ->where('division_id', Auth::user()->division_id)
+            ->first();
+
+        $manager = User::where('role', 'manager')->first();
+
+        if ($kepalaDivisi) {
+            NotificationService::send(
+                $kepalaDivisi->id,
+                'Tugas Mendadak Telah Dikerjakan',
+                Auth::user()->name . ' mengupload hasil tugas: ' . $adHocTask->name,
+                route('ad-hoc-tasks.index') . '#adhoc-' . $adHocTask->id
+            );
+        }
+
+        if ($manager) {
+            NotificationService::send(
+                $manager->id,
+                'Tugas Mendadak Telah Dikerjakan',
+                Auth::user()->name . ' mengupload hasil tugas: ' . $adHocTask->name,
+                route('ad-hoc-tasks.index') . '#adhoc-' . $adHocTask->id
+            );
+        }
+
         return redirect()->route('ad-hoc-tasks.index')
             ->with('success', $isKepalaDivisi
                 ? 'Pekerjaan berhasil diupload & langsung selesai.'
                 : 'Pekerjaan berhasil diupload, menunggu validasi.');
     }
 
-    /* ================= DOWNLOAD ================= */
     public function downloadFile(AdHocTask $adHocTask)
     {
         if (!$adHocTask->file_path) {
@@ -161,7 +193,6 @@ class AdHocTaskController extends Controller
         );
     }
 
-    /* ================= DELETE ================= */
     public function destroy(AdHocTask $adHocTask)
     {
         Gate::authorize('manage-ad-hoc-tasks');

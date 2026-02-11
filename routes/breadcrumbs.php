@@ -9,6 +9,12 @@ use App\Models\AdHocTask;
 use App\Models\DailyTask;
 use App\Models\Division;
 
+
+// === NOTIFIKASI ===
+Breadcrumbs::for('notif.index', function (BreadcrumbTrail $trail) {
+    $trail->push('Notifikasi', route('notif.index'));
+});
+
 // === DASHBOARD ===
 Breadcrumbs::for('dashboard', function (BreadcrumbTrail $trail) {
     $trail->push('Dashboard', route('dashboard'));

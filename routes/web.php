@@ -15,8 +15,26 @@ use App\Http\Controllers\{
     LeaveController,
     ValidationController,
     ScheduleController,
-    PerformanceController
+    PerformanceController,
+    NotificationController 
 };
+
+/*
+|--------------------------------------------------------------------------
+| NOTIFICATIONS
+|--------------------------------------------------------------------------
+*/
+
+Route::post('/notif/read/{id}', [\App\Http\Controllers\NotificationController::class, 'markRead'])->name('notif.markRead');
+Route::get('/notifications', [NotificationController::class, 'index'])->name('notif.index');
+Route::get('/notifications/{id}', [NotificationController::class, 'read'])->name('notif.read');
+Route::post('/notif/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllRead'])
+    ->name('notif.readAll');
+
+Route::delete('/notif/delete/{id}', [\App\Http\Controllers\NotificationController::class, 'delete'])
+    ->name('notif.delete');
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -125,6 +143,8 @@ Route::middleware('auth')->group(function () {
     */
     Route::get('/division-tasks', [DivisionTaskController::class, 'index'])
         ->name('division-tasks.index');
+    Route::get('/division-tasks/take/{id}', [DivisionTaskController::class, 'takeTask'])
+    ->name('division.tasks.take');
 
     /*
     |--------------------------------------------------------------------------

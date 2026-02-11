@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Events\DataChanged;
 
 class Task extends Model
 {
@@ -15,18 +16,42 @@ class Task extends Model
     |--------------------------------------------------------------------------
     */
 
-    // dari code versi 2 (biar aman semua field lama)
     protected $guarded = [];
 
-    // dari code versi 1 (dipakai controller lama)
     protected $fillable = [
         'project_id',
         'jenis_tugas',
         'name',
         'description',
-        'user_id',   // penting untuk penanggung jawab task
+        'user_id',
         'order',
     ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | AUTO REALTIME + GLOBAL ORDER
+    |--------------------------------------------------------------------------
+    */
+    protected static function booted()
+    {
+        // Global ordering (sudah ada)
+        static::addGlobalScope('ordered', function ($query) {
+            $query->orderBy('order', 'asc');
+        });
+
+        // 🔥 Auto realtime
+        static::created(function ($task) {
+            broadcast(new DataChanged($task));
+        });
+
+        static::updated(function ($task) {
+            broadcast(new DataChanged($task));
+        });
+
+        static::deleted(function ($task) {
+            broadcast(new DataChanged($task->id));
+        });
+    }
 
     /*
     |--------------------------------------------------------------------------
@@ -34,13 +59,11 @@ class Task extends Model
     |--------------------------------------------------------------------------
     */
 
-    // Task milik satu project
     public function project()
     {
         return $this->belongsTo(Project::class, 'project_id');
     }
 
-    // Task bisa dikerjakan banyak divisi
     public function divisions()
     {
         return $this->belongsToMany(
@@ -51,7 +74,6 @@ class Task extends Model
         );
     }
 
-    // Task punya banyak daily task
     public function dailyTasks()
     {
         return $this->hasMany(DailyTask::class);
@@ -75,17 +97,5 @@ class Task extends Model
             ->count();
 
         return round(($completed / $total) * 100);
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | GLOBAL ORDERING (drag & drop)
-    |--------------------------------------------------------------------------
-    */
-    protected static function booted()
-    {
-        static::addGlobalScope('ordered', function ($query) {
-            $query->orderBy('order', 'asc');
-        });
     }
 }

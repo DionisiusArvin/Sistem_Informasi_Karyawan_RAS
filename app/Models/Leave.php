@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Events\DataChanged;
 
 class Leave extends Model
 {
@@ -18,6 +19,28 @@ class Leave extends Model
         'type',
         'status',
     ];
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | AUTO REALTIME 🔥
+    |--------------------------------------------------------------------------
+    */
+    protected static function booted()
+    {
+        static::created(function ($division) {
+            broadcast(new DataChanged($division));
+        });
+
+        static::updated(function ($division) {
+            broadcast(new DataChanged($division));
+        });
+
+        static::deleted(function ($division) {
+            broadcast(new DataChanged($division->id));
+        });
+    }
+
 
     public function user()
     {

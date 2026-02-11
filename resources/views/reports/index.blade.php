@@ -94,27 +94,24 @@
                     <table class="min-w-full">
                         <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr class="text-gray-700 dark:text-gray-200">
-                                <th class="text-center py-3 px-4 text-sm font-bold">Tugas Harian</th>
-                                <th class="text-center py-3 px-4 text-sm font-bold">Proyek</th>
-                                <th class="text-center py-3 px-4 text-sm font-bold">Pekerja</th>
+                                <th class="text-center py-3 px-4 text-sm font-bold">Nama Tugas</th>
+                                <th class="text-center py-3 px-4 text-sm font-bold">Pegawai</th>
+                                <th class="text-center py-3 px-4 text-sm font-bold">Tipe</th>
+                                <th class="text-center py-3 px-4 text-sm font-bold">Tanggal</th>
                                 <th class="text-center py-3 px-4 text-sm font-bold">Status</th>
-                                <th class="text-center py-3 px-4 text-sm font-bold">Waktu Update</th>
                             </tr>
                         </thead>
+
                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                            @forelse ($reportData as $task)
+                            @forelse ($reportData as $r)
                                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300">
-                                    <td class="py-4 px-4">{{ $task->name }}</td>
-                                    <td class="py-4 px-4 text-center">{{ $task->task->project->name }}</td>
-                                    <td class="py-4 px-4 text-center">{{ $task->assignedToStaff->name ?? '-' }}</td>
+                                    <td class="py-4 px-4">{{ $r['nama'] }}</td>
+                                    <td class="py-4 px-4 text-center">{{ $r['pegawai'] }}</td>
+                                    <td class="py-4 px-4 text-center">{{ $r['tipe'] }}</td>
                                     <td class="py-4 px-4 text-center">
-                                        <span class="px-2 py-1 text-xs rounded-full bg-gray-200 dark:bg-gray-600 dark:text-gray-100">
-                                            {{ $task->status }}
-                                        </span>
+                                        {{ \Carbon\Carbon::parse($r['tanggal'])->format('d M Y H:i') }}
                                     </td>
-                                    <td class="py-4 px-4 text-center">
-                                        {{ $task->updated_at->format('d M Y H:i') }}
-                                    </td>
+                                    <td class="py-4 px-4 text-center">{{ $r['status'] }}</td>
                                 </tr>
                             @empty
                                 <tr>

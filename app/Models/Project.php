@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use App\Events\DataChanged;
 
 class Project extends Model
 {
@@ -14,6 +15,27 @@ class Project extends Model
     protected $casts = [
         'force_finished_at' => 'datetime',
     ];
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | AUTO REALTIME 🔥
+    |--------------------------------------------------------------------------
+    */
+    protected static function booted()
+    {
+        static::created(function ($division) {
+            broadcast(new DataChanged($division));
+        });
+
+        static::updated(function ($division) {
+            broadcast(new DataChanged($division));
+        });
+
+        static::deleted(function ($division) {
+            broadcast(new DataChanged($division->id));
+        });
+    }
 
     // RELASI: Satu project dimiliki oleh satu user (manager)
     public function manager()

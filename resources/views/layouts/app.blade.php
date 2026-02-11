@@ -49,8 +49,35 @@
 
                 </div>
             </div>
-             @livewireScripts
-             @stack('scripts')
+
+            @livewireScripts
+
+            {{-- 🔥 LISTENER REVERB REALTIME (DITAMBAHKAN, TIDAK MENGHAPUS APAPUN) --}}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (!window.Echo) return;
+
+    Echo.channel('data-channel')
+        .listen('.DataChanged', () => {
+            console.log('Realtime trigger');
+
+            const segments = window.location.pathname.split('/').filter(Boolean);
+
+            if (segments.length === 0) {
+                window.location.reload();
+                return;
+            }
+
+            // Ambil segmen pertama → halaman list
+            const base = '/' + segments[0];
+
+            window.location.href = base;
+        });
+});
+</script>
+
+
+            @stack('scripts')
         </div>
     </body>
 </html>

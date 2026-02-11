@@ -1,9 +1,11 @@
+import '../css/app.css';   // WAJIB INI
+
 import './bootstrap';
 
 import Alpine from 'alpinejs';
-import Chart from 'chart.js/auto'; // <-- Tambahkan ini
+import Chart from 'chart.js/auto';
 
 window.Alpine = Alpine;
-window.Chart = Chart; // <-- Tambahkan ini
+window.Chart = Chart;
 
 Alpine.start();

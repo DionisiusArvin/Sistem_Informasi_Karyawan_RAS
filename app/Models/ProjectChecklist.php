@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Events\DataChanged;
 
 class ProjectChecklist extends Model
 {
@@ -10,6 +11,26 @@ class ProjectChecklist extends Model
         'project_id',
         'name',
     ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | AUTO REALTIME 🔥
+    |--------------------------------------------------------------------------
+    */
+    protected static function booted()
+    {
+        static::created(function ($division) {
+            broadcast(new DataChanged($division));
+        });
+
+        static::updated(function ($division) {
+            broadcast(new DataChanged($division));
+        });
+
+        static::deleted(function ($division) {
+            broadcast(new DataChanged($division->id));
+        });
+    }
 
     // RELASI: Checklist milik Project
     public function project()

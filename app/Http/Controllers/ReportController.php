@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DailyTask;
 use App\Models\AdminTask;
+use App\Models\AdHocTask;
 use App\Exports\DailyTasksReportExport;
 use App\Exports\AdminTasksReportExport;
 use App\Models\User;
@@ -16,7 +17,7 @@ use Carbon\Carbon;
 class ReportController extends Controller
 {
     /* ======================================================
-     * DAILY TASK REPORT (Staff / Kadiv / Manager)
+     * DAILY + ADHOC TASK REPORT (Staff / Kadiv / Manager)
      * ====================================================== */
     public function index(Request $request)
     {
@@ -26,47 +27,42 @@ class ReportController extends Controller
 
         $user = Auth::user();
 
-        // ===== MODE FILTER =====
         $mode  = $request->input('mode', 'tanggal');
         $date  = $request->input('date');
         $from  = $request->input('from');
         $to    = $request->input('to');
         $month = $request->input('month');
         $year  = $request->input('year');
-
         $selectedUserId = $request->input('user_id');
 
+        /* ================= DAILY TASK QUERY ================= */
         $reportDataQuery = DailyTask::with(['assignedToStaff', 'task.project']);
 
-        // ===== FILTER TANGGAL FLEKSIBEL =====
+        // ===== FILTER TANGGAL DAILY =====
         if ($mode === 'tanggal' && $date) {
             $reportDataQuery->whereDate('updated_at', Carbon::parse($date));
-        }
-        elseif ($mode === 'range' && $from && $to) {
+        } elseif ($mode === 'range' && $from && $to) {
             $reportDataQuery->whereBetween('updated_at', [
                 Carbon::parse($from)->startOfDay(),
                 Carbon::parse($to)->endOfDay()
             ]);
-        }
-        elseif ($mode === 'bulan' && $month && $year) {
+        } elseif ($mode === 'bulan' && $month && $year) {
             $reportDataQuery->whereMonth('updated_at', $month)
                             ->whereYear('updated_at', $year);
-        }
-        elseif ($mode === 'tahun' && $year) {
+        } elseif ($mode === 'tahun' && $year) {
             $reportDataQuery->whereYear('updated_at', $year);
         }
 
         $filterableUsers = collect();
 
-        // ===== ROLE LOGIC (AMAN) =====
+        // ===== ROLE FILTER DAILY =====
         if ($user->role === 'manager') {
             $filterableUsers = User::whereIn('role', ['staff', 'kepala_divisi'])->get();
 
             if ($selectedUserId) {
                 $reportDataQuery->where('assigned_to_staff_id', $selectedUserId);
             }
-        }
-        elseif ($user->role === 'kepala_divisi') {
+        } elseif ($user->role === 'kepala_divisi') {
             $staffIds = User::where('division_id', $user->division_id)->pluck('id');
             $filterableUsers = User::whereIn('id', $staffIds)->get();
 
@@ -77,43 +73,85 @@ class ReportController extends Controller
             if ($selectedUserId) {
                 $reportDataQuery->where('assigned_to_staff_id', $selectedUserId);
             }
-        }
-        elseif ($user->role === 'staff') {
+        } elseif ($user->role === 'staff') {
             $reportDataQuery->where('assigned_to_staff_id', $user->id);
         }
 
-        $reportData = $reportDataQuery->get();
+        $dailyTasks = $reportDataQuery->get();
+
+        /* ================= ADHOC TASK QUERY ================= */
+        $adHocTasks = AdHocTask::with(['assignedTo']);
+
+        if ($mode === 'tanggal' && $date) {
+            $adHocTasks->whereDate('created_at', Carbon::parse($date));
+        } elseif ($mode === 'range' && $from && $to) {
+            $adHocTasks->whereBetween('created_at', [
+                Carbon::parse($from)->startOfDay(),
+                Carbon::parse($to)->endOfDay()
+            ]);
+        } elseif ($mode === 'bulan' && $month && $year) {
+            $adHocTasks->whereMonth('created_at', $month)
+                       ->whereYear('created_at', $year);
+        } elseif ($mode === 'tahun' && $year) {
+            $adHocTasks->whereYear('created_at', $year);
+        }
+
+        $adHocTasks = $adHocTasks->get();
+
+        /* ================= GABUNG DAILY + ADHOC ================= */
+        $reports = collect();
+
+        foreach ($dailyTasks as $task) {
+            $reports->push([
+                'nama'    => $task->name,
+                'pegawai' => $task->assignedToStaff->name ?? '-',
+                'tipe'    => 'Tugas Harian',
+                'tanggal' => $task->updated_at,
+                'status'  => $task->status,
+            ]);
+        }
+
+        foreach ($adHocTasks as $task) {
+            $reports->push([
+                'nama'    => $task->name,
+                'pegawai' => $task->assignedTo->name ?? '-',
+                'tipe'    => 'Tugas Mendadak',
+                'tanggal' => $task->created_at,
+                'status'  => $task->status,
+            ]);
+        }
+
+        // 🔥 PENTING: TERBARU DI ATAS
+        $reports = $reports->sortByDesc('tanggal')->values();
 
         return view('reports.index', [
-            'reportData'       => $reportData,
-            'mode'             => $mode,
-            'filterableUsers'  => $filterableUsers,
-            'selectedUserId'   => $selectedUserId,
+            'reportData'      => $reports,
+            'mode'            => $mode,
+            'filterableUsers' => $filterableUsers,
+            'selectedUserId'  => $selectedUserId,
         ]);
     }
-
 
     /* ======================================================
      * EXPORT DAILY TASKS
      * ====================================================== */
     public function exportDailyTasks(Request $request)
     {
-        $mode  = $request->input('mode', 'tanggal');
-        $date  = $request->input('date');
-        $from  = $request->input('from');
-        $to    = $request->input('to');
-        $month = $request->input('month');
-        $year  = $request->input('year');
-
         return Excel::download(
-            new DailyTasksReportExport($mode, $date, $from, $to, $month, $year),
+            new DailyTasksReportExport(
+                $request->input('mode'),
+                $request->input('date'),
+                $request->input('from'),
+                $request->input('to'),
+                $request->input('month'),
+                $request->input('year')
+            ),
             "daily_tasks_report.xlsx"
         );
     }
 
-
     /* ======================================================
-     * ADMIN TASK REPORT
+     * ADMIN TASK REPORT (TIDAK DIUBAH)
      * ====================================================== */
     public function adminTasks(Request $request)
     {
@@ -129,51 +167,37 @@ class ReportController extends Controller
         $to    = $request->input('to');
         $month = $request->input('month');
         $year  = $request->input('year');
-
         $selectedUserId = $request->input('user_id');
 
         $reportDataQuery = AdminTask::with(['assignedToAdmin', 'project']);
 
         if ($mode === 'tanggal' && $date) {
             $reportDataQuery->whereDate('updated_at', Carbon::parse($date));
-        }
-        elseif ($mode === 'range' && $from && $to) {
+        } elseif ($mode === 'range' && $from && $to) {
             $reportDataQuery->whereBetween('updated_at', [
                 Carbon::parse($from)->startOfDay(),
                 Carbon::parse($to)->endOfDay()
             ]);
-        }
-        elseif ($mode === 'bulan' && $month && $year) {
+        } elseif ($mode === 'bulan' && $month && $year) {
             $reportDataQuery->whereMonth('updated_at', $month)
                             ->whereYear('updated_at', $year);
-        }
-        elseif ($mode === 'tahun' && $year) {
+        } elseif ($mode === 'tahun' && $year) {
             $reportDataQuery->whereYear('updated_at', $year);
         }
 
-        $filterableUsers = collect();
-
-        if ($user->role === 'manager') {
-            $filterableUsers = User::where('role', 'admin')->get();
-
-            if ($selectedUserId) {
-                $reportDataQuery->where('assigned_to_admin_id', $selectedUserId);
-            }
-        }
-        elseif ($user->role === 'admin') {
+        if ($user->role === 'manager' && $selectedUserId) {
+            $reportDataQuery->where('assigned_to_admin_id', $selectedUserId);
+        } elseif ($user->role === 'admin') {
             $reportDataQuery->where('assigned_to_admin_id', $user->id);
         }
 
-        $reportData = $reportDataQuery->get();
+        $reportData = $reportDataQuery->latest('updated_at')->get();
 
         return view('reports.admin', [
-            'reportData'      => $reportData,
-            'mode'            => $mode,
-            'filterableUsers' => $filterableUsers,
-            'selectedUserId'  => $selectedUserId,
+            'reportData' => $reportData,
+            'mode'       => $mode,
         ]);
     }
-
 
     /* ======================================================
      * EXPORT ADMIN TASKS
@@ -184,16 +208,16 @@ class ReportController extends Controller
             abort(403);
         }
 
-        $mode  = $request->input('mode', 'tanggal');
-        $date  = $request->input('date');
-        $from  = $request->input('from');
-        $to    = $request->input('to');
-        $month = $request->input('month');
-        $year  = $request->input('year');
-        $userId = $request->input('user_id');
-
         return Excel::download(
-            new AdminTasksReportExport($mode, $date, $from, $to, $month, $year, $userId),
+            new AdminTasksReportExport(
+                $request->input('mode'),
+                $request->input('date'),
+                $request->input('from'),
+                $request->input('to'),
+                $request->input('month'),
+                $request->input('year'),
+                $request->input('user_id')
+            ),
             "admin_tasks_report.xlsx"
         );
     }

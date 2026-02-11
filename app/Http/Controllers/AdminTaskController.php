@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Services\NotificationService;
 
 class AdminTaskController extends Controller
 {
@@ -74,7 +75,7 @@ class AdminTaskController extends Controller
             'project_id' => 'nullable|exists:projects,id',
         ]);
 
-        AdminTask::create([
+        $task = AdminTask::create([
             'project_id' => $validated['project_id'],
             'name' => $validated['name'],
             'description' => $validated['description'],
@@ -83,6 +84,14 @@ class AdminTaskController extends Controller
             'assigned_by_manager_id' => Auth::id(),
             'status' => 'Belum Dikerjakan',
         ]);
+
+        // ✅ NOTIF KE ADMIN
+        NotificationService::send(
+            $validated['assigned_to_admin_id'],
+            'Tugas Admin Baru',
+            $validated['name'],
+            route('admin-tasks.index') . '#admin-' . $task->id
+        );
 
         return redirect()->route('admin-tasks.index')
             ->with('success', 'Tugas untuk admin berhasil dibuat.');
@@ -122,6 +131,14 @@ class AdminTaskController extends Controller
         }
 
         $adminTask->update($data);
+
+        // ✅ NOTIF KE MANAGER PEMBUAT TASK
+        NotificationService::send(
+            $adminTask->assigned_by_manager_id,
+            'Tugas Admin Telah Dikerjakan',
+            Auth::user()->name . ' telah mengupload hasil untuk tugas: ' . $adminTask->name,
+            route('admin-tasks.index') . '#admin-' . $adminTask->id
+        );
 
         return redirect()->route('admin-tasks.index')
             ->with('success', 'Pekerjaan berhasil di-upload.');
@@ -185,9 +202,6 @@ class AdminTaskController extends Controller
         ]);
     }
 
-    // =========================
-    // ✅ FIX FINAL: DOWNLOAD FILE
-    // =========================
     public function downloadFile(AdminTask $adminTask)
     {
         $user = Auth::user();

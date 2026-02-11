@@ -23,7 +23,7 @@
                         </thead>
                         <tbody class="text-gray-700 dark:text-gray-300">
                             @forelse ($tasks->where('assigned_to_staff_id', null) as $task)
-                                <tr class="border-b dark:border-gray-700">
+                                <tr id="task-{{ $task->id }}" class="border-b dark:border-gray-700">
                                     <td class="py-3 px-4">
                                         <div class="text-normal mt-1 font-medium dark:text-gray-100">{{ $task->name }}</div>
                                         <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ $task->description }}</div>
@@ -31,11 +31,10 @@
                                     <td class="py-3 px-4 text-center">{{ $task->task->project->name ?? '-' }}</td>
                                     <td class="text-center py-3 px-4">{{ \Carbon\Carbon::parse($task->due_date)->format('d M Y') }}</td>
                                     <td class="text-center py-3 px-4">
-                                        <form action="{{ route('dailytasks.take', $task->id) }}" method="POST">
-                                            @csrf
-                                            @method('PATCH')
-                                            <button type="submit" class="text-sm text-green-600 dark:text-green-400 hover:underline font-semibold">Ambil Tugas</button>
-                                        </form>
+                                        <a href="{{ route('division.tasks.take', $task->id) }}"
+                                           class="text-sm text-green-600 dark:text-green-400 hover:underline font-semibold">
+                                            Ambil Tugas
+                                        </a>
                                     </td>
                                 </tr>
                             @empty
@@ -63,7 +62,7 @@
                         </thead>
                         <tbody class="text-gray-700 dark:text-gray-300">
                             @forelse ($tasks->where('assigned_to_staff_id', Auth::id()) as $task)
-                                <tr x-data="{ showModal: false }" class="border-b dark:border-gray-700">
+                                <tr id="task-{{ $task->id }}" x-data="{ showModal: false }" class="border-b dark:border-gray-700">
                                     <td class="py-3 px-4">
                                         <div class="text-normal mt-1 font-medium dark:text-gray-100">{{ $task->name }}</div>
                                         <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ $task->description }}</div>
@@ -91,7 +90,6 @@
                                             <span class="dark:text-gray-400">{{ $task->status }}</span>
                                         @endif
 
-                                        {{-- Modal Catatan (Revisi / Lanjutkan) --}}
                                         <template x-if="showModal">
                                             <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
                                                 <div @click.away="showModal = false" class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md border dark:border-gray-700 text-left">
