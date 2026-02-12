@@ -1,3 +1,39 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+@layer base {
+    :where(
+        [class*="overflow-auto"],
+        [class*="overflow-scroll"],
+        [class*="overflow-x-auto"],
+        [class*="overflow-y-auto"],
+        [class*="overflow-x-scroll"],
+        [class*="overflow-y-scroll"]
+    ) {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    :where(
+        [class*="overflow-auto"],
+        [class*="overflow-scroll"],
+        [class*="overflow-x-auto"],
+        [class*="overflow-y-auto"],
+        [class*="overflow-x-scroll"],
+        [class*="overflow-y-scroll"]
+    )::-webkit-scrollbar {
+        display: none;
+    }
+}
