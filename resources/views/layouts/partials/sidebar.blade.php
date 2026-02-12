@@ -6,21 +6,22 @@
            {{ $sidebarCollapsed ? 'w-20' : 'w-64' }}
            flex flex-col overflow-y-auto no-scrollbar"
     :class="{ 'w-64': !sidebarCollapsed, 'w-20': sidebarCollapsed,
-              'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen }"
+              'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen,
+              'is-collapsed': sidebarCollapsed }"
 >
     <div class="flex items-center justify-center h-20 border-b border-gray-700/50 px-4 flex-shrink-0">
         <a href="{{ route('dashboard') }}" class="flex items-center overflow-hidden">
             <img src="{{ asset('image/hh.png') }}" alt="Logo Perusahaan" class="h-10 w-auto">
-            <h1 class="text-xl font-bold ml-2 text-white transition-all duration-200 whitespace-nowrap" :class="sidebarCollapsed ? 'opacity-0 scale-0 w-0' : 'opacity-100 scale-100 w-auto'">
+            <h1 class="text-xl font-bold text-white transition-all duration-200 whitespace-nowrap" :class="sidebarCollapsed ? 'opacity-0 scale-0 w-0 ml-0' : 'opacity-100 scale-100 w-auto ml-2'">
                 Dashboard<span class="text-blue-400"> Tugas</span>
             </h1>
         </a>
     </div>
 
     <nav class="flex-1 flex flex-col px-4 py-4">
-        <div class="flex-1 overflow-y-auto no-scrollbar pr-2">
+        <div class="sidebar-scroll flex-1 overflow-y-auto no-scrollbar pr-2">
             <div class="mb-4">
-            <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider transition-all duration-200" :class="sidebarCollapsed ? 'opacity-0' : ''">Menu Utama</div>
+            <div class="sidebar-section-title px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider transition-all duration-200" :class="sidebarCollapsed ? 'opacity-0 h-0 py-0 overflow-hidden' : 'opacity-100'">Menu Utama</div>
             <a href="{{ route('dashboard') }}" class="relative flex items-center px-4 py-2.5 rounded-lg transition-colors duration-200 {{ request()->routeIs('dashboard') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700/50' }}">
                 @if(request()->routeIs('dashboard'))<span class="absolute left-0 top-0 h-full w-1 bg-blue-400 rounded-r-full"></span>@endif
                 <svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
@@ -30,7 +31,7 @@
 
         {{-- MANAJEMEN --}}
         <div>
-            <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider transition-all duration-200" :class="sidebarCollapsed ? 'opacity-0' : ''">Manajemen</div>
+            <div class="sidebar-section-title px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider transition-all duration-200" :class="sidebarCollapsed ? 'opacity-0 h-0 py-0 overflow-hidden' : 'opacity-100'">Manajemen</div>
             @can('view-project')
                 <a href="{{ route('projects.index') }}" class="relative flex items-center mt-2 px-4 py-2.5 rounded-lg transition-colors duration-200 {{ request()->routeIs('projects.*') ? 'bg-blue-600 text-white' : 'hover:bg-gray-700/50' }}">
                      @if(request()->routeIs('projects.*'))<span class="absolute left-0 top-0 h-full w-1 bg-blue-400 rounded-r-full"></span>@endif
@@ -191,8 +192,8 @@
     {{-- PENGATURAN --}}
     <div class="space-y-2 pt-4">
 
-        <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider"
-            :class="sidebarCollapsed ? 'opacity-0' : ''">
+        <div class="sidebar-section-title px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider transition-all duration-200"
+            :class="sidebarCollapsed ? 'opacity-0 h-0 py-0 overflow-hidden' : 'opacity-100'">
             Pengaturan
         </div>
 
@@ -243,7 +244,7 @@
     {{-- USER PROFILE (INI YANG TADI NYASAR) --}}
     <div class="pt-4 mt-4 border-t border-gray-700/50 px-0">
         <a href="{{ route('profile.edit') }}"
-           class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700/50">
+           class="sidebar-user-link flex items-center w-full p-2 rounded-lg hover:bg-gray-700/50">
 
             <div class="flex-shrink-0 flex items-center justify-center h-8 w-8
                         rounded-full bg-blue-500 text-white font-bold">
@@ -263,3 +264,25 @@
     </div>
 </nav>
 </aside>
+
+@once
+<style>
+    .is-collapsed .sidebar-scroll {
+        padding-right: 0;
+    }
+
+    .is-collapsed nav a.relative.flex.items-center {
+        justify-content: center;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    .is-collapsed nav a.relative.flex.items-center > span.absolute.left-0 {
+        display: none;
+    }
+
+    .is-collapsed .sidebar-user-link {
+        justify-content: center;
+    }
+</style>
+@endonce
