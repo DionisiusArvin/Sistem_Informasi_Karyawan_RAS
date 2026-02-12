@@ -10,15 +10,14 @@
 
             {{-- ===================== MANAGER ===================== --}}
             @if(auth()->user()->role === 'manager')
-                {{-- ROW 1: Statistik Proyek --}}
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
 
                     {{-- Total Proyek --}}
                     <div class="p-6 rounded-2xl shadow-md bg-gradient-to-br from-blue-100 via-blue-50 to-white 
                                 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border border-blue-200/50
                                 dark:border-gray-700 transition hover:scale-[1.02] hover:shadow-xl">
                         <div>
-                            <div class="text-lg font-medium text-gray-800 dark:text-blue-400">
+                            <div class="text-lg font-medium text-gray-800 dark:text-gray-200">
                                 Total Proyek
                             </div>
                             <div class="mt-3 text-4xl font-extrabold text-gray-900 dark:text-white">
@@ -27,88 +26,79 @@
                         </div>
                     </div>
 
-                    {{-- Proyek Selesai --}}
-                    <div class="p-6 rounded-2xl shadow-md transition hover:scale-[1.02] hover:shadow-xl
-                        bg-gradient-to-br 
-                        from-cyan-100 via-cyan-50 to-white
-                        dark:from-gray-800 dark:via-gray-900 dark:to-gray-800
-                        border border-cyan-200/50 dark:border-gray-700">
-
-                        <div class="text-lg font-medium text-gray-800 dark:text-cyan-400">
-                            Proyek Selesai
-                        </div>
-
-                        <div class="mt-3 text-4xl font-extrabold text-gray-900 dark:text-white">
-                            {{ $completedProjects ?? 0 }}
+                    {{-- Total Omset --}}
+                    <div class="p-6 rounded-2xl shadow-md bg-gradient-to-br from-green-100 via-green-50 to-white 
+                                dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border border-green-200/50
+                                dark:border-gray-700 transition hover:scale-[1.02] hover:shadow-xl">
+                        <div>
+                            <div class="text-lg font-medium text-gray-800 dark:text-gray-200">
+                                Total Omset Tahun Ini
+                            </div>
+                            <div class="mt-3 text-4xl font-extrabold text-gray-900 dark:text-white">
+                                Rp {{ number_format($totalOmset ?? 0, 0, ',', '.') }}
+                            </div>
                         </div>
                     </div>
 
-                    {{-- Proyek Berjalan --}}
+                    {{-- Validasi --}}
                     <div class="p-6 rounded-2xl shadow-md bg-gradient-to-br from-yellow-100 via-yellow-50 to-white
                                 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border border-yellow-200/50
                                 dark:border-gray-700 transition hover:scale-[1.02] hover:shadow-xl">
                         <div>
-                            <div class="text-lg font-medium text-gray-800 dark:!text-yellow-400">
+                            <div class="text-lg font-medium text-gray-800 dark:text-gray-200">
+                                Tugas Menunggu Validasi
+                            </div>
+                            <div class="mt-3 text-4xl font-extrabold text-gray-900 dark:text-white">
+                                {{ $tasksToValidate ?? 0 }}
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Proyek Berjalan --}}
+                    <div class="p-6 rounded-2xl shadow-md bg-gradient-to-br from-cyan-100 via-cyan-50 to-white
+                                dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border border-cyan-200/50
+                                dark:border-gray-700 transition hover:scale-[1.02] hover:shadow-xl">
+                        <div>
+                            <div class="text-lg font-medium text-gray-800 dark:text-gray-200">
                                 Proyek Berjalan
                             </div>
                             <div class="mt-3 text-4xl font-extrabold text-gray-900 dark:text-white">
-                                {{ $ongoingProjects ?? 0 }}
+                                {{ $totalProjectsRunning ?? 0 }}
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Proyek Selesai --}}
+                    <div class="p-6 rounded-2xl shadow-md bg-gradient-to-br from-emerald-100 via-emerald-50 to-white
+                                dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border border-emerald-200/50
+                                dark:border-gray-700 transition hover:scale-[1.02] hover:shadow-xl">
+                        <div>
+                            <div class="text-lg font-medium text-gray-800 dark:text-gray-200">
+                                Proyek Selesai
+                            </div>
+                            <div class="mt-3 text-4xl font-extrabold text-gray-900 dark:text-white">
+                                {{ $totalProjectsCompleted ?? 0 }}
                             </div>
                         </div>
                     </div>
 
                     {{-- Proyek Terlambat --}}
-                    <div class="p-6 rounded-2xl shadow-md transition hover:scale-[1.02] hover:shadow-xl
-                                bg-gradient-to-br from-red-100 via-red-50 to-white
-                                dark:from-gray-800 dark:via-gray-900 dark:to-gray-800
-                                border border-red-200/50 dark:border-gray-700">
+                    <div class="p-6 rounded-2xl shadow-md bg-gradient-to-br from-red-100 via-rose-50 to-white
+                                dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border border-red-200/50
+                                dark:border-gray-700 transition hover:scale-[1.02] hover:shadow-xl">
                         <div>
-                            <div class="text-lg font-medium text-black dark:text-red-400">
+                            <div class="text-lg font-medium text-gray-800 dark:text-gray-200">
                                 Proyek Terlambat
                             </div>
                             <div class="mt-3 text-4xl font-extrabold text-gray-900 dark:text-white">
-                                {{ $lateProjects ?? 0 }}
+                                {{ $totalProjectsLate ?? 0 }}
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {{-- ROW 2: Statistik Keuangan & Validasi --}}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                {{-- Total Omset --}}
-                <div class="p-6 rounded-2xl shadow-md bg-gradient-to-br from-green-100 via-green-50 to-white 
-                            dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border border-green-200/50
-                            dark:border-gray-700 transition hover:scale-[1.02] hover:shadow-xl">
-                    <div>
-                        <div class="text-lg font-medium text-gray-800 dark:text-green-400">
-                            Total Omset Tahun Ini
-                        </div>
-                        <div class="mt-3 text-4xl font-extrabold text-gray-900 dark:text-white">
-                            Rp {{ number_format($totalOmset ?? 0, 0, ',', '.') }}
-                        </div>
-                    </div>
-                </div>
-
-                    {{-- Validasi --}}
-                    <div class="p-6 rounded-2xl shadow-md transition hover:scale-[1.02] hover:shadow-xl
-                        bg-gradient-to-br 
-                        from-orange-100 via-orange-50 to-white
-                        dark:from-gray-800 dark:via-gray-900 dark:to-gray-800
-                        border border-orange-200/50 dark:border-gray-700">
-
-                        <div class="text-lg font-medium text-gray-800 dark:text-orange-400">
-                            Tugas Menunggu Validasi
-                        </div>
-
-                         <div class="mt-3 text-4xl font-extrabold text-gray-900 dark:text-white">
-                            {{ $tasksToValidate ?? 0 }}
-                        </div>
-                    </div>
-
-                </div>  <!-- HANYA SATU PENUTUP GRID DI SINI -->
-
                 {{-- Chart --}}
-                <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
+                <div class="mt-8 bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
                     <h3 class="font-semibold mb-6 text-xl text-gray-900 dark:text-gray-200">
                         Progress Seluruh Proyek
                     </h3>
@@ -118,68 +108,34 @@
 
             {{-- ===================== KEPALA DIVISI ===================== --}}
             @if(auth()->user()->role === 'kepala_divisi')
-                {{-- Statistik Kartu --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
-                    {{-- Tugas Utama --}}
-                    <div class="p-6 rounded-2xl shadow-md bg-gradient-to-br from-blue-100 via-blue-50 to-white 
-                                dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border border-blue-200/50
-                                dark:border-gray-700 transition hover:scale-[1.02] hover:shadow-xl relative overflow-hidden">
-                        <h3 class="text-lg font-medium text-gray-800 dark:text-blue-400 flex items-center gap-2">
-                            <i class="fas fa-tasks"></i> Tugas Utama
-                        </h3>
-                        <p class="mt-3 text-4xl font-extrabold text-gray-900 dark:text-white text-center">
-                            {{ $totalTasks ?? 0 }}
-                        </p>
-                        <i class="fas fa-clipboard-list absolute -right-2 -bottom-2 text-5xl text-blue-500/10 dark:text-blue-400/10"></i>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 transition hover:shadow-xl hover:scale-[1.01]">
+                        <h3 class="text-gray-700 dark:text-gray-300 text-lg font-medium">Tugas Utama</h3>
+                        <p class="text-4xl font-bold mt-3 text-gray-900 dark:text-white text-center">{{ $totalTasks }}</p>
                     </div>
 
-                    {{-- Menunggu Validasi --}}
-                    <div class="p-6 rounded-2xl shadow-md bg-gradient-to-br from-orange-100 via-orange-50 to-white
-                                dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border border-orange-200/50
-                                dark:border-gray-700 transition hover:scale-[1.02] hover:shadow-xl relative overflow-hidden">
-                        <h3 class="text-lg font-medium text-gray-800 dark:text-orange-400 flex items-center gap-2">
-                            <i class="fas fa-clock"></i> Menunggu Validasi
-                        </h3>
-                        <p class="mt-3 text-4xl font-extrabold text-gray-900 dark:text-white text-center">
-                            {{ $tasksToValidate ?? 0 }}
-                        </p>
-                        <i class="fas fa-hourglass-half absolute -right-2 -bottom-2 text-5xl text-orange-500/10 dark:text-orange-400/10"></i>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 transition hover:shadow-xl hover:scale-[1.01]">
+                        <h3 class="text-gray-700 dark:text-gray-300 text-lg font-medium">Menunggu Validasi</h3>
+                        <p class="text-4xl font-bold mt-3 text-gray-900 dark:text-white text-center">{{ $tasksToValidate }}</p>
                     </div>
 
-                    {{-- Tugas Selesai --}}
-                    <div class="p-6 rounded-2xl shadow-md bg-gradient-to-br from-green-100 via-green-50 to-white 
-                                dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border border-green-200/50
-                                dark:border-gray-700 transition hover:scale-[1.02] hover:shadow-xl relative overflow-hidden">
-                        <h3 class="text-lg font-medium text-gray-800 dark:text-green-400 flex items-center gap-2">
-                            <i class="fas fa-check-circle"></i> Tugas Selesai
-                        </h3>
-                        <p class="mt-3 text-4xl font-extrabold text-gray-900 dark:text-white text-center">
-                            {{ $statusCounts->get('Selesai', 0) }}
-                        </p>
-                        <i class="fas fa-check-double absolute -right-2 -bottom-2 text-5xl text-green-500/10 dark:text-green-400/10"></i>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 transition hover:shadow-xl hover:scale-[1.01]">
+                        <h3 class="text-gray-700 dark:text-gray-300 text-lg font-medium">Tugas Selesai</h3>
+                        <p class="text-4xl font-bold mt-3 text-gray-900 dark:text-white text-center">{{ $statusCounts->get('Selesai', 0) }}</p>
                     </div>
 
-                    {{-- Butuh Revisi --}}
-                    <div class="p-6 rounded-2xl shadow-md bg-gradient-to-br from-red-100 via-red-50 to-white
-                                dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border border-red-200/50
-                                dark:border-gray-700 transition hover:scale-[1.02] hover:shadow-xl relative overflow-hidden">
-                        <h3 class="text-lg font-medium text-gray-800 dark:text-red-400 flex items-center gap-2">
-                            <i class="fas fa-exclamation-circle"></i> Butuh Revisi
-                        </h3>
-                        <p class="mt-3 text-4xl font-extrabold text-gray-900 dark:text-white text-center">
-                            {{ $statusCounts->get('Revisi', 0) }}
-                        </p>
-                        <i class="fas fa-sync-alt absolute -right-2 -bottom-2 text-5xl text-red-500/10 dark:text-red-400/10"></i>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 transition hover:shadow-xl hover:scale-[1.01]">
+                        <h3 class="text-gray-700 dark:text-gray-300 text-lg font-medium">Butuh Revisi</h3>
+                        <p class="text-4xl font-bold mt-3 text-gray-900 dark:text-white text-center">{{ $statusCounts->get('Revisi', 0) }}</p>
                     </div>
                 </div>
 
-                {{-- Chart dan Jadwal --}}
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-10">
+                <div class="grid grid-cols-2 lg:grid-cols-2 gap-6 mt-10">
 
                     {{-- Chart --}}
                     <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
-                        <h3 class="font-semibold mb-6 text-xl text-gray-900 dark:text-gray-200">
+                        <h3 class="font-semibold mb-4 text-gray-900 dark:text-gray-200 text-lg">
                             Distribusi Status Tugas Harian
                         </h3>
                         <canvas id="kadivTasksChart" class="mx-auto" style="max-width: 300px;"></canvas>
@@ -188,7 +144,7 @@
                     {{-- Jadwal --}}
                     <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
                         <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
                                 Jadwal Divisi
                             </h3>
                             <a href="{{ route('schedules.index') }}" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">
@@ -224,46 +180,27 @@
 
             {{-- ===================== STAFF ===================== --}}
             @if(auth()->user()->role === 'staff')
-                {{-- Statistik Kartu --}}
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-                    {{-- Tugas Dikerjakan --}}
-                    <div class="p-6 rounded-2xl shadow-md bg-gradient-to-br from-blue-100 via-blue-50 to-white 
-                                dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border border-blue-200/50
-                                dark:border-gray-700 transition hover:scale-[1.02] hover:shadow-xl">
-                        {{-- Perbaikan: dark:text-blue-400 agar berwarna biru saat mode gelap --}}
-                        <h3 class="text-lg font-medium text-gray-800 dark:text-blue-400">Tugas Dikerjakan</h3>
-                        <p class="mt-3 text-4xl font-extrabold text-gray-900 dark:text-white">
-                            {{ $tasksInProgress ?? 0 }}
-                        </p>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 transition hover:shadow-xl hover:scale-[1.01]">
+                        <h3 class="text-gray-700 dark:text-gray-300 text-lg font-medium">Tugas Dikerjakan</h3>
+                        <p class="mt-3 text-4xl font-bold text-gray-900 dark:text-white">{{ $tasksInProgress }}</p>
                     </div>
 
-                    {{-- Menunggu Validasi --}}
-                    <div class="p-6 rounded-2xl shadow-md bg-gradient-to-br from-orange-100 via-orange-50 to-white
-                                dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border border-orange-200/50
-                                dark:border-gray-700 transition hover:scale-[1.02] hover:shadow-xl">
-                        {{-- Perbaikan: dark:text-orange-400 agar berwarna oranye saat mode gelap --}}
-                        <h3 class="text-lg font-medium text-gray-800 dark:text-orange-400">Menunggu Validasi</h3>
-                        <p class="mt-3 text-4xl font-extrabold text-gray-900 dark:text-white">
-                            {{ $tasksToValidate ?? 0 }}
-                        </p>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 transition hover:shadow-xl hover:scale-[1.01]">
+                        <h3 class="text-gray-700 dark:text-gray-300 text-lg font-medium">Menunggu Validasi</h3>
+                        <p class="mt-3 text-4xl font-bold text-gray-900 dark:text-white">{{ $tasksToValidate }}</p>
                     </div>
 
-                    {{-- Tugas Selesai --}}
-                    <div class="p-6 rounded-2xl shadow-md bg-gradient-to-br from-green-100 via-green-50 to-white 
-                                dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border border-green-200/50
-                                dark:border-gray-700 transition hover:scale-[1.02] hover:shadow-xl">
-                        {{-- Perbaikan: dark:text-green-400 agar berwarna hijau saat mode gelap --}}
-                        <h3 class="text-lg font-medium text-gray-800 dark:text-green-400">Tugas Selesai</h3>
-                        <p class="mt-3 text-4xl font-extrabold text-gray-900 dark:text-white">
-                            {{ $tasksCompleted ?? 0 }}
-                        </p>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 transition hover:shadow-xl hover:scale-[1.01]">
+                        <h3 class="text-gray-700 dark:text-gray-300 text-lg font-medium">Tugas Selesai</h3>
+                        <p class="mt-3 text-4xl font-bold text-gray-900 dark:text-white">{{ $tasksCompleted }}</p>
                     </div>
+
                 </div>
 
-                {{-- Chart --}}
                 <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 mt-10">
-                    <h3 class="font-semibold mb-6 text-xl text-gray-900 dark:text-gray-200">
+                    <h3 class="font-semibold mb-6 text-gray-900 dark:text-gray-200 text-lg">
                         Distribusi Status Tugas Saya
                     </h3>
                     <canvas id="staffTasksChart" class="mx-auto" style="max-width: 300px;"></canvas>
@@ -341,7 +278,17 @@
                             grid: { color: c.grid }
                         },
                         x: {
-                            ticks: { color: c.text },
+                            ticks: { 
+                                color: c.text,
+                                autoSkip: true,
+                                maxTicksLimit: 10,
+                                maxRotation: 25,
+                                minRotation: 0,
+                                callback: function(value) {
+                                    const label = this.getLabelForValue(value);
+                                    return label.length > 18 ? label.slice(0, 18) + '…' : label;
+                                }
+                            },
                             grid: { color: c.grid }
                         }
                     }
@@ -357,11 +304,11 @@
         const statusData = @json($statusCounts ?? []);
 
         const doughnutColors = [
-            'rgba(255, 159, 64, 0.7)',   // Oranye
-            'rgba(75, 192, 192, 0.7)',   // Hijau toska
-            'rgba(255, 99, 132, 0.7)',   // Merah muda
-            'rgba(153, 102, 255, 0.7)',  // Ungu
-            'rgba(201, 203, 207, 0.7)'   // Abu-abu
+            'rgba(255, 159, 64, 0.7)',   
+            'rgba(75, 192, 192, 0.7)',  
+            'rgba(255, 99, 132, 0.7)',  
+            'rgba(153, 102, 255, 0.7)',
+            'rgba(201, 203, 207, 0.7)'
         ];
 
         let doughnutCharts = [];
@@ -393,38 +340,40 @@
         });
 
         // === APPLY DARK MODE ON CHANGE ===
-        const observer = new MutationObserver(() => {
-            const c = getColors();
+const observer = new MutationObserver(() => {
+    const c = getColors();
 
-            // === MANAGER CHART ===
-            if (managerChart) {
-                managerChart.options.plugins.legend.labels.color = c.text;
-                managerChart.options.scales.x.ticks.color = c.text;
-                managerChart.options.scales.y.ticks.color = c.text;
-                managerChart.options.scales.x.grid.color = c.grid;
-                managerChart.options.scales.y.grid.color = c.grid;
+    // === MANAGER CHART ===
+    if (managerChart) {
+        managerChart.options.plugins.legend.labels.color = c.text;
+        managerChart.options.scales.x.ticks.color = c.text;
+        managerChart.options.scales.y.ticks.color = c.text;
+        managerChart.options.scales.x.grid.color = c.grid;
+        managerChart.options.scales.y.grid.color = c.grid;
 
-                managerChart.data.datasets.forEach(ds => {
-                    if (ds.label === "Progress Pengerjaan (%)") {
-                        ds.backgroundColor = c.bgProgress;
-                        ds.borderColor = c.border;
-                    }
-                });
-
-                managerChart.update();
+        managerChart.data.datasets.forEach(ds => {
+            if (ds.label === "Progress Pengerjaan (%)") {
+                ds.backgroundColor = c.bgProgress;
+                ds.borderColor = c.border;
             }
-
-            // === DOUGHNUT CHART ===
-            doughnutCharts.forEach(chart => {
-                chart.options.plugins.legend.labels.color = c.text;
-                chart.update();
-            });
         });
 
-        observer.observe(document.documentElement, {
-            attributes: true,
-            attributeFilter: ['class']
-        });
+        managerChart.update();
+    }
+
+    // === DOUGHNUT CHART ===
+    doughnutCharts.forEach(chart => {
+        chart.options.plugins.legend.labels.color = c.text;
+        chart.update();
+    });
+});
+
+observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class']
+});
+
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     });
     </script>
     @endpush
