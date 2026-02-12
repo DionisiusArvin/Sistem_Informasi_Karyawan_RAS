@@ -168,6 +168,7 @@ class ReportController extends Controller
         $month = $request->input('month');
         $year  = $request->input('year');
         $selectedUserId = $request->input('user_id');
+        $filterableUsers = collect();
 
         $reportDataQuery = AdminTask::with(['assignedToAdmin', 'project']);
 
@@ -185,8 +186,14 @@ class ReportController extends Controller
             $reportDataQuery->whereYear('updated_at', $year);
         }
 
-        if ($user->role === 'manager' && $selectedUserId) {
-            $reportDataQuery->where('assigned_to_admin_id', $selectedUserId);
+        if ($user->role === 'manager') {
+            $filterableUsers = User::where('role', 'admin')
+                ->orderBy('name')
+                ->get(['id', 'name']);
+
+            if ($selectedUserId) {
+                $reportDataQuery->where('assigned_to_admin_id', $selectedUserId);
+            }
         } elseif ($user->role === 'admin') {
             $reportDataQuery->where('assigned_to_admin_id', $user->id);
         }
@@ -194,8 +201,10 @@ class ReportController extends Controller
         $reportData = $reportDataQuery->latest('updated_at')->get();
 
         return view('reports.admin', [
-            'reportData' => $reportData,
-            'mode'       => $mode,
+            'reportData'      => $reportData,
+            'mode'            => $mode,
+            'filterableUsers' => $filterableUsers,
+            'selectedUserId'  => $selectedUserId,
         ]);
     }
 
