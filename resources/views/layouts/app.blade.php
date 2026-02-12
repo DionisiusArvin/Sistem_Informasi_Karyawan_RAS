@@ -60,23 +60,11 @@ document.addEventListener('DOMContentLoaded', function () {
     Echo.channel('data-channel')
         .listen('.DataChanged', () => {
             console.log('Realtime trigger');
-
-            const segments = window.location.pathname.split('/').filter(Boolean);
-
-            if (segments.length === 0) {
-                window.location.reload();
-                return;
-            }
-
-            // Ambil segmen pertama → halaman list
-            const base = '/' + segments[0];
-
-            window.location.href = base;
+            window.location.reload(); // ✅ Cukup reload halaman sekarang
         });
 });
 </script>
-
-
+    
             @stack('scripts')
         </div>
     </body>

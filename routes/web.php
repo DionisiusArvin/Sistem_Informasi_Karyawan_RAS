@@ -85,7 +85,11 @@ Route::middleware('auth')->group(function () {
     Route::patch('/projects/{project}/force-finish', [ProjectController::class, 'forceFinish'])->name('projects.force-finish');
     Route::resource('projects.tasks', TaskController::class)->shallow();
 
-    Route::get('/tasks/{task}', [TaskController::class, 'show'])->name('tasks.show');
+    /* ================= FIX 404 /tasks ================= */
+    Route::get('/tasks', function () {
+        return redirect()->route('projects.index');
+    })->name('tasks.index');
+
     Route::post('/tasks/reorder', [TaskController::class, 'reorder'])->name('tasks.reorder');
     Route::patch('/tasks/{task}/update-division', [TaskController::class, 'updateDivision'])->name('tasks.updateDivision');
     Route::patch('/tasks/{task}/update-info', [TaskController::class, 'updateInfo'])->name('tasks.updateInfo');

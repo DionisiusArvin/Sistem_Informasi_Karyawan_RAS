@@ -209,6 +209,7 @@ class TaskController extends Controller
     /* ================= UPDATE ================= */
     public function update(Request $request, Task $task)
     {
+
     $jenisTugasOptionsByCategory = [
         'PBG' => [
             'Data Umum',

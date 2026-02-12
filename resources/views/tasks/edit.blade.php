@@ -8,8 +8,21 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-800 dark:text-gray-200">
-                    <form action="{{ route('tasks.update', $task->id) }}" method="POST">
+    <div class="p-6 text-gray-800 dark:text-gray-200">
+
+    {{-- TAMPILKAN ERROR VALIDASI --}}
+    @if ($errors->any())
+        <div class="mb-4 p-4 bg-red-100 text-red-700 rounded">
+            <ul class="list-disc list-inside text-sm">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <form id="editTaskForm" action="{{ route('tasks.update', $task->id) }}" method="POST">
+
                         @csrf
                         @method('PUT')
 
@@ -76,7 +89,7 @@
 
                         {{-- Tombol Simpan --}}
                         <div class="flex items-center justify-end mt-6">
-                            <button type="submit" 
+                            <button type="submit"
                                 class="inline-flex items-center px-6 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150 shadow-sm">
                                 Simpan Perubahan
                             </button>
@@ -86,4 +99,53 @@
             </div>
         </div>
     </div>
+    <!-- Modal Edit Task -->
+    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md p-6">
+            
+            <h3 class="text-lg font-semibold text-blue-600 mb-4">
+                Konfirmasi Perubahan
+            </h3>
+
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-6">
+                Apakah Anda yakin ingin menyimpan perubahan tugas ini?
+            </p>
+
+            <div class="flex justify-end space-x-3">
+                <button onclick="closeEditModal()" 
+                    class="px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded-md">
+                    Batal
+                </button>
+
+                <button onclick="confirmEdit()" 
+                    class="px-4 py-2 bg-blue-600 text-white rounded-md">
+                    Ya, Simpan
+                </button>
+            </div>
+        </div>
+    </div>
+<script>
+    const form = document.getElementById('editTaskForm');
+    const modal = document.getElementById('editModal');
+    let isConfirmed = false;
+
+    form.addEventListener('submit', function(e) {
+        if (!isConfirmed) {
+            e.preventDefault();
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+    });
+
+    function closeEditModal() {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    function confirmEdit() {
+        isConfirmed = true;
+        form.submit();
+    }
+</script>
+
 </x-app-layout>

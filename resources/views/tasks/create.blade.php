@@ -9,7 +9,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-800 dark:text-gray-200">
-                    <form method="POST" action="{{ route('projects.tasks.store', $project->id) }}">
+                    <form id="taskForm" method="POST" action="{{ route('projects.tasks.store', $project->id) }}">
                         @csrf
                         
                         <div id="jenis-tugas-wrapper">
@@ -103,9 +103,11 @@
                         </div>
                         
                         <div class="flex items-center justify-end mt-4">
-                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:border-blue-900 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150">
+                            <button type="button" onclick="openModal()" 
+                                class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:border-blue-900 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150">
                                 Simpan Tugas
                             </button>
+
                         </div>
                     </form>
                 </div>
@@ -165,8 +167,51 @@
                         pbgSlfModeSelect.addEventListener('change', syncMode);
                     }
                     syncMode();
+
+                    // Modal functions
+                    window.openModal = function() {
+                        document.getElementById('confirmModal').classList.remove('hidden');
+                        document.getElementById('confirmModal').classList.add('flex');
+                    }
+
+                    window.closeModal = function() {
+                        document.getElementById('confirmModal').classList.add('hidden');
+                        document.getElementById('confirmModal').classList.remove('flex');
+                    }
+
+                    window.submitForm = function() {
+                        document.getElementById("taskForm").submit();
+                    }
                 });
             </script>
         @endpush
     @endif
+
+    <!-- Modal Konfirmasi -->
+    <div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md p-6">
+            
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                Konfirmasi Simpan
+            </h3>
+
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-6">
+                Apakah Anda yakin ingin menyimpan tugas ini?
+            </p>
+
+            <div class="flex justify-end space-x-3">
+                <button onclick="closeModal()" 
+                    class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded-md hover:bg-gray-400">
+                    Batal
+                </button>
+
+                <button onclick="submitForm()" 
+                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    Ya, Simpan
+                </button>
+            </div>
+
+        </div>
+    </div>
+
 </x-app-layout>

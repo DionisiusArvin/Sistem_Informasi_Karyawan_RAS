@@ -20,7 +20,10 @@ class DashboardController extends Controller
         // ======================= MANAGER =======================
         if ($user->role === 'manager') {
 
-            $projects = Project::with('dailyTasks')->get();
+            $projects = Project::with('dailyTasks')->get()->map(function ($p) {
+            $p->progress = $p->getProgressPercentage();
+            return $p;
+            });
             $currentYear = now()->year;
 
             // Total omset tahun berjalan
@@ -28,27 +31,27 @@ class DashboardController extends Controller
                 ->sum('contract_value');
 
             // Hitung status project (paling akurat)
-            $completedProjects = $projects->filter(
-                fn($p) => $p->getProgressPercentage() >= 100
-            )->count();
+            $completedProjects = $projects->where('progress', '>=', 100)->count();
 
             $lateProjects = $projects->filter(function ($p) use ($today) {
-                $progress = $p->getProgressPercentage();
                 $endDate = Carbon::parse($p->end_date)->startOfDay();
-                return $progress < 100 && $endDate->lt($today);
+                return $p->progress < 100 && $endDate->lt($today);
             })->count();
 
             $ongoingProjects = $projects->filter(function ($p) use ($today) {
-                $progress = $p->getProgressPercentage();
                 $endDate = Carbon::parse($p->end_date)->startOfDay();
-                return $progress < 100 && $endDate->gte($today);
+                return $p->progress < 100 && $endDate->gte($today);
             })->count();
 
-            $chartData = $projects->map(
-                fn($p) => $p->getProgressPercentage()
-            );
 
-            $chartLabels = $projects->pluck('name');
+            $unfinishedProjects = $projects->where('progress', '<', 100);
+
+
+            $chartData = $unfinishedProjects->pluck('progress')->values();
+
+
+            $chartLabels = $unfinishedProjects->pluck('name')->values();
+
 
             $viewData = [
                 'totalProjects'     => $projects->count(),

@@ -40,7 +40,19 @@
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">    
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+            
+@if(session()->has('success'))
+    <div 
+        x-data="{ show: true }"
+        x-show="show"
+        x-transition
+        x-init="setTimeout(() => show = false, 3000)"
+        class="p-4 rounded-lg bg-green-100 text-green-800 border border-green-300">
+        {{ session('success') }}
+    </div>
+@endif
+
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
                     <div class="flex items-center">
@@ -195,9 +207,17 @@
                                             {{-- Hanya manager yg bisa edit / hapus --}}
                                             @if(auth()->user()->role === 'manager')
                                                 <a href="{{ route('admin-tasks.edit', $adminTask->id) }}" class="text-gray-500 hover:text-blue-600">Edit</a>
-                                                <form action="{{ route('admin-tasks.destroy', $adminTask->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus tugas ini?');">
-                                                    @csrf @method('DELETE')
-                                                    <button type="submit" class="text-gray-500 hover:text-red-600">Hapus</button>
+                                                <form id="deleteAdminForm{{ $adminTask->id }}" 
+                                                    action="{{ route('admin-tasks.destroy', $adminTask->id) }}" 
+                                                    method="POST">
+                                                    @csrf 
+                                                    @method('DELETE')
+
+                                                    <button type="button"
+                                                        onclick="openDeleteModal({{ $adminTask->id }})"
+                                                        class="text-gray-500 hover:text-red-600">
+                                                        Hapus
+                                                    </button>
                                                 </form>
                                             @endif
                                         </div>
@@ -209,6 +229,101 @@
                         @endforelse
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal Hapus Admin Task -->
+    <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md p-6">
+            
+            <h3 class="text-lg font-semibold text-red-600 mb-4">
+                Konfirmasi Hapus
+            </h3>
+
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-6">
+                Apakah Anda yakin ingin menghapus tugas ini? 
+                Data yang dihapus tidak dapat dikembalikan.
+            </p>
+
+            <div class="flex justify-end space-x-3">
+                <button onclick="closeDeleteModal()" 
+                    class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded-md hover:bg-gray-400">
+                    Batal
+                </button>
+
+                <button onclick="confirmDelete()" 
+                    class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                    Ya, Hapus
+                </button>
+            </div>
+        </div>
+    </div>
+    @push('scripts')
+    <script>
+        let selectedDeleteId = null;
+
+        window.openDeleteModal = function(id) {
+            selectedDeleteId = id;
+            document.getElementById('deleteModal').classList.remove('hidden');
+            document.getElementById('deleteModal').classList.add('flex');
+        }
+
+        window.closeDeleteModal = function() {
+            document.getElementById('deleteModal').classList.add('hidden');
+            document.getElementById('deleteModal').classList.remove('flex');
+        }
+
+        window.confirmDelete = function() {
+            if (selectedDeleteId) {
+                document.getElementById('deleteAdminForm' + selectedDeleteId).submit();
+            }
+        }
+
+        
+        let selectedMainDeleteId = null;
+
+        window.openMainDeleteModal = function(id) {
+            selectedMainDeleteId = id;
+            document.getElementById('mainDeleteModal').classList.remove('hidden');
+            document.getElementById('mainDeleteModal').classList.add('flex');
+        }
+
+        window.closeMainDeleteModal = function() {
+            document.getElementById('mainDeleteModal').classList.add('hidden');
+            document.getElementById('mainDeleteModal').classList.remove('flex');
+        }
+
+        window.confirmMainDelete = function() {
+            if (selectedMainDeleteId) {
+                document.getElementById('deleteMainTaskForm' + selectedMainDeleteId).submit();
+            }
+        }
+    </script>
+    @endpush
+
+    <!-- Modal Hapus Tugas Utama -->
+    <div id="mainDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md p-6">
+            
+            <h3 class="text-lg font-semibold text-red-600 mb-4">
+                Konfirmasi Hapus
+            </h3>
+
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-6">
+                Apakah Anda yakin ingin menghapus tugas utama ini?
+                Data tidak dapat dikembalikan.
+            </p>
+
+            <div class="flex justify-end space-x-3">
+                <button onclick="closeMainDeleteModal()" 
+                    class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded-md hover:bg-gray-400">
+                    Batal
+                </button>
+
+                <button onclick="confirmMainDelete()" 
+                    class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                    Ya, Hapus
+                </button>
             </div>
         </div>
     </div>

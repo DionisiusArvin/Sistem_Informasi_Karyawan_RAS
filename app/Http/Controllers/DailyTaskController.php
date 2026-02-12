@@ -278,7 +278,10 @@ if ($divisionId) {
     }
 }
 
-        return back()->with('success', 'Daily Task berhasil dibuat.');
+        return redirect()
+        ->route('projects.show', $task->project_id)
+        ->with('success', 'Tugas berhasil disimpan.');
+
     }
 
     /* ================= UPLOAD FORM ================= */

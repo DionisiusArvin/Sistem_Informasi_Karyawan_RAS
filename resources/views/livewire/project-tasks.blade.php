@@ -126,12 +126,14 @@
                                 class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-sm w-24 text-center">
                                 Edit
                             </a>
-
-                            <form action="{{ route('tasks.destroy', $task->id) }}" method="POST"
-                                onsubmit="return confirm('Yakin ingin menghapus tugas ini?');">
+                            <form id="deleteMainTaskForm{{ $task->id }}"
+                                action="{{ route('tasks.destroy', $task->id) }}"
+                                method="POST">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit"
+
+                                <button type="button"
+                                    onclick="openMainDeleteModal({{ $task->id }})"
                                     class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm w-24">
                                     Hapus
                                 </button>
@@ -190,6 +192,5 @@
             }
         });
         });
-    });
     </script>
 </div>
