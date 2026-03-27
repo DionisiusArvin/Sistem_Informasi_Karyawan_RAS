@@ -59,12 +59,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
     Echo.channel('data-channel')
         .listen('.DataChanged', () => {
-            console.log('Realtime trigger');
-            window.location.reload(); // ✅ Cukup reload halaman sekarang
+
+            const path = window.location.pathname;
+
+            // ❌ Jangan reload di halaman create & upload
+            if (
+                path.includes('/projects/create') ||
+                path.includes('/daily-tasks') && path.includes('/upload')
+            ) {
+                return;
+            }
+
+            if (document.querySelector('[data-flash-success]')) {
+                return;
+            }
+
+            window.location.reload();
         });
 });
 </script>
-    
             @stack('scripts')
         </div>
     </body>

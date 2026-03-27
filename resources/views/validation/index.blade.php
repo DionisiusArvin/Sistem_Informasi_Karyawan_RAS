@@ -15,6 +15,7 @@
                             <th class="px-4 py-2 text-center text-lg text-gray-900 dark:text-gray-300">Tugas Utama</th>
                             <th class="px-4 py-2 text-center text-lg text-gray-900 dark:text-gray-300">Tugas Harian</th>
                             <th class="px-4 py-2 text-center text-lg text-gray-900 dark:text-gray-300">Pegawai</th>
+                            <th class="px-4 py-2 text-center text-lg text-gray-900 dark:text-gray-300">Progres</th>
                             <th class="px-4 py-2 text-center text-lg text-gray-900 dark:text-gray-300">File/Link</th>
                             <th class="px-4 py-2 text-center text-lg text-gray-900 dark:text-gray-300">Aksi</th>
                         </tr>
@@ -37,6 +38,15 @@
 
                                 <td class="px-4 py-2 text-center text-gray-900 dark:text-gray-300">
                                     {{ $task->assignedToStaff->name ?? '-' }}
+                                </td>
+
+                                <td class="px-4 py-2 text-center text-gray-900 dark:text-gray-300">
+                                    <div class="flex items-center justify-center gap-2">
+                                        <span class="text-sm font-semibold">{{ $task->progress }}%</span>
+                                        <div class="w-20 bg-gray-200 dark:bg-gray-600 h-2.5 rounded-full overflow-hidden">
+                                            <div class="bg-blue-600 h-full rounded-full" style="width: {{ $task->progress }}%"></div>
+                                        </div>
+                                    </div>
                                 </td>
 
                                 <td class="px-4 py-2 text-center text-gray-900 dark:text-gray-300">
@@ -94,7 +104,7 @@
 
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center py-4 text-gray-500">
+                                <td colspan="7" class="text-center py-4 text-gray-500">
                                     Tidak ada tugas yang perlu divalidasi.
                                 </td>
                             </tr>
@@ -164,7 +174,7 @@
                             placeholder="Jelaskan bagian yang perlu direvisi..." required></textarea>
 
                     <div class="mt-4 flex justify-end space-x-2">
-                        <button type="button" @click="showLanjut=false"
+                        <button type="button" @click="showRevisi=false"
                             class="px-4 py-2 bg-gray-200 dark:bg-gray-600 rounded text-gray-900 dark:text-gray-300">
                             Batal
                         </button>

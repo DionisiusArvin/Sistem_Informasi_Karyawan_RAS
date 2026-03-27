@@ -4,11 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use App\Events\DataChanged;
+use App\Models\Concerns\BroadcastsDataChanges;
 
 class AdminTask extends Model
 {
-    use HasFactory;
+    use BroadcastsDataChanges, HasFactory;
 
     protected $fillable = [
         'project_id',
@@ -29,15 +29,15 @@ class AdminTask extends Model
     protected static function booted()
     {
         static::created(function ($task) {
-            broadcast(new DataChanged($task));
+            static::broadcastDataChanged($task);
         });
 
         static::updated(function ($task) {
-            broadcast(new DataChanged($task));
+            static::broadcastDataChanged($task);
         });
 
         static::deleted(function ($task) {
-            broadcast(new DataChanged($task->id));
+            static::broadcastDataChanged($task->id);
         });
     }
 

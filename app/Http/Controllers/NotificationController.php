@@ -4,9 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
+    /**
+     * Tampilkan semua notifikasi user
+     */
     public function index()
     {
         $notifs = Notification::where('user_id', Auth::id())
@@ -16,19 +20,31 @@ class NotificationController extends Controller
         return view('notifications.index', compact('notifs'));
     }
 
-    // Klik notif lama (fallback)
+    /**
+     * Klik notif (non AJAX / fallback)
+     */
     public function read($id)
     {
-        $notif = Notification::where('id', $id)
-            ->where('user_id', Auth::id())
-            ->firstOrFail();
+        $notif = Notification::where('user_id', Auth::id())
+            ->findOrFail($id);
 
-        $notif->update(['is_read' => true]);
+        // tandai sudah dibaca
+        $notif->update([
+            'is_read' => true
+        ]);
 
-        return redirect($notif->url);
+        // jika notif punya url
+        if (!empty($notif->url)) {
+            return redirect()->to($notif->url);
+        }
+
+        // fallback ke halaman notif
+        return redirect()->route('notifications.index');
     }
 
-    // ✅ AJAX: tandai 1 notif dibaca
+    /**
+     * AJAX: tandai 1 notif dibaca
+     */
     public function markRead($id)
     {
         $notif = Notification::where('id', $id)
@@ -36,29 +52,47 @@ class NotificationController extends Controller
             ->first();
 
         if ($notif) {
-            $notif->update(['is_read' => true]);
+            $notif->update([
+                'is_read' => true
+            ]);
         }
 
-        return response()->json(['success' => true]);
+        return response()->json([
+            'success' => true
+        ]);
     }
 
-    // ✅ AJAX: tandai semua notif dibaca
+    /**
+     * AJAX: tandai semua notif dibaca
+     */
     public function markAllRead()
     {
         Notification::where('user_id', Auth::id())
             ->where('is_read', false)
-            ->update(['is_read' => true]);
+            ->update([
+                'is_read' => true
+            ]);
 
-        return response()->json(['success' => true]);
+        return response()->json([
+            'success' => true
+        ]);
     }
 
-    // ✅ AJAX: hapus 1 notif
+    /**
+     * AJAX: hapus satu notif
+     */
     public function delete($id)
     {
-        Notification::where('id', $id)
+        $notif = Notification::where('id', $id)
             ->where('user_id', Auth::id())
-            ->delete();
+            ->first();
 
-        return response()->json(['success' => true]);
+        if ($notif) {
+            $notif->delete();
+        }
+
+        return response()->json([
+            'success' => true
+        ]);
     }
 }

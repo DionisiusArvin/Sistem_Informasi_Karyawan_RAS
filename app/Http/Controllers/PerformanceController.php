@@ -5,62 +5,69 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\TaskActivity;
-use App\Models\AdHocTask; // ✅ TAMBAHAN
+use App\Models\AdHocTask;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\PerformanceExport;
 
 class PerformanceController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $type = $request->type ?? 'staf';
         $employees = User::where('role', '!=', 'manager')->get();
-        return view('performance.index', compact('employees'));
+
+        return view('performance.index', compact('employees', 'type'));
     }
 
     public function calculate(Request $request)
     {
-        $results   = $this->getKpiData($request);
-        $employees = User::where('role', '!=', 'manager')->get();
+        $type = $request->type ?? 'staf';
 
         return view('performance.index', [
-            'results'   => $results,
-            'employees' => $employees,
+            'results'   => $this->getKpiData($request, $type),
+            'employees' => User::where('role', '!=', 'manager')->get(),
             'period'    => (int) $request->period,
             'status'    => $request->status,
             'userId'    => $request->user_id,
+            'type'      => $type,
         ]);
     }
 
     public function exportPdf(Request $request)
     {
-        $results = $this->getKpiData($request);
-
-        $periodeLabel = match ((int) $request->period) {
-            1  => 'KPI 1 Bulan',
-            6  => 'KPI 6 Bulan',
-            12 => 'KPI 12 Bulan',
-            default => 'KPI',
-        };
+        $type = $request->type ?? 'staf';
 
         return Pdf::loadView('performance.pdf', [
-            'results'      => $results,
-            'printedAt'    => now()->format('d M Y H:i'),
-            'periodeLabel' => $periodeLabel,
-        ])->setPaper('A4', 'portrait')
-        ->download('kpi-karyawan.pdf');
+            'results'   => $this->getKpiData($request, $type),
+            'printedAt' => now()->format('d M Y H:i'),
+        ])->download('kpi-karyawan.pdf');
     }
 
     public function exportExcel(Request $request)
     {
+        $type = $request->type ?? 'staf';
+
         return Excel::download(
-            new PerformanceExport($this->getKpiData($request)),
+            new PerformanceExport($this->getKpiData($request, $type)),
             'kpi-karyawan.xlsx'
         );
     }
 
     /* ================= KPI LOGIC ================= */
-    private function getKpiData(Request $request)
+    /*
+     * RUMUS PENILAIAN STAF TEKNIS: A × C × B
+     * A = Mengerjakan (1) / Tidak Mengerjakan (0)
+     * B = Konsistensi: Selesai (100%), Revisi (50%), Belum Dikerjakan (0%)
+     * C = Bobot Pekerjaan (weight, min 1 max 10)
+     *
+     * KPI = Σ(A × C × B) untuk semua tugas
+     *
+     * KEPALA DIVISI:
+     * 30% → Kapasitas Produksi (A×C×B dari project PIC)
+     * 70% → Nilai Kepala Divisi (A×C×B dari tugas sendiri)
+     */
+    private function getKpiData(Request $request, $type = 'staf')
     {
         $request->validate([
             'period'  => 'required|in:1,6,12',
@@ -72,73 +79,106 @@ class PerformanceController extends Controller
         $startDate = now()->subMonths($period)->startOfDay();
         $endDate   = now()->endOfDay();
 
-        $employeesQuery = User::where('role', '!=', 'manager');
+        $employeesQuery = $type === 'kepala'
+            ? User::where('role', 'kepala_divisi')
+            : User::where('role', '!=', 'manager');
+
         if ($request->filled('user_id')) {
             $employeesQuery->where('id', $request->user_id);
         }
+
         $employees = $employeesQuery->get();
 
-        $statusMap = [
-            'selesai' => 'Selesai',
-            'valid' => 'Menunggu Validasi',
-        ];
+        /* ================= HELPER: Hitung skor A×C×B ================= */
+        $calcAcb = function ($dailyTasks) {
+            $score = 0;
+            foreach ($dailyTasks as $dt) {
+                // A = Mengerjakan (1) jika ada assigned_to_staff_id, 0 jika tidak
+                $a = $dt->assigned_to_staff_id ? 1 : 0;
 
-        $statusKey = strtolower((string) $request->status);
-        $statusValue = $statusKey === 'semua'
-            ? null
-            : ($statusMap[$statusKey] ?? $request->status);
+                // C = Bobot pekerjaan
+                $c = (int) ($dt->weight ?? 1);
 
-        /* ================= DAILY TASK SCORE ================= */
-        $activityQuery = TaskActivity::query()
-            ->selectRaw('task_activities.user_id, COUNT(DISTINCT task_activities.daily_task_id) as total_tasks')
-            ->selectRaw('SUM((daily_tasks.weight * task_activities.progress_percent) / 8) as total_score')
-            ->join('daily_tasks', 'daily_tasks.id', '=', 'task_activities.daily_task_id')
-            ->join('users', 'users.id', '=', 'task_activities.user_id')
-            ->whereBetween('task_activities.created_at', [$startDate, $endDate])
-            ->whereNotNull('task_activities.progress_percent')
-            ->where('users.role', '!=', 'manager');
+                // B = Konsistensi berdasarkan status / progress
+                $b = match ($dt->status) {
+                    'Selesai'  => 1.0,   // 100%
+                    'Revisi'   => 0.5,   // 50%
+                    default    => ($dt->progress ?? 0) / 100.0, // berdasarkan progress saat ini
+                };
 
-        if ($request->filled('user_id')) {
-            $activityQuery->where('task_activities.user_id', $request->user_id);
-        }
+                $score += $a * $c * $b;
+            }
+            return $score;
+        };
 
-        if (!empty($statusValue)) {
-            $activityQuery->where('daily_tasks.status', $statusValue);
-        }
+        /* ================= LOOP KPI ================= */
+        $results = $employees->map(function ($employee) use ($startDate, $endDate, $type, $calcAcb) {
 
-        $activityRows = $activityQuery
-            ->groupBy('task_activities.user_id')
-            ->get()
-            ->keyBy('user_id');
+            if ($type === 'kepala') {
+                /* =======================================================
+                 * KPI KEPALA DIVISI
+                 * 30% → Kapasitas Produksi (A×C×B dari project PIC)
+                 * 70% → Nilai Kepala Divisi (A×C×B dari tugas sendiri)
+                 * ======================================================= */
 
-        /* ================= GABUNG DAILY + ADHOC ================= */
-        $results = $employees->map(function ($employee) use ($activityRows, $startDate, $endDate) {
+                // ── 30% KAPASITAS PRODUKSI (dari project PIC) ──
+                $picProjectIds = \App\Models\Project::where('pic_id', $employee->id)
+                    ->pluck('id');
 
-            $row = $activityRows->get($employee->id);
+                $picDailyTasks = collect();
+                if ($picProjectIds->isNotEmpty()) {
+                    $picDailyTasks = \App\Models\DailyTask::whereIn('project_id', $picProjectIds)
+                        ->whereBetween('created_at', [$startDate, $endDate])
+                        ->get();
+                }
 
-            $dailyScore = (float) ($row->total_score ?? 0);
-            $dailyTasks = (int) ($row->total_tasks ?? 0);
+                $kapasitasProduksi = $calcAcb($picDailyTasks);
 
-            // ✅ HITUNG ADHOC
-            $adhocScore = AdHocTask::where('assigned_to_id', $employee->id)
-                ->where('status', 'Selesai')
-                ->whereBetween('updated_at', [$startDate, $endDate])
-                ->sum('weight');
+                // ── 70% NILAI KEPALA DIVISI (tugas sendiri) ──
+                $ownDailyTasks = \App\Models\DailyTask::where('assigned_to_staff_id', $employee->id)
+                    ->whereBetween('created_at', [$startDate, $endDate])
+                    ->get();
 
-            $adhocTasks = AdHocTask::where('assigned_to_id', $employee->id)
-                ->where('status', 'Selesai')
-                ->whereBetween('updated_at', [$startDate, $endDate])
-                ->count();
+                $nilaiKepalaDivisi = $calcAcb($ownDailyTasks);
 
-            $totalScore = $dailyScore + $adhocScore;
-            $totalTasks = $dailyTasks + $adhocTasks;
+                // Total tugas (termasuk yang belum selesai)
+                $totalTasks = $picDailyTasks->count()
+                    + $ownDailyTasks->count();
 
-            return (object) [
-                'user_id'     => $employee->id,
-                'name'        => $employee->name,
-                'total_tasks' => $totalTasks,
-                'final_score' => round($totalScore, 2),
-            ];
+                // ── FINAL SCORE KEPALA DIVISI ──
+                $finalScore = ($kapasitasProduksi * 0.30) + ($nilaiKepalaDivisi * 0.70);
+
+                return (object)[
+                    'user_id'            => $employee->id,
+                    'name'               => $employee->name,
+                    'total_tasks'        => $totalTasks,
+                    'kapasitas_produksi' => round($kapasitasProduksi, 2),
+                    'nilai_kepala'       => round($nilaiKepalaDivisi, 2),
+                    'final_score'        => round($finalScore, 2),
+                ];
+
+            } else {
+                /* =======================================================
+                 * KPI STAF TEKNIS
+                 * Rumus: Σ(A × C × B) per tugas
+                 * ======================================================= */
+
+                $dailyTasks = \App\Models\DailyTask::where('assigned_to_staff_id', $employee->id)
+                    ->whereBetween('created_at', [$startDate, $endDate])
+                    ->get();
+
+                $finalScore = $calcAcb($dailyTasks);
+
+                // Total tugas (termasuk yang belum selesai)
+                $totalTasks = $dailyTasks->count();
+
+                return (object)[
+                    'user_id'     => $employee->id,
+                    'name'        => $employee->name,
+                    'total_tasks' => $totalTasks,
+                    'final_score' => round($finalScore, 2),
+                ];
+            }
         });
 
         /* ================= RANKING ================= */
@@ -148,21 +188,26 @@ class PerformanceController extends Controller
             ->sortByDesc('final_score')
             ->values()
             ->map(function ($row, $i) use ($topScore) {
+
                 $row->rank = $i + 1;
 
-                [$icon, $color] = match ($row->rank) {
-                    1 => ['🥇', '#facc15'],
-                    2 => ['🥈', '#9ca3af'],
-                    3 => ['🥉', '#cd7f32'],
-                    default => ['🏆', '#3b82f6'],
-                };
+                if ($row->rank == 1) {
+                    $row->rank_icon = '🥇';
+                    $row->rank_color = '#facc15';
+                } elseif ($row->rank == 2) {
+                    $row->rank_icon = '🥈';
+                    $row->rank_color = '#9ca3af';
+                } elseif ($row->rank == 3) {
+                    $row->rank_icon = '🥉';
+                    $row->rank_color = '#cd7f32';
+                } else {
+                    $row->rank_icon = '🏆';
+                    $row->rank_color = '#3b82f6';
+                }
 
-                $row->rank_icon  = $icon;
-                $row->rank_color = $color;
-
-                $row->badge = ($topScore > 0 && $row->final_score == $topScore)
+                $row->badge = ($row->final_score == $topScore && $topScore > 0)
                     ? '🔥 Top Performer'
-                    : '🥉 Needs Improvement';
+                    : 'Perlu Improvement';
 
                 return $row;
             });

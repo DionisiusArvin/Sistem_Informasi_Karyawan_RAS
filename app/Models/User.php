@@ -12,7 +12,7 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
-     /**
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
@@ -42,7 +42,7 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-     /**
+    /**
      * The attributes that should be cast.
      *
      * @var array<string, string>
@@ -64,6 +64,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    // ================= RELASI =================
+
     // RELASI: User (staff/kadiv) memiliki satu divisi
     public function division()
     {
@@ -98,5 +101,11 @@ class User extends Authenticatable
     public function givenAdHocTasks()
     {
         return $this->hasMany(AdHocTask::class, 'assigned_by_id');
+    }
+
+    // ✅ TAMBAHAN (untuk KPI staff & kepala)
+    public function tasks()
+    {
+        return $this->hasMany(Task::class);
     }
 }

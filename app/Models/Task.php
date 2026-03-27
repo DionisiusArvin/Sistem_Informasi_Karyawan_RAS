@@ -4,11 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Events\DataChanged;
+use App\Models\Concerns\BroadcastsDataChanges;
 
 class Task extends Model
 {
-    use HasFactory;
+    use BroadcastsDataChanges, HasFactory;
 
     /*
     |--------------------------------------------------------------------------
@@ -41,15 +41,15 @@ class Task extends Model
 
         // 🔥 Auto realtime
         static::created(function ($task) {
-            broadcast(new DataChanged($task));
+            static::broadcastDataChanged($task);
         });
 
         static::updated(function ($task) {
-            broadcast(new DataChanged($task));
+            static::broadcastDataChanged($task);
         });
 
         static::deleted(function ($task) {
-            broadcast(new DataChanged($task->id));
+            static::broadcastDataChanged($task->id);
         });
     }
 

@@ -28,6 +28,35 @@
         </div>
     </x-slot>
 
+    @if(session('success'))
+    <div
+        data-flash-success
+        x-data="{ open: true }"
+        x-show="open"
+        x-transition.opacity
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+    >
+        <div
+            x-show="open"
+            x-transition.scale
+            class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-md text-center"
+        >
+            <h3 class="text-lg font-semibold text-green-600 mb-3">
+                ✅ Berhasil
+            </h3>
+
+            <p class="text-gray-700 dark:text-gray-300 mb-6">
+                {{ session('success') }}
+            </p>
+            <button
+                @click="open = false"
+                class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+            >
+                OK
+            </button>
+        </div>
+    </div>
+    @endif
     @php
         $dailyTaskOptionsByCategory = [
             'PBG' => [
@@ -352,6 +381,7 @@
                                         showRevisionModal: false, 
                                         showUploadModal: false,
                                         showEditModal: false,
+                                        showDeleteModal: false,
                                         actionDropdownOpen: false 
                                     }" class="hover:bg-gray-50 dark:hover:bg-gray-700">
                                         
@@ -445,25 +475,25 @@
                                                      class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white dark:bg-gray-700 ring-1 ring-black ring-opacity-5 focus:outline-none z-10"
                                                      role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1" style="display: none;">
                                                     <div class="py-1" role="none">
-                                                        
                                                         @if(auth()->user()->role === 'kepala_divisi')
                                                             @if(!$dailyTask->assignedToStaff)
                                                                 <a href="#" @click.prevent="showUploadModal = true; actionDropdownOpen = false" class="text-gray-700 dark:text-gray-200 block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600" role="menuitem" tabindex="-1">Kerjakan Sendiri</a>
                                                             @elseif($dailyTask->status === 'Menunggu Validasi')
                                                                 <form action="{{ route('dailytasks.approve', $dailyTask->id) }}" method="POST" class="w-full" role="menuitem" tabindex="-1">
-                                                                    @csrf @method('PATCH')
+                                                                    @csrf
                                                                     <button type="submit" class="w-full text-left text-green-600 dark:text-green-400 block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600">Approve</button>
                                                                 </form>
                                                                 <a href="#" @click.prevent="showRevisionModal = true; actionDropdownOpen = false" class="text-red-600 dark:text-red-400 block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600" role="menuitem" tabindex="-1">Revisi</a>
                                                             @elseif($dailyTask->assigned_to_staff_id === auth()->id())
                                                                 <a href="{{ route('dailytasks.upload.form', $dailyTask->id) }}" class="text-blue-600 dark:text-blue-400 block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600" role="menuitem" tabindex="-1">Upload Pekerjaan</a>
                                                             @endif
-                                                            
+
                                                             <div class="border-t border-gray-200 dark:border-gray-600 my-1"></div>
                                                             <a href="#" @click.prevent="showEditModal = true; actionDropdownOpen = false" class="text-gray-700 dark:text-gray-200 block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600" role="menuitem" tabindex="-1">Edit</a>
-                                                            <form action="{{ route('dailytasks.destroy', $dailyTask->id) }}" method="POST" class="w-full" role="menuitem" tabindex="-1">
-                                                                @csrf @method('DELETE')
-                                                                <button type="submit" onclick="return confirm('Yakin hapus tugas ini?')" class="w-full text-left text-red-600 dark:text-red-400 block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600">Hapus</button>
+                                                            <form x-ref="deleteForm" action="{{ route('dailytasks.destroy', $dailyTask->id) }}" method="POST" class="w-full" role="menuitem" tabindex="-1">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="button" @click="showDeleteModal = true; actionDropdownOpen = false" class="w-full text-left text-red-600 dark:text-red-400 block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600">Hapus</button>
                                                             </form>
                                                         @endif
                                                         
@@ -511,7 +541,7 @@
                                                 <div @click.away="showRevisionModal = false" class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
                                                     <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Catatan Revisi untuk: {{ $dailyTask->name }}</h3>
                                                         <form action="{{ route('validation.reject', $dailyTask->id) }}" method="POST">
-                                                        @csrf @method('PATCH')
+                                                        @csrf
                                                         <textarea name="revision_notes" rows="4" class="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md shadow-sm" placeholder="Jelaskan bagian yang perlu direvisi..." required></textarea>
                                                         <div class="mt-4 flex justify-end space-x-2">
                                                             <button type="button" @click="showRevisionModal = false" class="px-4 py-2 bg-gray-200 dark:bg-gray-600 rounded">Batal</button>
@@ -527,98 +557,129 @@
                                                 class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
                                                 style="display: none;">
 
-                                                <div @click.away="showUploadModal = false"
-                                                    class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
+                                                    <div @click.away="showUploadModal = false"
+                                                        class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
 
-                                                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                                                        Kerjakan & Upload: {{ $dailyTask->name }}
-                                                    </h3>
+                                                        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                                                            Kerjakan & Upload: {{ $dailyTask->name }}
+                                                        </h3>
 
-                                                    {{-- PENTING: route claim_and_upload + csrf --}}
                                                         <form action="{{ route('dailytasks.upload.handle', $dailyTask->id) }}"
-                                                        method="POST"
-                                                        enctype="multipart/form-data">
-                                                        @csrf
+                                                            method="POST"
+                                                            enctype="multipart/form-data">
+                                                            @csrf
 
-                                                        <div class="space-y-4">
+                                                            <div class="space-y-4">
 
-                                                            <div>
-                                                                <x-input-label for="link_url_{{ $dailyTask->id }}" value="Cantumkan Link (Wajib)" />
-                                                                <x-text-input
-                                                                    id="link_url_{{ $dailyTask->id }}"
-                                                                    class="block mt-1 w-full"
-                                                                    type="url"
-                                                                    name="link_url"
-                                                                    placeholder="https://..."
-                                                                    required
-                                                                />
+                                                                <div>
+                                                                    <x-input-label for="link_url_{{ $dailyTask->id }}" value="Cantumkan Link (Wajib)" />
+                                                                    <x-text-input
+                                                                        id="link_url_{{ $dailyTask->id }}"
+                                                                        class="block mt-1 w-full"
+                                                                        type="url"
+                                                                        name="link_url"
+                                                                        placeholder="https://..."
+                                                                        required
+                                                                    />
+                                                                </div>
+
+                                                                <div>
+                                                                    <x-input-label for="file_{{ $dailyTask->id }}" value="Upload File (Opsional)" />
+                                                                    <input
+                                                                        id="file_{{ $dailyTask->id }}"
+                                                                        class="block w-full text-sm text-gray-500
+                                                                            file:mr-4 file:py-2 file:px-4
+                                                                            file:rounded-full file:border-0
+                                                                            file:font-semibold file:bg-blue-50
+                                                                            file:text-blue-700 hover:file:bg-blue-100"
+                                                                        type="file"
+                                                                        name="file">
+                                                                </div>
+
+                                                                <div>
+                                                                    <x-input-label for="progress_percent_{{ $dailyTask->id }}" value="Progres (%)" />
+                                                                    <x-text-input
+                                                                        id="progress_percent_{{ $dailyTask->id }}"
+                                                                        class="block mt-1 w-full"
+                                                                        type="number"
+                                                                        name="progress_percent"
+                                                                        min="0"
+                                                                        max="100"
+                                                                        step="1"
+                                                                        required
+                                                                    />
+                                                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                                        Jika deadline lebih dari 1 hari, progres wajib diisi setiap hari.
+                                                                    </p>
+                                                                </div>
+
+                                                                <div>
+                                                                    <x-input-label for="notes_{{ $dailyTask->id }}" value="Catatan (Opsional)" />
+                                                                    <textarea
+                                                                        name="notes"
+                                                                        id="notes_{{ $dailyTask->id }}"
+                                                                        rows="3"
+                                                                        class="w-full border-gray-300 dark:border-gray-700
+                                                                            dark:bg-gray-900 dark:text-gray-300
+                                                                            rounded-md shadow-sm"
+                                                                        placeholder="Catatan..."></textarea>
+                                                                </div>
+
                                                             </div>
 
-                                                            <div>
-                                                                <x-input-label for="file_{{ $dailyTask->id }}" value="Upload File (Opsional)" />
-                                                                <input
-                                                                    id="file_{{ $dailyTask->id }}"
-                                                                    class="block w-full text-sm text-gray-500
-                                                                        file:mr-4 file:py-2 file:px-4
-                                                                        file:rounded-full file:border-0
-                                                                        file:font-semibold file:bg-blue-50
-                                                                        file:text-blue-700 hover:file:bg-blue-100"
-                                                                    type="file"
-                                                                    name="file">
+                                                            <div class="mt-6 flex justify-end space-x-2">
+                                                                <button type="button"
+                                                                        @click="showUploadModal = false"
+                                                                        class="px-4 py-2 bg-gray-200 dark:bg-gray-600 rounded-md">
+                                                                    Batal
+                                                                </button>
+
+                                                                <button type="submit"
+                                                                        class="px-4 py-2 bg-blue-600 text-white rounded-md">
+                                                                    Kirim Pekerjaan
+                                                                </button>
                                                             </div>
 
-                                                            <div>
-                                                                <x-input-label for="progress_percent_{{ $dailyTask->id }}" value="Progres (%)" />
-                                                                <x-text-input
-                                                                    id="progress_percent_{{ $dailyTask->id }}"
-                                                                    class="block mt-1 w-full"
-                                                                    type="number"
-                                                                    name="progress_percent"
-                                                                    min="0"
-                                                                    max="100"
-                                                                    step="1"
-                                                                    required
-                                                                />
-                                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                                                    Jika deadline lebih dari 1 hari, progres wajib diisi setiap hari.
-                                                                </p>
-                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
 
-                                                            <div>
-                                                                <x-input-label for="notes_{{ $dailyTask->id }}" value="Catatan (Opsional)" />
-                                                                <textarea
-                                                                    name="notes"
-                                                                    id="notes_{{ $dailyTask->id }}"
-                                                                    rows="3"
-                                                                    class="w-full border-gray-300 dark:border-gray-700
-                                                                        dark:bg-gray-900 dark:text-gray-300
-                                                                        rounded-md shadow-sm"
-                                                                    placeholder="Catatan..."></textarea>
-                                                            </div>
+                                                {{-- Delete Modal --}}
+                                                <div x-show="showDeleteModal"
+                                                    @keydown.escape.window="showDeleteModal = false"
+                                                    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+                                                    style="display: none;">
 
-                                                        </div>
+                                                    <div @click.away="showDeleteModal = false"
+                                                        class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-md">
+                                                        <h3 class="text-lg font-semibold text-red-600 mb-4 text-center">
+                                                            Konfirmasi Hapus
+                                                        </h3>
+                                                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-6 text-center leading-relaxed max-w-sm mx-auto break-words">
+                                                            Apakah Anda yakin ingin menghapus tugas ini?
+                                                        </p>
 
-                                                        <div class="mt-6 flex justify-end space-x-2">
+                                                        <div class="flex justify-center items-center gap-4 mt-4">
                                                             <button type="button"
-                                                                    @click="showUploadModal = false"
-                                                                    class="px-4 py-2 bg-gray-200 dark:bg-gray-600 rounded-md">
+                                                                @click="showDeleteModal = false"
+                                                                class="px-5 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded-md hover:bg-gray-400 transition">
                                                                 Batal
                                                             </button>
 
-                                                            <button type="submit"
-                                                                    class="px-4 py-2 bg-blue-600 text-white rounded-md">
-                                                                Kirim Pekerjaan
+                                                            <button type="button"
+                                                                @click="$refs.deleteForm.submit()"
+                                                                class="px-5 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition">
+                                                                Ya, Hapus
                                                             </button>
                                                         </div>
-
-                                                    </form>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            {{-- Edit Modal --}}
-                                            <div x-show="showEditModal"
-                                                @keydown.escape.window="showEditModal = false"
-                                                class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-                                                style="display: none;">
+
+                                                {{-- Edit Modal --}}
+                                                <div x-show="showEditModal"
+                                                    @keydown.escape.window="showEditModal = false"
+                                                    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+                                                    style="display: none;">
 
                                                 <div @click.away="showEditModal = false"
                                                     class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">

@@ -4,11 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Events\DataChanged;
+use App\Models\Concerns\BroadcastsDataChanges;
 
 class DailyTask extends Model
 {
-    use HasFactory;
+    use BroadcastsDataChanges, HasFactory;
 
     protected $fillable = [
         'task_id',
@@ -37,15 +37,15 @@ class DailyTask extends Model
     protected static function booted()
     {
         static::created(function ($task) {
-            broadcast(new DataChanged($task));
+            static::broadcastDataChanged($task);
         });
 
         static::updated(function ($task) {
-            broadcast(new DataChanged($task));
+            static::broadcastDataChanged($task);
         });
 
         static::deleted(function ($task) {
-            broadcast(new DataChanged($task->id));
+            static::broadcastDataChanged($task->id);
         });
     }
 

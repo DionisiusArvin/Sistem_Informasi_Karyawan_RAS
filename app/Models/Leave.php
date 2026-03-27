@@ -4,11 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Events\DataChanged;
+use App\Models\Concerns\BroadcastsDataChanges;
 
 class Leave extends Model
 {
-    use HasFactory;
+    use BroadcastsDataChanges, HasFactory;
 
     protected $fillable = [
         'user_id',
@@ -29,15 +29,15 @@ class Leave extends Model
     protected static function booted()
     {
         static::created(function ($division) {
-            broadcast(new DataChanged($division));
+            static::broadcastDataChanged($division);
         });
 
         static::updated(function ($division) {
-            broadcast(new DataChanged($division));
+            static::broadcastDataChanged($division);
         });
 
         static::deleted(function ($division) {
-            broadcast(new DataChanged($division->id));
+            static::broadcastDataChanged($division->id);
         });
     }
 

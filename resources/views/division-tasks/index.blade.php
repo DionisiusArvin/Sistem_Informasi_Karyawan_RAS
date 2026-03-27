@@ -96,9 +96,16 @@
                                                     <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2" x-text="showModal === 'revisi' ? 'Catatan Revisi' : 'Catatan Lanjutkan'"></h3>
                                                     <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">{{ $task->name }}</p>
                                                     <div class="bg-gray-100 dark:bg-gray-900 p-4 rounded-md border dark:border-gray-700">
-                                                        <p class="text-gray-800 dark:text-gray-200">
-                                                            @{{ showModal === 'revisi' ? '{{ $task->activities->where('activity_type', 'permintaan_revisi')->last()->notes ?? 'Tidak ada catatan.' }}' : '{{ $task->activities->where('activity_type', 'lanjutkan_tugas')->last()->notes ?? 'Tidak ada catatan.' }}' }}
-                                                        </p>
+                                                        <div x-show="showModal === 'revisi'">
+                                                            <p class="text-gray-800 dark:text-gray-200">
+                                                                {{ $task->activities->where('activity_type', 'permintaan_revisi')->last()->notes ?? 'Tidak ada catatan.' }}
+                                                            </p>
+                                                        </div>
+                                                        <div x-show="showModal === 'Lanjutkan'">
+                                                            <p class="text-gray-800 dark:text-gray-200">
+                                                                {{ $task->activities->where('activity_type', 'lanjutkan_tugas')->last()->notes ?? 'Tidak ada catatan.' }}
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                     <div class="mt-6 flex justify-end">
                                                         <button @click="showModal = false" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition">Tutup</button>

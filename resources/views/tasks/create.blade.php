@@ -178,10 +178,6 @@
                         document.getElementById('confirmModal').classList.add('hidden');
                         document.getElementById('confirmModal').classList.remove('flex');
                     }
-
-                    window.submitForm = function() {
-                        document.getElementById("taskForm").submit();
-                    }
                 });
             </script>
         @endpush
@@ -205,10 +201,12 @@
                     Batal
                 </button>
 
-                <button onclick="submitForm()" 
+                <button type="submit"
+                    form="taskForm"
                     class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
                     Ya, Simpan
                 </button>
+
             </div>
 
         </div>

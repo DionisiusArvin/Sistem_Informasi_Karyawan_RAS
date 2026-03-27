@@ -5,11 +5,28 @@
         </h2>
     </x-slot>
 
-    {{-- ================= FORM FILTER ================= --}}
-    <form method="POST" action="{{ route('performance.calculate') }}"
+    {{-- ================= SWITCH MODE (FIX) ================= --}}
+    <div class="mb-4 flex gap-2">
+        <a href="/performance?type=staf"
+           class="px-4 py-2 rounded 
+           {{ ($type ?? 'staf') == 'staf' ? 'bg-blue-600 text-white' : 'bg-gray-300' }}">
+            Performa Staf
+        </a>
+
+        <a href="/performance?type=kepala"
+           class="px-4 py-2 rounded 
+           {{ ($type ?? '') == 'kepala' ? 'bg-green-600 text-white' : 'bg-gray-300' }}">
+            Kepala Divisi
+        </a>
+    </div>
+
+    {{-- ================= FORM FILTER (FIX TYPE 🔥) ================= --}}
+    <form method="GET" action="{{ route('performance.calculate') }}"
           class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mb-6
                  border border-gray-200 dark:border-gray-700">
-        @csrf
+
+        {{-- 🔥 PENTING BANGET --}}
+        <input type="hidden" name="type" value="{{ $type ?? 'staf' }}">
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
@@ -76,17 +93,14 @@
         </button>
     </form>
 
+    {{-- ================= HASIL KPI ================= --}}
     @isset($results)
 
-        {{-- ================= TABEL ================= --}}
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8
                     border border-gray-200 dark:border-gray-700">
             <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
                 Hasil Performa ({{ $period }} Bulan)
             </h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                Skor harian = bobot x progres (%) / 8. Skor periode adalah penjumlahan skor harian.
-            </p>
 
             <table class="w-full border-collapse text-gray-900 dark:text-gray-100">
                 <thead>
@@ -94,6 +108,10 @@
                         <th class="text-left py-2">Ranking</th>
                         <th class="text-left py-2">Nama</th>
                         <th class="text-left py-2">Total Tugas</th>
+                        @if(($type ?? 'staf') === 'kepala')
+                            <th class="text-left py-2">Kap. Produksi (30%)</th>
+                            <th class="text-left py-2">Nilai Kepala (70%)</th>
+                        @endif
                         <th class="text-left py-2">Skor KPI</th>
                         <th class="text-left py-2">Badge</th>
                     </tr>
@@ -101,26 +119,24 @@
                 <tbody>
                 @foreach($results as $row)
                     <tr class="border-b border-gray-200 dark:border-gray-700">
-
                         <td class="py-2 font-bold" style="color: {{ $row->rank_color }}">
                             {{ $row->rank_icon }} #{{ $row->rank }}
                         </td>
-
                         <td class="py-2">{{ $row->name }}</td>
-
                         <td class="py-2">{{ $row->total_tasks }}</td>
-
+                        @if(($type ?? 'staf') === 'kepala')
+                            <td class="py-2">{{ $row->kapasitas_produksi ?? '-' }}</td>
+                            <td class="py-2">{{ $row->nilai_kepala ?? '-' }}</td>
+                        @endif
                         <td class="py-2 font-bold">
                             {{ $row->final_score }}
                         </td>
-
                         <td class="py-2">
                             <span class="px-3 py-1 rounded-full text-white"
                                   style="background: {{ $row->rank_color }}">
                                 {{ $row->badge }}
                             </span>
                         </td>
-
                     </tr>
                 @endforeach
                 </tbody>
@@ -136,7 +152,6 @@
             <canvas id="kpiChart"></canvas>
         </div>
 
-        {{-- ================= CHART.JS AUTO DARK MODE ================= --}}
         @push('scripts')
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script>
@@ -146,11 +161,6 @@
             let chart;
 
             function renderChart() {
-
-                const isDark = document.documentElement.classList.contains('dark');
-                const fontColor = isDark ? '#e5e7eb' : '#1f2937';
-                const gridColor = isDark ? '#374151' : '#e5e7eb';
-
                 if (chart) chart.destroy();
 
                 chart = new Chart(ctx, {
@@ -160,43 +170,16 @@
                         datasets: [{
                             label: 'Skor KPI',
                             data: {!! json_encode($results->pluck('final_score')) !!},
-                            backgroundColor: '#3b82f6'
                         }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            x: {
-                                ticks: { color: fontColor },
-                                grid: { color: gridColor }
-                            },
-                            y: {
-                                ticks: { color: fontColor },
-                                grid: { color: gridColor },
-                                beginAtZero: true
-                            }
-                        },
-                        plugins: {
-                            legend: {
-                                labels: { color: fontColor }
-                            }
-                        }
                     }
                 });
             }
 
             renderChart();
-
-            const observer = new MutationObserver(renderChart);
-            observer.observe(document.documentElement, {
-                attributes: true,
-                attributeFilter: ['class']
-            });
-
         });
         </script>
         @endpush
 
     @endisset
+
 </x-app-layout>
-    

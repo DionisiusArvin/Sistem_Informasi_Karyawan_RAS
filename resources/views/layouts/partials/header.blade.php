@@ -84,11 +84,11 @@
 
                     @forelse($notifs as $notif)
                         <div class="relative group">
-                            <a href="{{ $notif->url }}"
-                               onclick="markAsRead(event, {{ $notif->id }}, this.href)"
-                               class="block px-4 py-3 border-b
-                                      border-gray-200 dark:border-gray-700
-                                      hover:bg-gray-100 dark:hover:bg-gray-700 text-sm">
+                        <a href="{{ route('notif.read', $notif->id) }}"
+                        onclick="markAsRead(event, {{ $notif->id }}, this.href)"
+                        class="block px-4 py-3 border-b
+                                border-gray-200 dark:border-gray-700
+                                hover:bg-gray-100 dark:hover:bg-gray-700 text-sm">
 
                                 <div class="text-gray-800 dark:text-white font-semibold">
                                     {{ $notif->title }}

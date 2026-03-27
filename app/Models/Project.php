@@ -6,11 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
-use App\Events\DataChanged;
+use App\Models\Concerns\BroadcastsDataChanges;
 
 class Project extends Model
 {
-    use HasFactory;
+    use BroadcastsDataChanges, HasFactory;
     protected $guarded = [];
     protected $casts = [
         'force_finished_at' => 'datetime',
@@ -25,15 +25,15 @@ class Project extends Model
     protected static function booted()
     {
         static::created(function ($division) {
-            broadcast(new DataChanged($division));
+            static::broadcastDataChanged($division);
         });
 
         static::updated(function ($division) {
-            broadcast(new DataChanged($division));
+            static::broadcastDataChanged($division);
         });
 
         static::deleted(function ($division) {
-            broadcast(new DataChanged($division->id));
+            static::broadcastDataChanged($division->id);
         });
     }
 

@@ -21,20 +21,29 @@ use App\Http\Controllers\{
 
 /*
 |--------------------------------------------------------------------------
+| PERFORMANCE (SUDAH ADA CALCULATE)
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth')->group(function () {
+
+    Route::get('/performance', [PerformanceController::class, 'index'])
+        ->name('performance.index');
+
+    Route::get('/performance/calculate', [PerformanceController::class, 'calculate'])
+        ->name('performance.calculate');
+
+});
+
+/*
+|--------------------------------------------------------------------------
 | NOTIFICATIONS
 |--------------------------------------------------------------------------
 */
-
-Route::post('/notif/read/{id}', [\App\Http\Controllers\NotificationController::class, 'markRead'])->name('notif.markRead');
+Route::post('/notif/read/{id}', [NotificationController::class, 'markRead'])->name('notif.markRead');
 Route::get('/notifications', [NotificationController::class, 'index'])->name('notif.index');
 Route::get('/notifications/{id}', [NotificationController::class, 'read'])->name('notif.read');
-Route::post('/notif/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllRead'])
-    ->name('notif.readAll');
-
-Route::delete('/notif/delete/{id}', [\App\Http\Controllers\NotificationController::class, 'delete'])
-    ->name('notif.delete');
-
-
+Route::post('/notif/read-all', [NotificationController::class, 'markAllRead'])->name('notif.readAll');
+Route::delete('/notif/delete/{id}', [NotificationController::class, 'delete'])->name('notif.delete');
 
 /*
 |--------------------------------------------------------------------------
@@ -66,7 +75,7 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | VALIDATION (KADIV)
+    | VALIDATION
     |--------------------------------------------------------------------------
     */
     Route::prefix('validation')->group(function () {
@@ -85,7 +94,6 @@ Route::middleware('auth')->group(function () {
     Route::patch('/projects/{project}/force-finish', [ProjectController::class, 'forceFinish'])->name('projects.force-finish');
     Route::resource('projects.tasks', TaskController::class)->shallow();
 
-    /* ================= FIX 404 /tasks ================= */
     Route::get('/tasks', function () {
         return redirect()->route('projects.index');
     })->name('tasks.index');
@@ -96,59 +104,29 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | DAILY TASKS (SISTEM BARU)
+    | DAILY TASKS
     |--------------------------------------------------------------------------
     */
-
-    // tambah daily task
-
-    Route::post('/daily-tasks/{dailyTask}/approve', 
-        [App\Http\Controllers\DailyTaskController::class, 'approve']
-    )->name('dailytasks.approve');
-
-    Route::post('/daily-tasks/{dailyTask}/reject', 
-        [App\Http\Controllers\DailyTaskController::class, 'reject']
-    )->name('dailytasks.reject');
-
-
-    Route::post('/tasks/{task}/dailytasks', [DailyTaskController::class, 'store'])
-        ->name('tasks.dailytasks.store');
-
-    // download file
-    Route::get('/daily-tasks/{dailyTask}/download', [DailyTaskController::class, 'download'])
-        ->name('dailytasks.download');
+    Route::post('/daily-tasks/{dailyTask}/approve', [DailyTaskController::class, 'approve'])->name('dailytasks.approve');
+    Route::post('/daily-tasks/{dailyTask}/reject', [DailyTaskController::class, 'reject'])->name('dailytasks.reject');
+    Route::post('/tasks/{task}/dailytasks', [DailyTaskController::class, 'store'])->name('tasks.dailytasks.store');
+    Route::get('/daily-tasks/{dailyTask}/download', [DailyTaskController::class, 'download'])->name('dailytasks.download');
 
     Route::prefix('daily-tasks')->group(function () {
-
-        // ✅ AMBIL TUGAS (ganti claim)
-        Route::patch('{dailyTask}/take', [DailyTaskController::class, 'take'])
-            ->name('dailytasks.take');
-
-        // form upload
-        Route::get('{dailyTask}/upload', [DailyTaskController::class, 'showUploadForm'])
-            ->name('dailytasks.upload.form');
-
-        // handle upload (hanya satu)
-        Route::post('{dailyTask}/upload', [DailyTaskController::class, 'handleUpload'])
-            ->name('dailytasks.upload.handle');
-
-        // edit & hapus
-        Route::patch('{dailyTask}', [DailyTaskController::class, 'update'])
-            ->name('dailytasks.update');
-
-        Route::delete('{dailyTask}', [DailyTaskController::class, 'destroy'])
-            ->name('dailytasks.destroy');
+        Route::patch('{dailyTask}/take', [DailyTaskController::class, 'take'])->name('dailytasks.take');
+        Route::get('{dailyTask}/upload', [DailyTaskController::class, 'showUploadForm'])->name('dailytasks.upload.form');
+        Route::post('{dailyTask}/upload', [DailyTaskController::class, 'handleUpload'])->name('dailytasks.upload.handle');
+        Route::patch('{dailyTask}', [DailyTaskController::class, 'update'])->name('dailytasks.update');
+        Route::delete('{dailyTask}', [DailyTaskController::class, 'destroy'])->name('dailytasks.destroy');
     });
 
     /*
     |--------------------------------------------------------------------------
-    | DIVISION TASKS (STAFF)
+    | DIVISION TASKS
     |--------------------------------------------------------------------------
     */
-    Route::get('/division-tasks', [DivisionTaskController::class, 'index'])
-        ->name('division-tasks.index');
-    Route::get('/division-tasks/take/{id}', [DivisionTaskController::class, 'takeTask'])
-    ->name('division.tasks.take');
+    Route::get('/division-tasks', [DivisionTaskController::class, 'index'])->name('division-tasks.index');
+    Route::get('/division-tasks/take/{id}', [DivisionTaskController::class, 'takeTask'])->name('division.tasks.take');
 
     /*
     |--------------------------------------------------------------------------
@@ -156,15 +134,10 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::resource('admin-tasks', AdminTaskController::class);
-    Route::get('/admin-tasks/{adminTask}/upload',
-        [AdminTaskController::class, 'showUploadForm']
-    )->name('admin-tasks.upload.form');
-    Route::post('/admin-tasks/{adminTask}/upload',
-        [AdminTaskController::class, 'handleUpload']
-    )->name('admin-tasks.upload.handle');
-    Route::get('/admin-tasks/{adminTask}/download',
-        [AdminTaskController::class, 'downloadFile']
-    )->name('admin-tasks.downloadFile');
+
+    Route::get('/admin-tasks/{adminTask}/upload', [AdminTaskController::class, 'showUploadForm'])->name('admin-tasks.upload.form');
+    Route::post('/admin-tasks/{adminTask}/upload', [AdminTaskController::class, 'handleUpload'])->name('admin-tasks.upload.handle');
+    Route::get('/admin-tasks/{adminTask}/download', [AdminTaskController::class, 'downloadFile'])->name('admin-tasks.downloadFile');
 
     /*
     |--------------------------------------------------------------------------
@@ -172,6 +145,7 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::resource('ad-hoc-tasks', AdHocTaskController::class);
+
     Route::get('/ad-hoc-tasks/{adHocTask}/upload', [AdHocTaskController::class, 'showUploadForm'])->name('ad-hoc-tasks.upload.form');
     Route::post('/ad-hoc-tasks/{adHocTask}/upload', [AdHocTaskController::class, 'handleUpload'])->name('ad-hoc-tasks.upload.handle');
     Route::get('/ad-hoc-tasks/{adHocTask}/download', [AdHocTaskController::class, 'downloadFile'])->name('ad-hoc-tasks.downloadFile');
@@ -202,22 +176,7 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::resource('schedules', ScheduleController::class);
-    Route::post('/schedules/{schedule}/done', [ScheduleController::class, 'markDone'])
-        ->name('schedules.done');
+    Route::post('/schedules/{schedule}/done', [ScheduleController::class, 'markDone'])->name('schedules.done');
 });
-
-/*
-|--------------------------------------------------------------------------
-| PERFORMANCE KPI (MANAGER)
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth', 'role:manager'])
-    ->prefix('performance')
-    ->group(function () {
-        Route::get('/', [PerformanceController::class, 'index'])->name('performance.index');
-        Route::post('/calculate', [PerformanceController::class, 'calculate'])->name('performance.calculate');
-        Route::post('/pdf', [PerformanceController::class, 'exportPdf'])->name('performance.pdf');
-        Route::post('/excel', [PerformanceController::class, 'exportExcel'])->name('performance.excel');
-    });
 
 require __DIR__.'/auth.php';

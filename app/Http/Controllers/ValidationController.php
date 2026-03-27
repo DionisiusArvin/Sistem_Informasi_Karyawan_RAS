@@ -64,7 +64,8 @@ class ValidationController extends Controller
         ]);
 
         $dailyTask->update([
-            'status' => 'Revisi'
+            'status' => 'Revisi',
+            'progress' => 50,
         ]);
 
         TaskActivity::create([

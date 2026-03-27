@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use App\Services\NotificationService;
+use App\Models\Notification;
 
 class DailyTaskController extends Controller
 {
@@ -248,6 +249,8 @@ class DailyTaskController extends Controller
             $name = \App\Models\ProjectItem::find($validated['project_item_id'])->name;
         }
 
+$assignedStaffId = $request->input('assigned_to_staff_id') ?: null;
+
 $dailyTask = DailyTask::create([
     'task_id' => $task->id,
     'project_id' => $task->project_id,
@@ -256,7 +259,8 @@ $dailyTask = DailyTask::create([
     'due_date' => $validated['due_date'],
     'description' => $validated['description'] ?? null,
     'weight' => $validated['weight'],
-    'status' => 'Belum Dikerjakan',
+    'assigned_to_staff_id' => $assignedStaffId,
+    'status' => $assignedStaffId ? 'Diproses' : 'Belum Dikerjakan',
     'progress' => 0,
 ]);
 
@@ -279,7 +283,7 @@ if ($divisionId) {
 }
 
         return redirect()
-        ->route('projects.show', $task->project_id)
+        ->route('tasks.show', $task->id)
         ->with('success', 'Tugas berhasil disimpan.');
 
     }
@@ -291,7 +295,7 @@ if ($divisionId) {
     }
 
     /* ================= HANDLE UPLOAD ================= */
-    public function handleUpload(Request $request, DailyTask $dailyTask)
+public function handleUpload(Request $request, DailyTask $dailyTask)
 {
     $request->validate([
         'file' => 'nullable|file|max:10240',
@@ -336,6 +340,22 @@ if ($divisionId) {
         'status' => 'Menunggu Validasi',
         'assigned_to_staff_id' => auth()->id(),
     ]);
+    // ✅ AMBIL KEPALA DIVISI
+    $kepala = User::where('role', 'kepala_divisi')
+        ->where('division_id', auth()->user()->division_id)
+        ->first();
+
+    if ($kepala) {
+        Notification::create([
+            'user_id' => $kepala->id,
+            'title' => 'Validasi Tugas',
+            'message' => auth()->user()->name . ' mengirim tugas untuk divalidasi',
+            'url' => route('validation.index'), // ✅ INI FIX
+            'is_read' => false,
+        ]);
+    }
+    return redirect()->route('tasks.show', $dailyTask->task_id)
+    ->with('success', 'Pekerjaan berhasil diupload');
 
     // ================= NOTIF KE KEPALA DIVISI =================
     $kepalaDivisi = User::where('division_id', auth()->user()->division_id)
@@ -345,9 +365,9 @@ if ($divisionId) {
     if ($kepalaDivisi) {
         NotificationService::send(
             $kepalaDivisi->id,
-            'Tugas Selesai',
+            'Perlu Validasi',
             auth()->user()->name . ' telah menyelesaikan tugas: ' . $dailyTask->name,
-            route('division-tasks.index') . '#task-' . $dailyTask->id
+            route('validasi.index') . '?task_id=' . $dailyTask->id // ✅ FIX DI SINI
         );
     }
 
@@ -357,26 +377,24 @@ if ($divisionId) {
 }
 
     /* ================= APPROVE ================= */
-public function approve(DailyTask $dailyTask)
-{
-    if (!Gate::allows('validate-task', $dailyTask)) {
-        abort(403);
+    public function approve(DailyTask $dailyTask)
+    {
+        if (!Gate::allows('validate-task', $dailyTask)) {
+            abort(403);
+        }
+
+        $completionStatus = now()->lte($dailyTask->due_date)
+            ? 'tepat_waktu'
+            : 'terlambat';
+
+        $dailyTask->update([
+            'status' => 'Selesai',
+            'completion_status' => $completionStatus,
+            'progress' => 100,
+        ]);
+
+        return back()->with('success', 'Pekerjaan disetujui.');
     }
-
-    $completionStatus = now()->lte($dailyTask->due_date)
-        ? 'tepat_waktu'
-        : 'terlambat';
-
-    $dailyTask->update([
-        'status' => 'Selesai',
-        'completion_status' => $completionStatus,
-        'progress' => 100,
-    ]);
-
-    return back()->with('success', 'Pekerjaan disetujui.');
-}
-
-
 
     /* ================= REJECT ================= */
     public function reject(Request $request, DailyTask $dailyTask)
@@ -393,7 +411,8 @@ public function approve(DailyTask $dailyTask)
         ]);
 
         $dailyTask->update([
-            'status' => 'Revisi'
+            'status' => 'Revisi',
+            'progress' => 50,
         ]);
 
         return back()->with('success', 'Tugas dikembalikan untuk revisi.');
