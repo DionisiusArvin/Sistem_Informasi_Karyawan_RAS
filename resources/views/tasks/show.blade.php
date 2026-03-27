@@ -13,11 +13,11 @@
                     @if(($task->jenis_tugas ?? null) === 'Paving')
                         {{ $task->name ? str_replace(' - ', ' ', $task->name) : '' }}
                     @else
-                        {{ $task->name ?: $task->jenis_tugas }}
+                        {{ $task->name ?: (($task->jenis_tugas ?? null) === 'Non-PBG' ? '' : $task->jenis_tugas) }}
                     @endif
                 </span>
             </div>
-            @if(($task->jenis_tugas ?? null) !== 'Paving')
+            @if(($task->jenis_tugas ?? null) !== 'Paving' && !empty($task->jenis_tugas) && ($task->jenis_tugas ?? null) !== 'Non-PBG')
                 <div class="flex items-start">
                     <span class="w-33 font-semibold text-xl text-gray-800 dark:text-gray-200">Jenis Tugas :&nbsp;</span>
                     <span class="text-xl text-gray-800 dark:text-gray-200 flex-1">

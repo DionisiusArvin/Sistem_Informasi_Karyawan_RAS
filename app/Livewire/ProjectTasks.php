@@ -103,7 +103,7 @@ class ProjectTasks extends Component
 
             $judul = trim((string) ($task->name ?? ''));
             if ($judul === '') {
-                $judul = (string) ($task->jenis_tugas ?? '');
+                $judul = $this->sanitizeJenisTugas($task->jenis_tugas ?? null);
             }
 
             return '1-' . Str::lower($judul);
@@ -151,7 +151,7 @@ class ProjectTasks extends Component
     private function getTaskSearchLabel($task, ?string $category, array $pavingOrder): string
     {
         $name = trim((string) ($task->name ?? ''));
-        $jenis = trim((string) ($task->jenis_tugas ?? ''));
+        $jenis = $this->sanitizeJenisTugas($task->jenis_tugas ?? null);
 
         if ($category === 'PERENCANAAN' && $jenis === 'Paving') {
             return $name !== '' ? str_replace(' - ', ' ', $name) : $jenis;
@@ -162,6 +162,13 @@ class ProjectTasks extends Component
         }
 
         return $jenis;
+    }
+
+    private function sanitizeJenisTugas(?string $jenis): string
+    {
+        $normalized = trim((string) ($jenis ?? ''));
+
+        return $normalized === 'Non-PBG' ? '' : $normalized;
     }
 
     private function normalizeTitleKey(string $title): string

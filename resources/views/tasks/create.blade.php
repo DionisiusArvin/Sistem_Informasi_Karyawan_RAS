@@ -50,7 +50,7 @@
                                     @endforeach
                                 </select>
                             @else
-                                <input type="hidden" id="jenis_tugas" name="jenis_tugas" value="{{ $project->category ?? 'Non-PBG' }}">
+                                <input type="hidden" id="jenis_tugas" name="jenis_tugas" value="{{ old('jenis_tugas', $project->category ?? '') }}">
                             @endif
                         </div>
 
@@ -115,73 +115,69 @@
         </div>
     </div>
 
-    @if(in_array($project->category ?? null, ['PERENCANAAN', 'PBG', 'SLF']))
-        @push('scripts')
-            <script>
-                document.addEventListener('DOMContentLoaded', function () {
-                    const projectCategory = @json($project->category ?? null);
-                    const jenisSelect = document.getElementById('jenis_tugas');
-                    const jenisWrapper = document.getElementById('jenis-tugas-wrapper');
-                    const pbgSlfModeWrapper = document.getElementById('pbg-slf-mode-wrapper');
-                    const pbgSlfModeSelect = document.getElementById('pbg_slf_mode');
-                    const modeWrapper = document.getElementById('paving-mode-wrapper');
-                    const modeSelect = document.getElementById('paving_mode');
-                    const nameWrapper = document.getElementById('name-wrapper');
-                    const nameInput = document.getElementById('name');
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const projectCategory = @json($project->category ?? null);
+                const jenisSelect = document.getElementById('jenis_tugas');
+                const jenisWrapper = document.getElementById('jenis-tugas-wrapper');
+                const pbgSlfModeWrapper = document.getElementById('pbg-slf-mode-wrapper');
+                const pbgSlfModeSelect = document.getElementById('pbg_slf_mode');
+                const modeWrapper = document.getElementById('paving-mode-wrapper');
+                const modeSelect = document.getElementById('paving_mode');
+                const nameInput = document.getElementById('name');
 
-                    function syncMode() {
-                        const isPerencanaan = projectCategory === 'PERENCANAAN';
-                        const isPbgSlf = projectCategory === 'PBG' || projectCategory === 'SLF';
-                        const jenisValue = jenisSelect ? jenisSelect.value : '';
-                        const isPaving = isPerencanaan && jenisValue === 'Paving';
-                        if (modeWrapper) {
-                            modeWrapper.classList.toggle('hidden', !isPaving);
-                        }
-                        const mode = modeSelect ? modeSelect.value : 'auto';
-                        const manual = isPaving && mode === 'manual';
-                        const pbgMode = pbgSlfModeSelect ? pbgSlfModeSelect.value : 'auto';
-                        const pbgAuto = isPbgSlf && pbgMode === 'auto';
-
-                        if (pbgSlfModeWrapper) {
-                            pbgSlfModeWrapper.classList.toggle('hidden', !isPbgSlf);
-                        }
-                        if (jenisWrapper) {
-                            jenisWrapper.classList.toggle('hidden', pbgAuto);
-                        }
-                        if (jenisSelect) {
-                            jenisSelect.required = !pbgAuto;
-                            jenisSelect.disabled = pbgAuto;
-                        }
-                        if (nameInput) {
-                            nameInput.required = manual;
-                        }
+                function syncMode() {
+                    const isPerencanaan = projectCategory === 'PERENCANAAN';
+                    const isPbgSlf = projectCategory === 'PBG' || projectCategory === 'SLF';
+                    const jenisValue = jenisSelect ? jenisSelect.value : '';
+                    const isPaving = isPerencanaan && jenisValue === 'Paving';
+                    if (modeWrapper) {
+                        modeWrapper.classList.toggle('hidden', !isPaving);
                     }
+                    const mode = modeSelect ? modeSelect.value : 'auto';
+                    const manual = isPaving && mode === 'manual';
+                    const pbgMode = pbgSlfModeSelect ? pbgSlfModeSelect.value : 'auto';
+                    const pbgAuto = isPbgSlf && pbgMode === 'auto';
 
+                    if (pbgSlfModeWrapper) {
+                        pbgSlfModeWrapper.classList.toggle('hidden', !isPbgSlf);
+                    }
+                    if (jenisWrapper) {
+                        jenisWrapper.classList.toggle('hidden', pbgAuto);
+                    }
                     if (jenisSelect) {
-                        jenisSelect.addEventListener('change', syncMode);
+                        jenisSelect.required = !pbgAuto;
+                        jenisSelect.disabled = pbgAuto;
                     }
-                    if (modeSelect) {
-                        modeSelect.addEventListener('change', syncMode);
+                    if (nameInput) {
+                        nameInput.required = manual;
                     }
-                    if (pbgSlfModeSelect) {
-                        pbgSlfModeSelect.addEventListener('change', syncMode);
-                    }
-                    syncMode();
+                }
 
-                    // Modal functions
-                    window.openModal = function() {
-                        document.getElementById('confirmModal').classList.remove('hidden');
-                        document.getElementById('confirmModal').classList.add('flex');
-                    }
+                if (jenisSelect) {
+                    jenisSelect.addEventListener('change', syncMode);
+                }
+                if (modeSelect) {
+                    modeSelect.addEventListener('change', syncMode);
+                }
+                if (pbgSlfModeSelect) {
+                    pbgSlfModeSelect.addEventListener('change', syncMode);
+                }
+                syncMode();
 
-                    window.closeModal = function() {
-                        document.getElementById('confirmModal').classList.add('hidden');
-                        document.getElementById('confirmModal').classList.remove('flex');
-                    }
-                });
-            </script>
-        @endpush
-    @endif
+                window.openModal = function() {
+                    document.getElementById('confirmModal').classList.remove('hidden');
+                    document.getElementById('confirmModal').classList.add('flex');
+                }
+
+                window.closeModal = function() {
+                    document.getElementById('confirmModal').classList.add('hidden');
+                    document.getElementById('confirmModal').classList.remove('flex');
+                }
+            });
+        </script>
+    @endpush
 
     <!-- Modal Konfirmasi -->
     <div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">

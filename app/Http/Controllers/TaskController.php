@@ -119,7 +119,7 @@ class TaskController extends Controller
         } else {
             $task = Task::create([
                 'project_id' => $project->id,
-                'jenis_tugas' => $validated['jenis_tugas'] ?? ($project->category ?? 'Non-PBG'),
+                'jenis_tugas' => $validated['jenis_tugas'] ?? ($project->category ?? ''),
                 'name' => $validated['name'] ?? '',
                 'description' => $validated['description'] ?? null,
                 'order' => 0,

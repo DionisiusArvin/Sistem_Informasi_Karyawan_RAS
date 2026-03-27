@@ -36,6 +36,9 @@
                 $menunggu = $task->dailyTasks()->where('status', 'Menunggu Validasi')->count();
                 $revisi = $task->dailyTasks()->where('status', 'Revisi')->count();
                 $jenis = trim((string) ($task->jenis_tugas ?? ''));
+                if ($jenis === 'Non-PBG') {
+                    $jenis = '';
+                }
                 $nama = trim(str_replace(' - ', ' ', (string) ($task->name ?? '')));
                 $displayName = trim($jenis . ' ' . $nama);
             @endphp
@@ -60,10 +63,12 @@
                         @if(($task->jenis_tugas ?? null) === 'Paving')
                             {{ $task->name ? str_replace(' - ', ' ', $task->name) : '-' }}
                         @elseif(!empty($task->name))
-                            <span class="mr-2 font-semibold text-gray-600 dark:text-gray-300">{{ $task->jenis_tugas ?? '-' }}</span>
+                            @if($jenis !== '')
+                                <span class="mr-2 font-semibold text-gray-600 dark:text-gray-300">{{ $jenis }}</span>
+                            @endif
                             {{ $task->name }}
                         @else
-                            {{ $task->jenis_tugas ?? '-' }}
+                            {{ $jenis !== '' ? $jenis : '-' }}
                         @endif
                     </p>
                     @if($task->description)
