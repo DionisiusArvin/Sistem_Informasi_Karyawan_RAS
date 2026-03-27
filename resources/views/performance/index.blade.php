@@ -9,13 +9,13 @@
     <div class="mb-4 flex gap-2">
         <a href="/performance?type=staf"
            class="px-4 py-2 rounded 
-           {{ ($type ?? 'staf') == 'staf' ? 'bg-blue-600 text-white' : 'bg-gray-300' }}">
+           {{ ($type ?? 'staf') == 'staf' ? 'bg-blue-600 text-white' : 'bg-gray-500 text-white' }}">
             Performa Staf
         </a>
 
         <a href="/performance?type=kepala"
            class="px-4 py-2 rounded 
-           {{ ($type ?? '') == 'kepala' ? 'bg-green-600 text-white' : 'bg-gray-300' }}">
+           {{ ($type ?? '') == 'kepala' ? 'bg-green-600 text-white' : 'bg-gray-500 text-white' }}">
             Kepala Divisi
         </a>
     </div>
@@ -79,8 +79,8 @@
                     <option value="selesai" @selected(($status ?? 'semua') == 'selesai')>
                         Selesai
                     </option>
-                    <option value="valid" @selected(($status ?? 'semua') == 'valid')>
-                        Valid
+                    <option value="proses" @selected(($status ?? 'semua') == 'proses')>
+                        Proses
                     </option>
                 </select>
             </div>
@@ -98,9 +98,24 @@
 
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8
                     border border-gray-200 dark:border-gray-700">
-            <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
-                Hasil Performa ({{ $period }} Bulan)
-            </h3>
+            <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    Hasil Performa ({{ $period }} Bulan)
+                </h3>
+
+                <div class="flex flex-wrap gap-2">
+                    <a href="{{ route('performance.pdf', ['type' => $type ?? 'staf', 'period' => $period, 'status' => $status ?? 'semua', 'user_id' => $userId ?? null]) }}"
+                       target="_blank"
+                       class="inline-flex items-center rounded bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">
+                        Cetak PDF
+                    </a>
+
+                    <a href="{{ route('performance.excel', ['type' => $type ?? 'staf', 'period' => $period, 'status' => $status ?? 'semua', 'user_id' => $userId ?? null]) }}"
+                       class="inline-flex items-center rounded bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                        Export Excel
+                    </a>
+                </div>
+            </div>
 
             <table class="w-full border-collapse text-gray-900 dark:text-gray-100">
                 <thead>

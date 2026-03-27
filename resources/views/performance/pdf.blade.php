@@ -50,15 +50,20 @@
 
 <h2>Report KPI Karyawan</h2>
 <div class="printed">Dicetak pada: {{ $printedAt }}</div>
+<div class="printed">{{ $periodeLabel }}</div>
 
 <table>
     <thead>
         <tr>
-            <th width="10%">Rank</th>
-            <th width="30%">Nama</th>
-            <th width="15%">Total Tugas</th>
-            <th width="15%">Skor KPI</th>
-            <th width="30%">Status</th>
+            <th>Rank</th>
+            <th>Nama</th>
+            <th>Total Tugas</th>
+            @if(($type ?? 'staf') === 'kepala')
+            <th>Kap. Produksi</th>
+            <th>Nilai Kepala</th>
+            @endif
+            <th>Skor KPI</th>
+            <th>Status</th>
         </tr>
     </thead>
     <tbody>
@@ -67,10 +72,13 @@
             <td class="center bold">{{ $row->rank }}</td>
             <td>{{ $row->name }}</td>
             <td class="center">{{ $row->total_tasks }}</td>
+            @if(($type ?? 'staf') === 'kepala')
+            <td class="center">{{ $row->kapasitas_produksi ?? '-' }}</td>
+            <td class="center">{{ $row->nilai_kepala ?? '-' }}</td>
+            @endif
             <td class="center bold">{{ $row->final_score }}</td>
 
             <td class="status-box">
-                {{ $periodeLabel }} <br>
                 <span style="font-size:10px; font-weight:bold;">
                     @if(str_contains($row->badge, 'Top Performer'))
                         Top Performer

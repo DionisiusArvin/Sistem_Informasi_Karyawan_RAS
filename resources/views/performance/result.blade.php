@@ -9,6 +9,17 @@
         </span>
     </p>
 
+    <div class="mb-4 flex flex-wrap gap-2">
+        <a href="{{ route('performance.pdf', ['type' => request('type', 'staf'), 'period' => request('period', 1), 'status' => request('status', 'semua'), 'user_id' => request('user_id')]) }}"
+           class="inline-flex items-center rounded bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">
+            Cetak PDF
+        </a>
+        <a href="{{ route('performance.excel', ['type' => request('type', 'staf'), 'period' => request('period', 1), 'status' => request('status', 'semua'), 'user_id' => request('user_id')]) }}"
+           class="inline-flex items-center rounded bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+            Export Excel
+        </a>
+    </div>
+
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
         <table class="w-full border-collapse">
             <thead>

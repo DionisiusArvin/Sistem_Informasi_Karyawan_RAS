@@ -23,12 +23,13 @@ class PerformanceController extends Controller
     public function calculate(Request $request)
     {
         $type = $request->type ?? 'staf';
+        $status = $this->normalizeStatusFilter($request->status);
 
         return view('performance.index', [
             'results'   => $this->getKpiData($request, $type),
             'employees' => User::where('role', '!=', 'manager')->get(),
             'period'    => (int) $request->period,
-            'status'    => $request->status,
+            'status'    => $status,
             'userId'    => $request->user_id,
             'type'      => $type,
         ]);
@@ -37,20 +38,26 @@ class PerformanceController extends Controller
     public function exportPdf(Request $request)
     {
         $type = $request->type ?? 'staf';
+        $period = (int) $request->period;
+        $results = $this->getKpiData($request, $type);
 
         return Pdf::loadView('performance.pdf', [
-            'results'   => $this->getKpiData($request, $type),
+            'results'   => $results,
+            'type'      => $type,
+            'periodeLabel' => $this->buildPeriodLabel($period),
             'printedAt' => now()->format('d M Y H:i'),
-        ])->download('kpi-karyawan.pdf');
+        ])->download($this->buildExportFilename('pdf', $type, $period));
     }
 
     public function exportExcel(Request $request)
     {
         $type = $request->type ?? 'staf';
+        $period = (int) $request->period;
+        $results = $this->getKpiData($request, $type);
 
         return Excel::download(
-            new PerformanceExport($this->getKpiData($request, $type)),
-            'kpi-karyawan.xlsx'
+            new PerformanceExport($results),
+            $this->buildExportFilename('xlsx', $type, $period)
         );
     }
 
@@ -69,9 +76,11 @@ class PerformanceController extends Controller
      */
     private function getKpiData(Request $request, $type = 'staf')
     {
+        $statusFilter = $this->normalizeStatusFilter($request->status);
+
         $request->validate([
             'period'  => 'required|in:1,6,12',
-            'status'  => 'required',
+            'status'  => 'required|in:semua,selesai,proses,valid',
             'user_id' => 'nullable|exists:users,id',
         ]);
 
@@ -112,7 +121,7 @@ class PerformanceController extends Controller
         };
 
         /* ================= LOOP KPI ================= */
-        $results = $employees->map(function ($employee) use ($startDate, $endDate, $type, $calcAcb) {
+        $results = $employees->map(function ($employee) use ($startDate, $endDate, $type, $calcAcb, $statusFilter) {
 
             if ($type === 'kepala') {
                 /* =======================================================
@@ -132,12 +141,16 @@ class PerformanceController extends Controller
                         ->get();
                 }
 
+                $picDailyTasks = $this->filterTasksByStatus($picDailyTasks, $statusFilter);
+
                 $kapasitasProduksi = $calcAcb($picDailyTasks);
 
                 // ── 70% NILAI KEPALA DIVISI (tugas sendiri) ──
                 $ownDailyTasks = \App\Models\DailyTask::where('assigned_to_staff_id', $employee->id)
                     ->whereBetween('created_at', [$startDate, $endDate])
                     ->get();
+
+                $ownDailyTasks = $this->filterTasksByStatus($ownDailyTasks, $statusFilter);
 
                 $nilaiKepalaDivisi = $calcAcb($ownDailyTasks);
 
@@ -166,6 +179,8 @@ class PerformanceController extends Controller
                 $dailyTasks = \App\Models\DailyTask::where('assigned_to_staff_id', $employee->id)
                     ->whereBetween('created_at', [$startDate, $endDate])
                     ->get();
+
+                $dailyTasks = $this->filterTasksByStatus($dailyTasks, $statusFilter);
 
                 $finalScore = $calcAcb($dailyTasks);
 
@@ -211,5 +226,47 @@ class PerformanceController extends Controller
 
                 return $row;
             });
+    }
+
+    private function buildPeriodLabel(int $period): string
+    {
+        return match ($period) {
+            1 => 'Periode 1 Bulan',
+            6 => 'Periode 6 Bulan',
+            12 => 'Periode 12 Bulan',
+            default => 'Periode Kustom',
+        };
+    }
+
+    private function buildExportFilename(string $extension, string $type, int $period): string
+    {
+        return sprintf(
+            'kpi-%s-%s-bulan.%s',
+            $type,
+            $period ?: 'custom',
+            $extension
+        );
+    }
+
+    private function normalizeStatusFilter(?string $status): string
+    {
+        return match ($status) {
+            'valid' => 'proses',
+            'selesai', 'proses' => $status,
+            default => 'semua',
+        };
+    }
+
+    private function filterTasksByStatus($dailyTasks, string $statusFilter)
+    {
+        return match ($statusFilter) {
+            'selesai' => $dailyTasks->filter(fn ($task) => $task->status === 'Selesai')->values(),
+            'proses' => $dailyTasks->filter(function ($task) {
+                $progress = (int) ($task->progress ?? 0);
+
+                return $task->status === 'Revisi' || $progress < 100;
+            })->values(),
+            default => $dailyTasks,
+        };
     }
 }

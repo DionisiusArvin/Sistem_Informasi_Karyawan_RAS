@@ -32,6 +32,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/performance/calculate', [PerformanceController::class, 'calculate'])
         ->name('performance.calculate');
 
+    Route::get('/performance/pdf', [PerformanceController::class, 'exportPdf'])
+        ->name('performance.pdf');
+
+    Route::get('/performance/excel', [PerformanceController::class, 'exportExcel'])
+        ->name('performance.excel');
+
 });
 
 /*
