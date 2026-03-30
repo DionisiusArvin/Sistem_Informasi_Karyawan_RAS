@@ -15,12 +15,20 @@
     
     <link rel="icon" type="image/png" href="image/RAS.png">
 
+        <script>
+      // On page load or when changing themes, best to add inline in `head` to avoid FOUC
+      if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+      } else {
+          document.documentElement.classList.remove('dark')
+      }
+    </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
   </head>
-  <body class="font-sans antialiased bg-gray-50 pt-20">
+  <body class="font-sans antialiased bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 pt-20">
     
     <!-- Navbar -->
-    <nav id="navbar" class="animate-navbar bg-gradient-to-r from-blue-600 via-blue-500 to-blue-700 shadow-lg fixed w-full z-50 top-0 transition-all duration-300">
+    <nav id="navbar" class="animate-navbar bg-gradient-to-r from-blue-600 via-blue-500 to-blue-700 shadow-lg fixed w-full z-50 top-0 transition-all duration-300 h-20">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-20 items-center transition-all duration-300">
           <!-- Logo -->
@@ -35,17 +43,21 @@
             @if (Route::has('login'))
             <div class="flex flex-col sm:flex-row sm:space-x-6 space-y-3 sm:space-y-0 items-center">
               @auth
-              <a href="{{ url('/dashboard') }}" class="nav-link text-white font-medium">Dashboard</a>
+              <a href="{{ url('/dashboard') }}" class="nav-link text-white font-medium px-3 py-2">Dashboard</a>
               @else
-              <a href="{{ route('login') }}" class="w-full sm:w-auto text-center px-4 py-2 rounded-full bg-white text-blue-600 font-semibold hover:bg-yellow-300 hover:text-blue-900 shadow-md transition">
+              <a href="{{ route('login') }}" class="w-full sm:w-auto text-center px-6 py-2 rounded-full bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 font-bold shadow-md hover:shadow-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">
                 Log in
               </a>
               @if (Route::has('register'))
-              <a href="{{ route('register') }}" class="w-full sm:w-auto text-center px-4 py-2 rounded-full border border-white text-white font-semibold hover:bg-white hover:text-blue-700 shadow-md transition">
+              <a href="{{ route('register') }}" class="w-full sm:w-auto text-center px-6 py-2.5 rounded-full bg-transparent border-2 border-white/50 text-white font-bold hover:bg-white hover:text-blue-700 hover:border-transparent hover:-translate-y-0.5 transition-all duration-300">
                 Register
               </a>
               @endif
               @endauth
+              <button id="theme-toggle" type="button" class="text-white hover:text-yellow-300 focus:outline-none transition-colors border border-transparent p-2 rounded-full hover:bg-white/10 ml-0 sm:ml-4">
+                <i id="theme-toggle-dark-icon" class="hidden fas fa-moon text-lg"></i>
+                <i id="theme-toggle-light-icon" class="hidden fas fa-sun text-lg"></i>
+              </button>
             </div>
             @endif
           </div>
@@ -72,66 +84,66 @@
     </header>
 
     <!-- Layanan -->
-    <section id="services" class="py-20 sm:py-24 bg-gray-50">
+    <section id="services" class="py-20 sm:py-24 bg-gray-50 dark:bg-gray-900">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
         <div class="text-center" data-aos="fade-down">
-          <h3 class="text-2xl sm:text-3xl font-bold text-gray-800">Layanan Kami</h3>
-          <p class="mt-2 text-gray-600 text-sm sm:text-base">Kami menyediakan solusi konstruksi yang komprehensif.</p>
+          <h3 class="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100">Layanan Kami</h3>
+          <p class="mt-2 text-gray-600 dark:text-gray-300 text-sm sm:text-base">Kami menyediakan solusi konstruksi yang komprehensif.</p>
         </div>
         <div class="mt-12 grid gap-6 sm:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <!-- Card contoh -->
-          <div class="bg-white p-6 sm:p-8 rounded-xl shadow-md text-center hover:shadow-2xl transition transform hover:-translate-y-2" data-aos="zoom-in">
-            <div class="flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 mx-auto">
+          <div class="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-md text-center hover:shadow-2xl transition transform hover:-translate-y-2" data-aos="zoom-in">
+            <div class="flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 dark:bg-gray-700 mx-auto">
               <svg class="h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M9 8h6m2-6H7a2 2 0 00-2 2v16a2 2 0 002 2h10a2 2 0 002-2V4a2 2 0 00-2-2z"/>
               </svg>
             </div>
-            <h4 class="mt-5 text-lg sm:text-xl font-semibold text-gray-800">Perencanaan Umum</h4>
+            <h4 class="mt-5 text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-100">Perencanaan Umum</h4>
             <img src="image/1.jpg">
           </div>
           <div
-            class="bg-white p-8 rounded-xl shadow-md text-center hover:shadow-2xl transition transform hover:-translate-y-2"
+            class="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-md text-center hover:shadow-2xl transition transform hover:-translate-y-2"
             data-aos="zoom-in"
             data-aos-delay="100"
           >
             <div
-              class="flex items-center justify-center h-16 w-16 rounded-full bg-yellow-100 mx-auto"
+              class="flex items-center justify-center h-16 w-16 rounded-full bg-yellow-100 dark:bg-gray-700 mx-auto"
             >
               <i class="fa-solid fa-hard-hat text-yellow-600 text-3xl"></i>
             </div>
-            <h4 class="mt-5 text-xl font-semibold text-gray-800">
+            <h4 class="mt-5 text-xl font-semibold text-gray-800 dark:text-gray-100">
               Jasa Survey
             </h4>
             <img src="image/8.jpg">
           </div>
 
           <div
-            class="bg-white p-8 rounded-xl shadow-md text-center hover:shadow-2xl transition transform hover:-translate-y-2"
+            class="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-md text-center hover:shadow-2xl transition transform hover:-translate-y-2"
             data-aos="zoom-in"
             data-aos-delay="200"
           >
             <div
-              class="flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 mx-auto"
+              class="flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 dark:bg-gray-700 mx-auto"
             >
               <i class="fa-solid fa-drafting-compass text-blue-600 text-3xl"></i>
             </div>
-            <h4 class="mt-5 text-xl font-semibold text-gray-800">
+            <h4 class="mt-5 text-xl font-semibold text-gray-800 dark:text-gray-100">
               Perencanaan Teknik
             </h4>
             <img src="image/2.jpg">
           </div>
 
           <div
-            class="bg-white p-8 rounded-xl shadow-md text-center hover:shadow-2xl transition transform hover:-translate-y-2"
+            class="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-md text-center hover:shadow-2xl transition transform hover:-translate-y-2"
             data-aos="zoom-in"
             data-aos-delay="300"
           >
             <div
-              class="flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mx-auto"
+              class="flex items-center justify-center h-16 w-16 rounded-full bg-green-100 dark:bg-gray-700 mx-auto"
             >
               <i class="fa-solid fa-binoculars text-green-600 text-3xl"></i>
             </div>
-            <h4 class="mt-5 text-xl font-semibold text-gray-800">
+            <h4 class="mt-5 text-xl font-semibold text-gray-800 dark:text-gray-100">
               Pengawasan
             </h4>
             <img src="image/7.jpeg">
@@ -141,18 +153,18 @@
     </section>
 
     <!-- Rincian -->
-<section class="py-24 bg-gradient-to-b from-gray-50 to-white">
+<section class="py-24 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center mb-12" data-aos="fade-up">
-      <h3 class="text-3xl font-bold text-gray-800">Dengan Rincian Antara Lain</h3>
+      <h3 class="text-3xl font-bold text-gray-800 dark:text-gray-100">Dengan Rincian Antara Lain</h3>
     </div>
 
     <div class="grid gap-10 md:grid-cols-2">
       <!-- Arsitektur dan Rekayasa -->
-      <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition" data-aos="fade-right">
-        <h4 class="text-2xl font-semibold text-gray-800 mb-4">Arsitektur dan Rekayasa</h4>
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md hover:shadow-xl transition" data-aos="fade-right">
+        <h4 class="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-4">Arsitektur dan Rekayasa</h4>
 
-        <h3 class="mt-5 px-2 py-1 font-bold text-gray-800 text-left"> > Bidang Usaha Arsitektur (AR) :</h3>
+        <h3 class="mt-5 px-2 py-1 font-bold text-gray-800 dark:text-gray-100 text-left"> > Bidang Usaha Arsitektur (AR) :</h3>
         <ul class="space-y-2 mt-3">
           <li data-aos="fade-up" data-aos-delay="100" class="flex items-start">
             <i class="fa-solid fa-building text-blue-600 mt-1 mr-2"></i>
@@ -168,7 +180,7 @@
           </li>
         </ul>
 
-        <h3 class="mt-6 px-2 py-1 font-bold text-gray-800 text-left"> > Bidang Usaha Rekayasa (RK) :</h3>
+        <h3 class="mt-6 px-2 py-1 font-bold text-gray-800 dark:text-gray-100 text-left"> > Bidang Usaha Rekayasa (RK) :</h3>
         <ul class="space-y-2 mt-3">
           <li data-aos="fade-up" data-aos-delay="400" class="flex items-start">
             <i class="fa-solid fa-road text-green-600 mt-1 mr-2"></i>
@@ -185,10 +197,10 @@
       </div>
 
       <!-- Konsultan -->
-      <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition" data-aos="fade-left">
-        <h4 class="text-2xl font-semibold text-gray-800 mb-4">Konsultan</h4>
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md hover:shadow-xl transition" data-aos="fade-left">
+        <h4 class="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-4">Konsultan</h4>
 
-        <h3 class="mt-5 px-2 py-1 font-bold text-gray-800 text-left"> > Jasa Survey :</h3>
+        <h3 class="mt-5 px-2 py-1 font-bold text-gray-800 dark:text-gray-100 text-left"> > Jasa Survey :</h3>
         <ul class="space-y-2 mt-3">
           <li data-aos="fade-up" data-aos-delay="100" class="flex items-start">
             <i class="fa-solid fa-map-location-dot text-yellow-600 mt-1 mr-2"></i>
@@ -208,7 +220,7 @@
           </li>
         </ul>
 
-        <h3 class="mt-6 px-2 py-1 font-bold text-gray-800 text-left"> > Jasa Studi, Penelitian, dan Bantuan Teknik :</h3>
+        <h3 class="mt-6 px-2 py-1 font-bold text-gray-800 dark:text-gray-100 text-left"> > Jasa Studi, Penelitian, dan Bantuan Teknik :</h3>
         <ul class="space-y-2 mt-3">
           <li data-aos="fade-up" data-aos-delay="500" class="flex items-start">
             <i class="fa-solid fa-microscope text-purple-600 mt-1 mr-2"></i>
@@ -232,7 +244,7 @@
           </li>
         </ul>
 
-        <h3 class="mt-6 px-2 py-1 font-bold text-gray-800 text-left"> > Jasa Khusus :</h3>
+        <h3 class="mt-6 px-2 py-1 font-bold text-gray-800 dark:text-gray-100 text-left"> > Jasa Khusus :</h3>
         <ul class="space-y-2 mt-3">
           <li data-aos="fade-up" data-aos-delay="1000" class="flex items-start">
             <i class="fa-solid fa-scale-balanced text-red-600 mt-1 mr-2"></i>
@@ -248,7 +260,7 @@
           </li>
         </ul>
 
-        <h3 class="mt-6 px-2 py-1 font-bold text-gray-800 text-left"> > Kepariwisataan :</h3>
+        <h3 class="mt-6 px-2 py-1 font-bold text-gray-800 dark:text-gray-100 text-left"> > Kepariwisataan :</h3>
         <ul class="space-y-2 mt-3">
           <li data-aos="fade-up" data-aos-delay="1300" class="flex items-start">
             <i class="fa-solid fa-bus text-pink-600 mt-1 mr-2"></i>
@@ -272,7 +284,7 @@
           </li>
         </ul>
 
-        <h3 class="mt-6 px-2 py-1 font-bold text-gray-800 text-left"> > Pengembangan Pertanian dan Pedesaan :</h3>
+        <h3 class="mt-6 px-2 py-1 font-bold text-gray-800 dark:text-gray-100 text-left"> > Pengembangan Pertanian dan Pedesaan :</h3>
         <ul class="space-y-2 mt-3">
           <li data-aos="fade-up" data-aos-delay="1800" class="flex items-start">
             <i class="fa-solid fa-users text-green-600 mt-1 mr-2"></i>
@@ -323,7 +335,7 @@
 
     <!-- Tombol WA -->
     <div class="text-center my-10 px-4" data-aos="zoom-in">
-      <a href="https://wa.me/628123456789" target="_blank" class="inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 bg-green-500 text-white font-medium rounded-full shadow-lg hover:bg-green-600 transition transform hover:scale-105">
+      <a href="https://wa.me/0818518168" target="_blank" class="inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 bg-green-500 text-white font-medium rounded-full shadow-lg hover:bg-green-600 transition transform hover:scale-105">
         <i class="fa-brands fa-whatsapp text-2xl mr-2"></i>
         Chat via WhatsApp
       </a>
@@ -336,6 +348,94 @@
       </div>
     </footer>
 
+    <!-- Chatbot Widget -->
+    <div id="chat-widget" class="fixed bottom-6 right-6 z-50">
+      <!-- Chat Button -->
+      <button id="chat-btn" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg transition-transform transform hover:scale-110">
+        <i class="fa-solid fa-comments text-2xl"></i>
+      </button>
+
+      <!-- Chat Panel -->
+      <div id="chat-panel" class="hidden absolute bottom-20 right-0 w-80 sm:w-80 w-[calc(100vw-3rem)] bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 flex-col overflow-hidden transition-all duration-300 transform origin-bottom-right scale-95 opacity-0">
+        <!-- Header -->
+        <div class="bg-blue-600 p-4 flex justify-between items-center text-white">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-robot text-xl"></i>
+            <h3 class="font-bold text-sm">RAS Virtual Assistant</h3>
+          </div>
+          <button id="close-chat" class="text-white hover:text-gray-200 focus:outline-none">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <!-- Chat body -->
+        <div id="chat-body" class="p-4 h-72 overflow-y-auto bg-gray-50 dark:bg-gray-900 flex flex-col space-y-3">
+          <!-- Bot Message -->
+          <div class="bg-blue-100 dark:bg-gray-700 text-blue-900 dark:text-blue-300 px-4 py-2 rounded-lg rounded-tl-none self-start max-w-[90%] text-sm shadow-sm">
+            Halo! 👋 Saya asisten virtual PT Reno Abirama Sakti. Ada yang bisa saya bantu terkait estimasi harga jasa kami?
+          </div>
+        </div>
+
+        <!-- Options / Input -->
+        <div class="p-3 bg-white border-t border-gray-200 dark:border-gray-700">
+          <div id="chat-options" class="flex flex-wrap gap-2">
+            <button class="chat-option text-xs bg-gray-100 dark:bg-gray-700 hover:bg-blue-600 dark:hover:bg-blue-600 hover:text-white dark:hover:text-white text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-3 py-1.5 rounded-full transition" data-reply="Harga untuk Perencanaan Umum dan Arsitektur sangat bervariasi bergantung pada skala bangunan, tingkat kesulitan, dan lokasi. Silakan konsultasikan detail proyek Anda kepada tim ahli kami.">
+              Harga Perencanaan
+            </button>
+            <button class="chat-option text-xs bg-gray-100 dark:bg-gray-700 hover:bg-blue-600 dark:hover:bg-blue-600 hover:text-white dark:hover:text-white text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-3 py-1.5 rounded-full transition" data-reply="Estimasi Harga Jasa Survey dan Pemetaan disesuaikan dengan luas lahan, topografi, dan jenis alat yang dibutuhkan (misalnya Total Station atau Drone/UAV). Hubungi kami untuk penawaran terbaik.">
+              Harga Jasa Survey
+            </button>
+            <button class="chat-option text-xs bg-gray-100 dark:bg-gray-700 hover:bg-blue-600 dark:hover:bg-blue-600 hover:text-white dark:hover:text-white text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-3 py-1.5 rounded-full transition" data-reply="Biaya Jasa Pengawasan (Supervisi) umumnya dihitung dari persentase Rencana Anggaran Biaya (RAB) fisik bangunan atau berdasarkan billing rate tenaga ahli (man-month).">
+              Harga Pengawasan
+            </button>
+            <button class="chat-option text-xs bg-gray-100 hover:bg-green-500 hover:text-white text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-3 py-1.5 rounded-full transition" data-reply="Anda dapat menghubungi admin kami melalui WhatsApp untuk mendapatkan estimasi harga yang lebih akurat sesuai kebutuhan pekerjaan Anda.">
+              Tanya via WhatsApp
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        var themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+        var themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            if(themeToggleLightIcon) themeToggleLightIcon.classList.remove('hidden');
+        } else {
+            if(themeToggleDarkIcon) themeToggleDarkIcon.classList.remove('hidden');
+        }
+
+        var themeToggleBtn = document.getElementById('theme-toggle');
+
+        if (themeToggleBtn) {
+            themeToggleBtn.addEventListener('click', function() {
+                themeToggleDarkIcon.classList.toggle('hidden');
+                themeToggleLightIcon.classList.toggle('hidden');
+
+                if (localStorage.getItem('color-theme')) {
+                    if (localStorage.getItem('color-theme') === 'light') {
+                        document.documentElement.classList.add('dark');
+                        localStorage.setItem('color-theme', 'dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                        localStorage.setItem('color-theme', 'light');
+                    }
+                } else {
+                    if (document.documentElement.classList.contains('dark')) {
+                        document.documentElement.classList.remove('dark');
+                        localStorage.setItem('color-theme', 'light');
+                    } else {
+                        document.documentElement.classList.add('dark');
+                        localStorage.setItem('color-theme', 'dark');
+                    }
+                }
+            });
+        }
+      });
+    </script>
     <!-- Script AOS -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
@@ -347,11 +447,11 @@
       window.addEventListener("scroll", function () {
         const navbar = document.getElementById("navbar");
         if (window.scrollY > 50) {
-          navbar.classList.add("bg-opacity-80", "backdrop-blur-md");
-          navbar.classList.replace("h-20", "h-16");
+          navbar.classList.remove("h-20", "bg-gradient-to-r", "from-blue-600", "via-blue-500", "to-blue-700");
+          navbar.classList.add("bg-black/30", "backdrop-blur-md", "h-16");
         } else {
-          navbar.classList.remove("bg-opacity-80", "backdrop-blur-md");
-          navbar.classList.replace("h-16", "h-20");
+          navbar.classList.remove("bg-black/30", "backdrop-blur-md", "h-16");
+          navbar.classList.add("h-20", "bg-gradient-to-r", "from-blue-600", "via-blue-500", "to-blue-700");
         }
       });
     </script>
@@ -380,5 +480,84 @@
       }
       @keyframes glowing { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
     </style>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const chatBtn = document.getElementById("chat-btn");
+        const chatPanel = document.getElementById("chat-panel");
+        const closeChat = document.getElementById("close-chat");
+        const chatBody = document.getElementById("chat-body");
+        const chatOptions = document.querySelectorAll(".chat-option");
+
+        function toggleChat() {
+          if (chatPanel.classList.contains("hidden")) {
+            chatPanel.classList.remove("hidden");
+            // small delay for transition
+            setTimeout(() => {
+              chatPanel.classList.remove("scale-95", "opacity-0");
+              chatPanel.classList.add("scale-100", "opacity-100");
+            }, 10);
+          } else {
+            chatPanel.classList.remove("scale-100", "opacity-100");
+            chatPanel.classList.add("scale-95", "opacity-0");
+            setTimeout(() => {
+              chatPanel.classList.add("hidden");
+            }, 300);
+          }
+        }
+
+        chatBtn.addEventListener("click", toggleChat);
+        closeChat.addEventListener("click", toggleChat);
+
+        chatOptions.forEach(option => {
+          option.addEventListener("click", function() {
+            const userText = this.innerText;
+            const botReply = this.getAttribute("data-reply");
+
+            // Add user message
+            const userMsg = document.createElement("div");
+            userMsg.className = "bg-blue-600 text-white px-4 py-2 rounded-lg rounded-tr-none self-end max-w-[90%] text-sm shadow-sm mt-2";
+            userMsg.innerText = userText;
+            chatBody.appendChild(userMsg);
+
+            chatBody.scrollTop = chatBody.scrollHeight;
+
+            // Hide options temporarily
+            const optionsContainer = document.getElementById("chat-options");
+            optionsContainer.style.display = "none";
+
+            // Simulate bot typing
+            setTimeout(() => {
+              const botMsg = document.createElement("div");
+              botMsg.className = "bg-blue-100 dark:bg-gray-700 text-blue-900 dark:text-blue-300 px-4 py-2 rounded-lg rounded-tl-none self-start max-w-[90%] text-sm shadow-sm mt-2 transition-all flex items-center shadow-sm w-12 h-8 justify-center";
+              botMsg.innerHTML = '<span class="flex space-x-1"><span class="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce"></span><span class="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce" style="animation-delay: 0.1s"></span><span class="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce" style="animation-delay: 0.2s"></span></span>';
+              chatBody.appendChild(botMsg);
+              chatBody.scrollTop = chatBody.scrollHeight;
+
+              setTimeout(() => {
+                chatBody.removeChild(botMsg);
+
+                const botReplyMsg = document.createElement("div");
+                botReplyMsg.className = "bg-blue-100 dark:bg-gray-700 text-blue-900 dark:text-blue-300 px-4 py-2 rounded-lg rounded-tl-none self-start max-w-[90%] text-sm shadow-sm mt-2";
+                botReplyMsg.innerText = botReply;
+                chatBody.appendChild(botReplyMsg);
+                chatBody.scrollTop = chatBody.scrollHeight;
+
+                if (botReply.includes("WhatsApp") || botReply.includes("Hubungi")) {
+                   const actionBtn = document.createElement("a");
+                   actionBtn.href = "https://wa.me/0818518168";
+                   actionBtn.target = "_blank";
+                   actionBtn.className = "mt-2 inline-block bg-green-500 text-white text-xs px-3 py-1.5 rounded-full hover:bg-green-600 self-start shadow-md flex items-center transition transform hover:scale-105";
+                   actionBtn.innerHTML = '<i class="fa-brands fa-whatsapp mr-1 text-sm"></i> Lanjutkan ke WhatsApp';
+                   chatBody.appendChild(actionBtn);
+                }
+
+                optionsContainer.style.display = "flex";
+                chatBody.scrollTop = chatBody.scrollHeight;
+              }, 1200);
+            }, 400);
+          });
+        });
+      });
+    </script>
   </body>
 </html>
