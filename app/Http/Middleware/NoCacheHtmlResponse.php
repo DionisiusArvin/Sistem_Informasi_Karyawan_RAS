@@ -56,7 +56,12 @@ class NoCacheHtmlResponse
         }
 
         // Untuk redirect halaman web (content-type bisa kosong), tetap no-cache.
-        return $request->expectsHtml();
+        if (method_exists($request, 'acceptsHtml')) {
+            return $request->acceptsHtml();
+        }
+
+        $accept = strtolower((string) $request->header('Accept', ''));
+        return str_contains($accept, 'text/html') || str_contains($accept, '*/*');
     }
 
     private function mergeVaryHeader(string $existingVary, string $value): string
