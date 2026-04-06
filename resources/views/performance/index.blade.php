@@ -64,7 +64,7 @@
                 </select>
             </div>
 
-            {{-- STATUS --}}
+            {{-- STATUS --}}     
             <div>
                 <label class="block mb-1 font-medium text-gray-700 dark:text-gray-300">
                     Status Tugas
@@ -83,8 +83,7 @@
                         Proses
                     </option>
                 </select>
-            </div>
-
+            </div> 
         </div>
 
         <button type="submit"
@@ -117,45 +116,50 @@
                 </div>
             </div>
 
-            <table class="w-full border-collapse text-gray-900 dark:text-gray-100">
-                <thead>
-                    <tr class="border-b border-gray-200 dark:border-gray-700">
-                        <th class="text-left py-2">Ranking</th>
-                        <th class="text-left py-2">Nama</th>
-                        <th class="text-left py-2">Total Tugas</th>
-                        @if(($type ?? 'staf') === 'kepala')
-                            <th class="text-left py-2">Kap. Produksi (30%)</th>
-                            <th class="text-left py-2">Nilai Kepala (70%)</th>
-                        @endif
-                        <th class="text-left py-2">Skor KPI</th>
-                        <th class="text-left py-2">Badge</th>
-                    </tr>
-                </thead>
-                <tbody>
-                @foreach($results as $row)
-                    <tr class="border-b border-gray-200 dark:border-gray-700">
-                        <td class="py-2 font-bold" style="color: {{ $row->rank_color }}">
-                            {{ $row->rank_icon }} #{{ $row->rank }}
-                        </td>
-                        <td class="py-2">{{ $row->name }}</td>
-                        <td class="py-2">{{ $row->total_tasks }}</td>
-                        @if(($type ?? 'staf') === 'kepala')
-                            <td class="py-2">{{ $row->kapasitas_produksi ?? '-' }}</td>
-                            <td class="py-2">{{ $row->nilai_kepala ?? '-' }}</td>
-                        @endif
-                        <td class="py-2 font-bold">
-                            {{ $row->final_score }}
-                        </td>
-                        <td class="py-2">
-                            <span class="px-3 py-1 rounded-full text-white"
-                                  style="background: {{ $row->rank_color }}">
-                                {{ $row->badge }}
-                            </span>
-                        </td>
-                    </tr>
-                @endforeach
-                </tbody>
-            </table>
+            <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+                <table class="w-full border-collapse text-left text-sm text-gray-900 dark:text-gray-100">
+                    <thead class="bg-gray-50 dark:bg-gray-700/50">
+                        <tr class="border-b border-gray-200 dark:border-gray-700">
+                            <th class="px-4 py-3 font-semibold whitespace-nowrap">Ranking</th>
+                            <th class="px-4 py-3 font-semibold whitespace-nowrap">Nama</th>
+                            <th class="px-4 py-3 font-semibold whitespace-nowrap text-center">Total Tugas</th>
+                            @if(($type ?? 'staf') === 'kepala')
+                                <th class="px-4 py-3 font-semibold whitespace-nowrap text-center">Kap. Produksi (30%)</th>
+                                <th class="px-4 py-3 font-semibold whitespace-nowrap text-center">Nilai Kepala (70%)</th>
+                            @endif
+                            <th class="px-4 py-3 font-semibold whitespace-nowrap text-center">Skor KPI</th>
+                            <th class="px-4 py-3 font-semibold whitespace-nowrap text-center">Badge</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                    @foreach($results as $row)
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                            <td class="px-4 py-3 font-bold whitespace-nowrap" style="color: {{ $row->rank_color }}">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-base">{{ $row->rank_icon }}</span>
+                                    <span>#{{ $row->rank }}</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 font-medium whitespace-nowrap">{{ str_replace('_', ' ', $row->name) }}</td>
+                            <td class="px-4 py-3 text-center">{{ $row->total_tasks }}</td>
+                            @if(($type ?? 'staf') === 'kepala')
+                                <td class="px-4 py-3 text-center">{{ $row->kapasitas_produksi ?? '-' }}</td>
+                                <td class="px-4 py-3 text-center">{{ $row->nilai_kepala ?? '-' }}</td>
+                            @endif
+                            <td class="px-4 py-3 font-bold text-center text-base">
+                                {{ $row->final_score }}
+                            </td>
+                            <td class="px-4 py-3 text-center whitespace-nowrap">
+                                <span class="inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold text-white shadow-sm"
+                                      style="background: {{ $row->rank_color }}">
+                                    {{ $row->badge }}
+                                </span>
+                            </td>
+                        </tr>
+                    @endforeach
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         {{-- ================= GRAFIK ================= --}}

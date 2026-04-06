@@ -126,12 +126,28 @@
                                 <span class="text-sm text-gray-700 dark:text-gray-300">Belum Diambil</span>
                             </div>
                         </div>
-                        @if(auth()->user()->role === 'kepala_divisi')
-                            <a href="{{ route('projects.tasks.create', $project->id) }}" 
-                            class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold shadow-md hover:bg-blue-700">
-                                + Tambah Tugas
+                        <div class="flex items-center space-x-2">
+                            <a href="{{ route('projects.export-gantt', $project->id) }}" 
+                               class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-semibold shadow-md hover:bg-emerald-700 inline-flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                Export Excel
                             </a>
-                        @endif
+
+                            @can('manage-projects')
+                            <button type="button" onclick="document.getElementById('importGanttModal').classList.remove('hidden'); document.getElementById('importGanttModal').classList.add('flex');"
+                               class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold shadow-md hover:bg-blue-700 inline-flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                Import Excel
+                            </button>
+                            @endcan
+
+                            @if(auth()->user()->role === 'kepala_divisi')
+                                <a href="{{ route('projects.tasks.create', $project->id) }}" 
+                                class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold shadow-md hover:bg-indigo-700">
+                                    + Tambah Tugas
+                                </a>
+                            @endif
+                        </div>
                     </div>
 
                     <div class="overflow-x-auto">
@@ -327,4 +343,49 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Import Gantt Excel -->
+    <div id="importGanttModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md p-6">
+            
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                Import Excel (Gantt)
+            </h3>
+
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                Upload file Excel (.xlsx / .xls) dengan format Gantt Chart. 
+                Tugas utama dan tugas harian baru akan otomatis ditambahkan. 
+                Data yang sudah ada tidak akan ditimpa.
+            </p>
+
+            <form action="{{ route('projects.import-gantt', $project->id) }}" method="POST" enctype="multipart/form-data">
+                @csrf
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        File Excel
+                    </label>
+                    <input type="file" name="gantt_file" accept=".xlsx,.xls" required
+                           class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 
+                                  file:rounded-lg file:border-0 file:text-sm file:font-semibold
+                                  file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100
+                                  dark:text-gray-300 dark:file:bg-gray-700 dark:file:text-gray-200">
+                </div>
+
+                <div class="flex justify-end space-x-3">
+                    <button type="button" 
+                        onclick="document.getElementById('importGanttModal').classList.add('hidden'); document.getElementById('importGanttModal').classList.remove('flex');"
+                        class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded-md hover:bg-gray-400">
+                        Batal
+                    </button>
+
+                    <button type="submit"
+                        class="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 font-semibold">
+                        Import
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </x-app-layout>

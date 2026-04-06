@@ -62,7 +62,21 @@
                         </thead>
                         <tbody class="text-gray-700 dark:text-gray-300">
                             @forelse ($tasks->where('assigned_to_staff_id', Auth::id()) as $task)
-                                <tr id="task-{{ $task->id }}" x-data="{ showModal: false }" class="border-b dark:border-gray-700">
+                                @php
+                                    $revisionNote = optional(
+                                        $task->activities->where('activity_type', 'permintaan_revisi')->last()
+                                    )->notes ?? 'Tidak ada catatan.';
+
+                                    $continueNote = optional(
+                                        $task->activities->where('activity_type', 'lanjutkan_tugas')->last()
+                                    )->notes ?? 'Tidak ada catatan.';
+                                @endphp
+
+                                <tr
+                                    id="task-{{ $task->id }}"
+                                    x-data="{ showRevisionModal: false, showContinueModal: false }"
+                                    class="border-b dark:border-gray-700"
+                                >
                                     <td class="py-3 px-4">
                                         <div class="text-normal mt-1 font-medium dark:text-gray-100">{{ $task->name }}</div>
                                         <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ $task->description }}</div>
@@ -83,36 +97,50 @@
                                                 Selesai <span class="text-xs font-normal italic">({{ $task->completion_status === 'tepat_waktu' ? 'Tepat Waktu' : 'Terlambat' }})</span>
                                             </span>
                                         @elseif($task->status === 'Revisi')
-                                            <button @click="showModal = 'revisi'" class="text-red-600 dark:text-red-400 hover:underline">Revisi (Catatan)</button>
+                                            <button
+                                                type="button"
+                                                @click="showRevisionModal = true"
+                                                class="text-red-600 dark:text-red-400 hover:underline"
+                                            >
+                                                Revisi (Catatan)
+                                            </button>
                                         @elseif($task->status === 'Lanjutkan')
-                                            <button @click="showModal = 'Lanjutkan'" class="text-blue-600 dark:text-blue-400 hover:underline">Lanjutkan (Catatan)</button>
+                                            <button
+                                                type="button"
+                                                @click="showContinueModal = true"
+                                                class="text-blue-600 dark:text-blue-400 hover:underline"
+                                            >
+                                                Lanjutkan (Catatan)
+                                            </button>
                                         @else
                                             <span class="dark:text-gray-400">{{ $task->status }}</span>
                                         @endif
 
-                                        <template x-if="showModal">
-                                            <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-                                                <div @click.away="showModal = false" class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md border dark:border-gray-700 text-left">
-                                                    <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2" x-text="showModal === 'revisi' ? 'Catatan Revisi' : 'Catatan Lanjutkan'"></h3>
-                                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">{{ $task->name }}</p>
-                                                    <div class="bg-gray-100 dark:bg-gray-900 p-4 rounded-md border dark:border-gray-700">
-                                                        <div x-show="showModal === 'revisi'">
-                                                            <p class="text-gray-800 dark:text-gray-200">
-                                                                {{ $task->activities->where('activity_type', 'permintaan_revisi')->last()->notes ?? 'Tidak ada catatan.' }}
-                                                            </p>
-                                                        </div>
-                                                        <div x-show="showModal === 'Lanjutkan'">
-                                                            <p class="text-gray-800 dark:text-gray-200">
-                                                                {{ $task->activities->where('activity_type', 'lanjutkan_tugas')->last()->notes ?? 'Tidak ada catatan.' }}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    <div class="mt-6 flex justify-end">
-                                                        <button @click="showModal = false" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition">Tutup</button>
-                                                    </div>
+                                        <div x-show="showRevisionModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" style="display: none;">
+                                            <div @click.away="showRevisionModal = false" class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md border dark:border-gray-700 text-left">
+                                                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">Catatan Revisi</h3>
+                                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">{{ $task->name }}</p>
+                                                <div class="bg-gray-100 dark:bg-gray-900 p-4 rounded-md border dark:border-gray-700">
+                                                    <p class="text-gray-800 dark:text-gray-200">{{ $revisionNote }}</p>
+                                                </div>
+                                                <div class="mt-6 flex justify-end">
+                                                    <button type="button" @click="showRevisionModal = false" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition">Tutup</button>
                                                 </div>
                                             </div>
-                                        </template>
+                                        </div>
+
+                                        <div x-show="showContinueModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" style="display: none;">
+                                            <div @click.away="showContinueModal = false" class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md border dark:border-gray-700 text-left">
+                                                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">Catatan Lanjutkan</h3>
+                                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">{{ $task->name }}</p>
+                                                <div class="bg-gray-100 dark:bg-gray-900 p-4 rounded-md border dark:border-gray-700">
+                                                    <p class="text-gray-800 dark:text-gray-200">{{ $continueNote }}</p>
+                                                </div>
+                                                <div class="mt-6 flex justify-end">
+                                                    <button type="button" @click="showContinueModal = false" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition">Tutup</button>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td class="text-center py-3 px-4">
                                         <a href="{{ route('dailytasks.upload.form', $task->id) }}" class="text-blue-600 dark:text-blue-400 hover:underline font-medium">Upload</a>

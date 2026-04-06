@@ -108,11 +108,11 @@ class PerformanceController extends Controller
                 // C = Bobot pekerjaan
                 $c = (int) ($dt->weight ?? 1);
 
-                // B = Konsistensi berdasarkan status / progress
+                // B = Konsistensi berdasarkan status
+                // Hanya tugas yang 'Selesai' yang bobotnya dihitung (100%), selain itu 0%
                 $b = match ($dt->status) {
                     'Selesai'  => 1.0,   // 100%
-                    'Revisi'   => 0.5,   // 50%
-                    default    => ($dt->progress ?? 0) / 100.0, // berdasarkan progress saat ini
+                    default    => 0.0,   // 0%
                 };
 
                 $score += $a * $c * $b;
@@ -198,11 +198,12 @@ class PerformanceController extends Controller
 
         /* ================= RANKING ================= */
         $topScore = $results->max('final_score');
+        $averageScore = $results->avg('final_score');
 
         return $results
             ->sortByDesc('final_score')
             ->values()
-            ->map(function ($row, $i) use ($topScore) {
+            ->map(function ($row, $i) use ($topScore, $averageScore) {
 
                 $row->rank = $i + 1;
 
@@ -220,9 +221,13 @@ class PerformanceController extends Controller
                     $row->rank_color = '#3b82f6';
                 }
 
-                $row->badge = ($row->final_score == $topScore && $topScore > 0)
-                    ? '🔥 Top Performer'
-                    : 'Perlu Improvement';
+                if ($row->final_score == $topScore && $topScore > 0) {
+                    $row->badge = '🔥 Top Performer';
+                } elseif ($row->final_score >= $averageScore && $row->final_score > 0) {
+                    $row->badge = '✨ Keren';
+                } else {
+                    $row->badge = '💪 Berjuang Lagi';
+                }
 
                 return $row;
             });

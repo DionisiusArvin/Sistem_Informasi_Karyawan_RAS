@@ -377,19 +377,25 @@
         </div>
 
         <!-- Options / Input -->
-        <div class="p-3 bg-white border-t border-gray-200 dark:border-gray-700">
-          <div id="chat-options" class="flex flex-wrap gap-2">
-            <button class="chat-option text-xs bg-gray-100 dark:bg-gray-700 hover:bg-blue-600 dark:hover:bg-blue-600 hover:text-white dark:hover:text-white text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-3 py-1.5 rounded-full transition" data-reply="Harga untuk Perencanaan Umum dan Arsitektur sangat bervariasi bergantung pada skala bangunan, tingkat kesulitan, dan lokasi. Silakan konsultasikan detail proyek Anda kepada tim ahli kami.">
+        <div class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex flex-col">
+          <div id="chat-options" class="flex gap-2 p-3 pb-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
+            <button class="chat-option flex-shrink-0 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-blue-600 dark:hover:bg-blue-600 hover:text-white dark:hover:text-white text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-3 py-1 rounded-full transition" data-reply="Harga untuk Perencanaan Umum dan Arsitektur sangat bervariasi bergantung pada skala bangunan, tingkat kesulitan, dan lokasi. Silakan konsultasikan detail proyek Anda kepada tim ahli kami.">
               Harga Perencanaan
             </button>
-            <button class="chat-option text-xs bg-gray-100 dark:bg-gray-700 hover:bg-blue-600 dark:hover:bg-blue-600 hover:text-white dark:hover:text-white text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-3 py-1.5 rounded-full transition" data-reply="Estimasi Harga Jasa Survey dan Pemetaan disesuaikan dengan luas lahan, topografi, dan jenis alat yang dibutuhkan (misalnya Total Station atau Drone/UAV). Hubungi kami untuk penawaran terbaik.">
+            <button class="chat-option flex-shrink-0 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-blue-600 dark:hover:bg-blue-600 hover:text-white dark:hover:text-white text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-3 py-1 rounded-full transition" data-reply="Estimasi Harga Jasa Survey dan Pemetaan disesuaikan dengan luas lahan, topografi, dan jenis alat yang dibutuhkan (misalnya Total Station atau Drone/UAV). Hubungi kami untuk penawaran terbaik.">
               Harga Jasa Survey
             </button>
-            <button class="chat-option text-xs bg-gray-100 dark:bg-gray-700 hover:bg-blue-600 dark:hover:bg-blue-600 hover:text-white dark:hover:text-white text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-3 py-1.5 rounded-full transition" data-reply="Biaya Jasa Pengawasan (Supervisi) umumnya dihitung dari persentase Rencana Anggaran Biaya (RAB) fisik bangunan atau berdasarkan billing rate tenaga ahli (man-month).">
+            <button class="chat-option flex-shrink-0 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-blue-600 dark:hover:bg-blue-600 hover:text-white dark:hover:text-white text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-3 py-1 rounded-full transition" data-reply="Biaya Jasa Pengawasan (Supervisi) umumnya dihitung dari persentase Rencana Anggaran Biaya (RAB) fisik bangunan atau berdasarkan billing rate tenaga ahli (man-month).">
               Harga Pengawasan
             </button>
-            <button class="chat-option text-xs bg-gray-100 hover:bg-green-500 hover:text-white text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-3 py-1.5 rounded-full transition" data-reply="Anda dapat menghubungi admin kami melalui WhatsApp untuk mendapatkan estimasi harga yang lebih akurat sesuai kebutuhan pekerjaan Anda.">
+            <button class="chat-option flex-shrink-0 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-green-500 hover:text-white dark:hover:bg-green-500 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-3 py-1 rounded-full transition" data-reply="Anda dapat menghubungi admin kami melalui WhatsApp untuk mendapatkan estimasi harga yang lebih akurat sesuai kebutuhan pekerjaan Anda.">
               Tanya via WhatsApp
+            </button>
+          </div>
+          <div class="px-3 pb-3 pt-1 flex items-center">
+            <input type="text" id="chat-input" class="w-full bg-gray-100 dark:bg-gray-700 text-sm text-gray-800 dark:text-gray-200 rounded-full px-4 py-2 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ketik pesan disini...">
+            <button id="send-chat" class="ml-2 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full w-9 h-9 flex items-center justify-center flex-shrink-0 transition transform hover:scale-105">
+              <i class="fa-solid fa-paper-plane text-xs"></i>
             </button>
           </div>
         </div>
@@ -457,6 +463,14 @@
     </script>
 
     <style>
+      /* Hide scrollbar */
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      .scrollbar-hide {
+        -ms-overflow-style: none; /* IE and Edge */
+        scrollbar-width: none; /* Firefox */
+      }
       /* Animasi navbar */
       @keyframes slideFadeDown {
         0% { opacity: 0; transform: translateY(-50px); }
@@ -487,15 +501,18 @@
         const closeChat = document.getElementById("close-chat");
         const chatBody = document.getElementById("chat-body");
         const chatOptions = document.querySelectorAll(".chat-option");
+        const chatInput = document.getElementById("chat-input");
+        const sendChat = document.getElementById("send-chat");
 
         function toggleChat() {
           if (chatPanel.classList.contains("hidden")) {
             chatPanel.classList.remove("hidden");
-            // small delay for transition
             setTimeout(() => {
               chatPanel.classList.remove("scale-95", "opacity-0");
               chatPanel.classList.add("scale-100", "opacity-100");
+              chatBody.scrollTo({top: chatBody.scrollHeight, behavior: 'smooth'});
             }, 10);
+            chatInput.focus();
           } else {
             chatPanel.classList.remove("scale-100", "opacity-100");
             chatPanel.classList.add("scale-95", "opacity-0");
@@ -508,54 +525,109 @@
         chatBtn.addEventListener("click", toggleChat);
         closeChat.addEventListener("click", toggleChat);
 
-        chatOptions.forEach(option => {
-          option.addEventListener("click", function() {
-            const userText = this.innerText;
-            const botReply = this.getAttribute("data-reply");
-
-            // Add user message
+        function handleUserMessage(userText, customReply = null) {
+            if(!userText.trim()) return;
+            
+            // Add user message with animation
             const userMsg = document.createElement("div");
-            userMsg.className = "bg-blue-600 text-white px-4 py-2 rounded-lg rounded-tr-none self-end max-w-[90%] text-sm shadow-sm mt-2";
-            userMsg.innerText = userText;
+            userMsg.className = "bg-blue-600 text-white px-4 py-2 rounded-lg rounded-tr-none self-end max-w-[90%] text-sm shadow-sm mt-3 transition-all duration-300 transform translate-y-4 opacity-0";
+            userMsg.innerText = userText.trim();
             chatBody.appendChild(userMsg);
+            
+            setTimeout(() => {
+               userMsg.classList.remove("translate-y-4", "opacity-0");
+            }, 20);
 
-            chatBody.scrollTop = chatBody.scrollHeight;
+            chatBody.scrollTo({top: chatBody.scrollHeight, behavior: 'smooth'});
 
-            // Hide options temporarily
-            const optionsContainer = document.getElementById("chat-options");
-            optionsContainer.style.display = "none";
+            // Bot response logic
+            let botReply = customReply;
+            if(!botReply) {
+                const lowerText = userText.toLowerCase();
+                if (lowerText.includes("harga") && lowerText.includes("perencanaan")) {
+                    botReply = "Harga untuk Perencanaan Umum dan Arsitektur sangat bervariasi bergantung pada skala bangunan, tingkat kesulitan, dan lokasi. Silakan konsultasikan detail proyek Anda kepada tim ahli kami.";
+                } else if (lowerText.includes("survey") || lowerText.includes("survei")) {
+                    botReply = "Estimasi Harga Jasa Survey dan Pemetaan disesuaikan dengan luas lahan, topografi, dan jenis alat yang dibutuhkan. Hubungi kami untuk penawaran terbaik.";
+                } else if (lowerText.includes("pengawasan") || lowerText.includes("supervisi")) {
+                    botReply = "Biaya Jasa Pengawasan (Supervisi) umumnya dihitung dari persentase Rencana Anggaran Biaya (RAB) fisik bangunan atau berdasarkan billing rate tenaga ahli (man-month).";
+                } else if (lowerText.includes("whatsapp") || lowerText.includes("wa") || lowerText.includes("kontak") || lowerText.includes("hubungi")) {
+                    botReply = "Silakan hubungi admin kami melalui tombol WhatsApp yang telah disediakan untuk informasi lebih lanjut.";
+                } else if (lowerText.includes("harga") || lowerText.includes("biaya")) {
+                    botReply = "Harga jasa kami bervariasi tergantung jenis layanan dan skala proyek. Anda bisa spesifikkan layanan yang dimaksud (misal: Harga Survey) atau hubungi kami via WhatsApp untuk detailnya.";
+                } else if (lowerText.includes("halo") || lowerText.includes("hai") || lowerText.includes("hi")) {
+                    botReply = "Halo! Silakan ketik pertanyaan Anda atau pilih opsi yang tersedia di bawah.";
+                } else {
+                    botReply = "Maaf, saya asisten virtual terbatas. Anda bisa memilih salah satu opsi layanan atau hubungi kami melalui WhatsApp untuk detail lebih lanjut.";
+                }
+            }
 
             // Simulate bot typing
             setTimeout(() => {
               const botMsg = document.createElement("div");
-              botMsg.className = "bg-blue-100 dark:bg-gray-700 text-blue-900 dark:text-blue-300 px-4 py-2 rounded-lg rounded-tl-none self-start max-w-[90%] text-sm shadow-sm mt-2 transition-all flex items-center shadow-sm w-12 h-8 justify-center";
-              botMsg.innerHTML = '<span class="flex space-x-1"><span class="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce"></span><span class="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce" style="animation-delay: 0.1s"></span><span class="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce" style="animation-delay: 0.2s"></span></span>';
+              botMsg.className = "bg-blue-100 dark:bg-gray-700 text-blue-900 dark:text-blue-300 px-4 py-2 rounded-lg rounded-tl-none self-start max-w-[90%] text-sm shadow-sm mt-3 transition-all duration-300 transform translate-y-4 opacity-0 flex items-center justify-center w-14 h-9";
+              botMsg.innerHTML = '<span class="flex space-x-1"><span class="w-1.5 h-1.5 bg-blue-600 dark:bg-blue-400 rounded-full animate-bounce"></span><span class="w-1.5 h-1.5 bg-blue-600 dark:bg-blue-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></span><span class="w-1.5 h-1.5 bg-blue-600 dark:bg-blue-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></span></span>';
               chatBody.appendChild(botMsg);
-              chatBody.scrollTop = chatBody.scrollHeight;
+              
+              setTimeout(() => {
+                 botMsg.classList.remove("translate-y-4", "opacity-0");
+              }, 20);
+
+              chatBody.scrollTo({top: chatBody.scrollHeight, behavior: 'smooth'});
 
               setTimeout(() => {
                 chatBody.removeChild(botMsg);
 
                 const botReplyMsg = document.createElement("div");
-                botReplyMsg.className = "bg-blue-100 dark:bg-gray-700 text-blue-900 dark:text-blue-300 px-4 py-2 rounded-lg rounded-tl-none self-start max-w-[90%] text-sm shadow-sm mt-2";
+                botReplyMsg.className = "bg-blue-100 dark:bg-gray-700 text-blue-900 dark:text-blue-300 px-4 py-2 rounded-lg rounded-tl-none self-start max-w-[90%] text-sm shadow-sm mt-3 transition-all duration-300 transform translate-y-4 opacity-0";
                 botReplyMsg.innerText = botReply;
                 chatBody.appendChild(botReplyMsg);
-                chatBody.scrollTop = chatBody.scrollHeight;
 
-                if (botReply.includes("WhatsApp") || botReply.includes("Hubungi")) {
+                setTimeout(() => {
+                   botReplyMsg.classList.remove("translate-y-4", "opacity-0");
+                }, 20);
+
+                if (botReply.includes("WhatsApp") || botReply.includes("Hubungi") || botReply.includes("hubungi") || botReply.includes("whatsapp") || botReply.includes("wa") || botReply.includes("kontak")) {
                    const actionBtn = document.createElement("a");
                    actionBtn.href = "https://wa.me/0818518168";
                    actionBtn.target = "_blank";
-                   actionBtn.className = "mt-2 inline-block bg-green-500 text-white text-xs px-3 py-1.5 rounded-full hover:bg-green-600 self-start shadow-md flex items-center transition transform hover:scale-105";
+                   actionBtn.className = "mt-3 inline-block bg-green-500 text-white text-xs px-3 py-1.5 rounded-full hover:bg-green-600 self-start shadow-md flex items-center transition transform hover:scale-105 duration-300 translate-y-4 opacity-0";
                    actionBtn.innerHTML = '<i class="fa-brands fa-whatsapp mr-1 text-sm"></i> Lanjutkan ke WhatsApp';
                    chatBody.appendChild(actionBtn);
+                   
+                   setTimeout(() => {
+                      actionBtn.classList.remove("translate-y-4", "opacity-0");
+                   }, 20);
                 }
 
-                optionsContainer.style.display = "flex";
-                chatBody.scrollTop = chatBody.scrollHeight;
+                chatBody.scrollTo({top: chatBody.scrollHeight, behavior: 'smooth'});
               }, 1200);
-            }, 400);
+            }, 300);
+        }
+
+        chatOptions.forEach(option => {
+          option.addEventListener("click", function() {
+            const userText = this.innerText;
+            const botReply = this.getAttribute("data-reply");
+            handleUserMessage(userText, botReply);
           });
+        });
+
+        sendChat.addEventListener("click", function() {
+           const text = chatInput.value;
+           if(text.trim()) {
+               handleUserMessage(text);
+               chatInput.value = "";
+           }
+        });
+
+        chatInput.addEventListener("keypress", function(e) {
+           if(e.key === "Enter") {
+               const text = chatInput.value;
+               if(text.trim()) {
+                   handleUserMessage(text);
+                   chatInput.value = "";
+               }
+           }
         });
       });
     </script>

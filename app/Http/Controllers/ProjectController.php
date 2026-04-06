@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use App\Services\NotificationService;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ProjectGanttExport;
+use App\Imports\ProjectGanttImport;
 
 class ProjectController extends Controller
 {
@@ -180,6 +183,40 @@ class ProjectController extends Controller
             'project'   => $project,
             'divisions' => $divisions,
         ]);
+    }
+
+    public function exportGanttExcel(Project $project)
+    {
+        if (! Gate::allows('view-project')) {
+            abort(403);
+        }
+
+        $project->load('tasks.dailyTasks.activities');
+
+        $filename = 'gantt-' . \Str::slug($project->name) . '.xlsx';
+
+        return Excel::download(new ProjectGanttExport($project), $filename);
+    }
+
+    public function importGanttExcel(Request $request, Project $project)
+    {
+        if (! Gate::allows('manage-projects')) {
+            abort(403);
+        }
+
+        $request->validate([
+            'gantt_file' => 'required|file|mimes:xlsx,xls',
+        ]);
+
+        $import = new ProjectGanttImport($project);
+        Excel::import($import, $request->file('gantt_file'));
+
+        $imported = $import->getImportedTasks();
+        $newCount = collect($imported)->where('new', true)->count();
+
+        return redirect()
+            ->route('projects.show', $project->id)
+            ->with('success', "Import berhasil! {$newCount} item baru ditambahkan.");
     }
 
     private function createDefaultChecklist($project)

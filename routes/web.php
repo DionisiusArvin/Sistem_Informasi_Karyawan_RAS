@@ -98,6 +98,8 @@ Route::middleware('auth')->group(function () {
     */
     Route::resource('projects', ProjectController::class);
     Route::patch('/projects/{project}/force-finish', [ProjectController::class, 'forceFinish'])->name('projects.force-finish');
+    Route::get('/projects/{project}/export-gantt', [ProjectController::class, 'exportGanttExcel'])->name('projects.export-gantt');
+    Route::post('/projects/{project}/import-gantt', [ProjectController::class, 'importGanttExcel'])->name('projects.import-gantt');
     Route::resource('projects.tasks', TaskController::class)->shallow();
 
     Route::get('/tasks', function () {

@@ -227,7 +227,7 @@
 
     <div class="py-6" x-data="{ showForm: false }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-lg sm:rounded-lg">
+            <div class="bg-white dark:bg-gray-800 overflow-visible shadow-lg sm:rounded-lg">
                 <div class="p-6">
                     {{-- Header Kartu --}}
                     <div class="flex justify-between items-center mb-4">
@@ -360,7 +360,8 @@
                     {{-- =================================================================== --}}
                     {{-- AWAL BAGIAN TABEL YANG DIRAPIKAN --}}
                     {{-- =================================================================== --}}
-                    <div class="overflow-x-auto border border-gray-200 dark:border-gray-700 sm:rounded-lg">
+                    <div class="border border-gray-200 dark:border-gray-700 sm:rounded-lg overflow-visible">
+                        <div class="overflow-x-auto overflow-y-visible">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
@@ -406,7 +407,7 @@
 
                                         <td class="py-4 px-4 text-center">
                                             <div class="flex items-center gap-2">
-                                                <span class="text-sm font-semibold">
+                                                <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">
                                                     {{ $dailyTask->status_based_progress }}%
                                                 </span>
 
@@ -472,7 +473,7 @@
                                                 <div x-show="actionDropdownOpen"
                                                      @click.away="actionDropdownOpen = false"
                                                      x-transition
-                                                     class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white dark:bg-gray-700 ring-1 ring-black ring-opacity-5 focus:outline-none z-10"
+                                                     class="origin-bottom-right absolute right-0 bottom-full mb-2 w-56 rounded-md shadow-lg bg-white dark:bg-gray-700 ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
                                                      role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1" style="display: none;">
                                                     <div class="py-1" role="none">
                                                         @if(auth()->user()->role === 'kepala_divisi')
@@ -826,6 +827,7 @@
                                 @endforelse
                             </tbody>
                         </table>
+                        </div>
                     </div>
                 </div>
             </div>

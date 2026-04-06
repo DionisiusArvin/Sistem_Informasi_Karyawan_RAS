@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use App\Http\Middleware\NoCacheHtmlResponse;
 use App\Http\Middleware\RoleMiddleware;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -16,6 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // dari code pertama (WAJIB ADA)
         $middleware->alias([
             'role' => RoleMiddleware::class,
+        ]);
+
+        // Supaya browser selalu ambil HTML terbaru tanpa hard refresh.
+        $middleware->web(append: [
+            NoCacheHtmlResponse::class,
         ]);
 
         // dari code kedua (tetap dibiarkan, tidak dihapus)
