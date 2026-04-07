@@ -1,6 +1,8 @@
 /.phpunit.cache
 /node_modules
-/public/build
+# Hostinger shared hosting: asset Vite dibuild di lokal lalu dipush.
+# Jangan ignore folder build agar CSS/JS terbaru ikut ter-deploy.
+# /public/build
 /public/hot
 /public/storage
 /storage/*.key
