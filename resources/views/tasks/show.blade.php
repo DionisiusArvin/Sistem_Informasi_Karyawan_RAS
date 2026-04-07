@@ -223,6 +223,7 @@
             $dailyTaskOptions = $dailyTaskOptionsByCategory[$templateCategory][$task->jenis_tugas] ?? [];
         }
         $showTemplate = !empty($dailyTaskOptions);
+        $useManualTitleInput = blank($templateCategory);
     @endphp
 
     <div class="py-6" x-data="{ showForm: false }">
@@ -307,8 +308,36 @@
                                                 </select>
                                             </div>
                                         </div>
+                                    @elseif($useManualTitleInput)
+                                        <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-start">
+                                            <div class="col-span-3">
+                                                <x-input-label for="name" value="Judul Tugas Harian" />
+                                                <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required />
+                                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                    Isi judul tugas harian secara manual untuk proyek tanpa kategori.
+                                                </p>
+                                            </div>
+                                            <div class="col-span-1">
+                                                <x-input-label for="weight" value="Bobot (1-10)" />
+                                                <x-text-input id="weight" class="block mt-1 w-24" type="number" name="weight" min="1" max="10" :value="old('weight', 1)" required />
+                                            </div>
+                                            <div class="col-span-1">
+                                                <x-input-label for="due_date" value="Batas Waktu" />
+                                                <x-text-input id="due_date" class="block mt-1 w-full" type="date" name="due_date" :value="old('due_date')" required />
+                                            </div>
+                                            <div class="col-span-1">
+                                                <x-input-label for="assigned_to_staff_id" value="Tugaskan ke (Opsional)" />
+                                                <select name="assigned_to_staff_id" id="assigned_to_staff_id"
+                                                    class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
+                                                    <option value="">-- Semua Staff Bisa Ambil --</option>
+                                                    @foreach ($users as $user)
+                                                        <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->role }})</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </div>
                                     @else
-                                        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-start">
+                                        <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-start">
                                             <div class="col-span-3">
                                                 <x-input-label for="project_item_id" value="Item Pekerjaan" />
                                                 <select name="project_item_id" id="project_item_id" required
@@ -330,6 +359,10 @@
                                             <div class="col-span-1">
                                                 <x-input-label for="weight" value="Bobot (1-10)" />
                                                 <x-text-input id="weight" class="block mt-1 w-24" type="number" name="weight" min="1" max="10" :value="old('weight', 1)" required />
+                                            </div>
+                                            <div class="col-span-1">
+                                                <x-input-label for="due_date" value="Batas Waktu" />
+                                                <x-text-input id="due_date" class="block mt-1 w-full" type="date" name="due_date" :value="old('due_date')" required />
                                             </div>
                                             <div class="col-span-1">
                                                 <x-input-label for="assigned_to_staff_id" value="Tugaskan ke (Opsional)" />
@@ -734,6 +767,19 @@
                                                                             value="{{ old('manual_name', $isManualName ? $dailyTask->name : '') }}" />
                                                                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Isi jika tidak ada di template.</p>
                                                                     </div>
+                                                                @elseif($useManualTitleInput)
+                                                                    <x-input-label for="edit_name_{{ $dailyTask->id }}" value="Judul Tugas Harian" />
+                                                                    <x-text-input
+                                                                        id="edit_name_{{ $dailyTask->id }}"
+                                                                        class="block mt-1 w-full"
+                                                                        type="text"
+                                                                        name="name"
+                                                                        value="{{ old('name', $dailyTask->name) }}"
+                                                                        required
+                                                                    />
+                                                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                                        Proyek tanpa kategori menggunakan judul manual.
+                                                                    </p>
                                                                 @else
                                                                     <x-input-label value="Item Pekerjaan" />
                                                                     <select name="project_item_id" required

@@ -3,11 +3,11 @@
 namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class DataChanged implements ShouldBroadcast
+class DataChanged implements ShouldBroadcastNow
 {
     use Dispatchable, SerializesModels;
 

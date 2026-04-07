@@ -202,6 +202,7 @@ class DailyTaskController extends Controller
             $dailyTaskOptions = $dailyTaskOptionsByCategory[$templateCategory][$task->jenis_tugas] ?? [];
         }
         $showTemplate = !empty($dailyTaskOptions);
+        $useManualTitleInput = blank($templateCategory);
 
         if ($showTemplate) {
             $manualName = trim((string) $request->input('manual_name', ''));
@@ -237,6 +238,16 @@ class DailyTaskController extends Controller
             }
 
             $projectItemId = null;
+        } elseif ($useManualTitleInput) {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'due_date' => 'required|date',
+                'description' => 'nullable|string',
+                'weight' => 'required|integer|min:1|max:10',
+            ]);
+
+            $projectItemId = null;
+            $name = trim((string) $validated['name']);
         } else {
             $validated = $request->validate([
                 'project_item_id' => 'required|exists:project_items,id',
@@ -598,6 +609,7 @@ public function handleUpload(Request $request, DailyTask $dailyTask)
         $dailyTaskOptions = $dailyTaskOptionsByCategory[$templateCategory][$dailyTask->task->jenis_tugas] ?? [];
     }
     $showTemplate = !empty($dailyTaskOptions);
+    $useManualTitleInput = blank($templateCategory);
 
     if ($showTemplate) {
         $manualName = trim((string) $request->input('manual_name', ''));
@@ -629,6 +641,21 @@ public function handleUpload(Request $request, DailyTask $dailyTask)
         $dailyTask->update([
             'project_item_id' => null,
             'name' => $name,
+            'due_date' => $validated['due_date'],
+            'description' => $validated['description'] ?? null,
+            'weight' => $validated['weight'],
+        ]);
+    } elseif ($useManualTitleInput) {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'due_date' => 'required|date',
+            'description' => 'nullable|string',
+            'weight' => 'required|integer|min:1|max:10',
+        ]);
+
+        $dailyTask->update([
+            'project_item_id' => null,
+            'name' => trim((string) $validated['name']),
             'due_date' => $validated['due_date'],
             'description' => $validated['description'] ?? null,
             'weight' => $validated['weight'],

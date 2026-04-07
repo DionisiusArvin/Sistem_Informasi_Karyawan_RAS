@@ -51,33 +51,6 @@
             </div>
 
             @livewireScripts
-
-            {{-- 🔥 LISTENER REVERB REALTIME (DITAMBAHKAN, TIDAK MENGHAPUS APAPUN) --}}
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    if (!window.Echo) return;
-
-    Echo.channel('data-channel')
-        .listen('.DataChanged', () => {
-
-            const path = window.location.pathname;
-
-            // ❌ Jangan reload di halaman create & upload
-            if (
-                path.includes('/projects/create') ||
-                path.includes('/daily-tasks') && path.includes('/upload')
-            ) {
-                return;
-            }
-
-            if (document.querySelector('[data-flash-success]')) {
-                return;
-            }
-
-            window.location.reload();
-        });
-});
-</script>
             @stack('scripts')
         </div>
     </body>
